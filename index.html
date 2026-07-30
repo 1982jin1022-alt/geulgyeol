@@ -1189,6 +1189,19 @@ const RULES = `당신은 소설·팬픽 전문 번역가입니다. 아래 규칙
 (한 줄에 하나씩)  한국어표기 | 원문표기 | 분류
 분류는 인명·지명·조직·용어 중 하나. 고유명사가 없으면 "없음"이라고만 쓴다.`;
 
+/* 붙여넣을 때 딸려오는 보이지 않는 문자들을 걷어냅니다.
+   이런 게 섞여 있으면 구글이 요청 자체를 거부해요.
+   (BOM · 제어문자 · 짝을 잃은 이모지 조각) */
+function cleanText(str){
+  let t=String(str||'').replace(/\uFEFF/g,'');
+  t=t.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g,'');
+  for(let i=0;i<2;i++){
+    t=t.replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])/g,'')
+       .replace(/(^|[^\uD800-\uDBFF])([\uDC00-\uDFFF])/g,'$1');
+  }
+  return t;
+}
+
 function splitText(text,limit){
   if(text.length<=limit) return [text];
   const paras=text.split(/\n\s*\n/); const chunks=[]; let buf='';
@@ -1198,7 +1211,7 @@ function splitText(text,limit){
       push();
       const sents=p.match(/[^。．.!?！？\n]+[。．.!?！？\n]*/g)||[p];
       let s='';
-      for(const sn of sents){ if((s+sn).length>limit&&s){chunks.push(s.trim());s='';} s+=sn; }
+      for(const sn of sents){ if((s+sn).length>limit&&s.trim()){chunks.push(s.trim());s='';} s+=sn; }
       if(s.trim())chunks.push(s.trim());
       continue;
     }
@@ -1259,18 +1272,26 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
     for(let s=sec; s>0; s--){ say(`${why} · ${s}초 뒤 다시 시도`); await new Promise(r=>setTimeout(r,1000)); }
   }
 
-  for(let a=0;a<4;a++){
+  /* 400(요청 거부)이 오면 의심스러운 설정을 하나씩 빼고 다시 시도합니다.
+     구글이 한국어로 오류를 보내도 되도록, 메시지 글자에 의존하지 않습니다. */
+  function retry400(){
+    if(noThink){ noThink=false; say('설정을 바꿔 다시 시도하는 중'); return true; }
+    if((maxTok||16384)>8192){ maxTok=8192; say('분량을 줄여 다시 시도하는 중'); return true; }
+    return false;
+  }
+
+  for(let a=0;a<6;a++){
     /* ── 스트리밍: 글자가 만들어지는 대로 바로 보여줍니다 ── */
     if(opts.onChunk){
       try{
         const res=await fetch(base+':streamGenerateContent?alt=sse',
           {method:'POST',headers,body:JSON.stringify(makeBody())});
-        if(res.status===400 && noThink){
+        if(res.status===400){
           const t=await res.text();
-          if(/think/i.test(t)){ noThink=false; continue; }
-          throw new Error(errMsg(res.status, safeJson(t)));
+          if(retry400()) continue;
+          throw new Error(errMsg(400, safeJson(t)));
         }
-        if((res.status===429||res.status>=500) && a<3){
+        if((res.status===429||res.status>=500) && a<5){
           await waitVisibly(res.status===429?20:6, res.status===429?'사용량 한도에 걸렸어요':'서버가 바빠요');
           continue;
         }
@@ -1312,14 +1333,13 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
       res=await fetch(base+':generateContent',{method:'POST',headers,body:JSON.stringify(makeBody())});
     }catch(e){ throw new Error('인터넷 연결에 실패했어요. 웹 주소(https)로 열었는지 확인해 주세요.'); }
 
-    if((res.status===429||res.status>=500)&&a<3){
+    if((res.status===429||res.status>=500)&&a<5){
       await waitVisibly(res.status===429?20:6, res.status===429?'사용량 한도에 걸렸어요':'서버가 바빠요');
       continue;
     }
     const data=await res.json().catch(()=>null);
     if(!res.ok){
-      const msg=data?.error?.message||`HTTP ${res.status}`;
-      if(res.status===400 && noThink && /think/i.test(msg)){ noThink=false; continue; }
+      if(res.status===400 && retry400()) continue;
       throw new Error(errMsg(res.status,data));
     }
     const cand=data?.candidates?.[0];
@@ -1329,7 +1349,7 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
     }
     const text=(cand.content?.parts||[]).filter(p=>p.text&&!p.thought).map(p=>p.text).join('');
     if(cand.finishReason==='MAX_TOKENS'){
-      if(opts.fast && a<3){ maxTok=(maxTok||2048)*2; noThink=true; continue; }
+      if(opts.fast && a<5){ maxTok=(maxTok||2048)*2; noThink=true; continue; }
       if(!text.trim()) throw new Error('분량이 커요. 설정에서 분량을 줄여 주세요.');
     }
     if(!text.trim()){
@@ -1344,7 +1364,10 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
 function safeJson(t){ try{ return JSON.parse(t); }catch(e){ return null; } }
 function errMsg(status,data){
   const msg=data?.error?.message||`HTTP ${status}`;
-  if(status===400&&/API key/i.test(msg)) return 'API 키가 올바르지 않아요.';
+  if(status===400&&/API[_ ]?key|API ?키/i.test(msg))
+    return 'API 키가 올바르지 않아요. 복사할 때 앞뒤 빈칸이 딸려오지 않았는지 확인해 주세요.';
+  if(status===400)
+    return '구글이 이 요청을 받아주지 않았어요.\n설정에서 모델을 gemini-2.5-flash로 바꾸거나, 번역 속도를 "꼼꼼하게"로 두고 다시 해보세요.\n\n(구글이 보낸 말: '+msg+')';
   if(status===403) return '이 키로는 접근할 수 없어요.';
   if(status===404) return '선택한 모델을 쓸 수 없어요. 설정에서 다른 모델을 골라 주세요.';
   if(status===429) return '무료 사용량 한도에 걸렸어요. 1~2분 뒤 다시 해주세요.';
@@ -1570,12 +1593,19 @@ let running=false, tickTimer=null;
 async function translate(){
   if(running) return;
   const key=$('apikey').value.trim(), model=$('model').value;
-  const limit=+$('chunk').value, memo=$('memo').value, src=$('source').value.trim();
+  const limit=+$('chunk').value;
+  const rawSrc=$('source').value;
+  const memo=cleanText($('memo').value), src=cleanText(rawSrc).trim();
   const noThink = $('speed').value==='fast';
   if(!key){ $('cfgCard').classList.add('open'); $('apikey').focus(); return toast('API 키를 먼저 넣어 주세요'); }
   if(!src){ $('source').focus(); return toast('번역할 원문이 없어요'); }
 
-  const chunks=splitText(src,limit);
+  /* 보이지 않는 문자가 있었다면 알려줍니다 (같은 문제가 또 나지 않도록) */
+  const wiped=rawSrc.length-cleanText(rawSrc).length;
+  if(wiped>0) srcNote(`눈에 보이지 않는 특수문자 ${wiped}개를 빼고 번역했어요. 원문은 그대로 두었습니다.`);
+
+  const chunks=splitText(src,limit).filter(c=>c && c.trim());
+  if(!chunks.length){ $('source').focus(); return toast('번역할 내용이 없어요'); }
   running=true; $('run').disabled=true;
   $('status').classList.add('show');
   $('bar').classList.toggle('show',chunks.length>1);
@@ -1594,7 +1624,7 @@ async function translate(){
 
   const done=[]; let gloss=[];
   try{
-    const rawTitle=$('docTitle').value.trim();
+    const rawTitle=cleanText($('docTitle').value).trim();
     if(rawTitle){
       say('제목을 보는 중');
       curTitleKo=await translateTitle(key,model,rawTitle,memo);
