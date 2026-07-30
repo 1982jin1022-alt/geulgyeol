@@ -599,13 +599,11 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
         </div>
 
         <label class="field" for="model">모델</label>
-        <select id="model">
-          <option value="gemini-2.5-flash">gemini-2.5-flash (기본 · 품질 좋음)</option>
-          <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite (가장 빠름)</option>
-          <option value="gemini-flash-latest">gemini-flash-latest (최신)</option>
-          <option value="gemini-3.6-flash">gemini-3.6-flash</option>
-        </select>
-        <p class="hint">너무 느리면 <b>flash-lite</b>로 바꿔 보세요. 훨씬 빠른 대신 문장이 조금 밋밋해질 수 있어요.</p>
+        <div class="urlrow">
+          <select id="model"></select>
+          <button class="btn ghost" id="modelSync">목록 새로고침</button>
+        </div>
+        <p class="hint" id="modelHint">구글은 모델을 자주 바꿔요. "쓸 수 없는 모델"이라고 나오면 <b>목록 새로고침</b>을 누르세요. 지금 키로 쓸 수 있는 것만 골라 담아옵니다.</p>
         <label class="field" for="speed">번역 속도</label>
         <select id="speed">
           <option value="fast">빠르게 (권장)</option>
@@ -706,7 +704,7 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
       </div>
     </section>
 
-    <footer>글결 v20 · 폰 설치판<br>원문 대조 · 각주 · 단어장 · 서재</footer>
+    <footer>글결 v22<br>원문 대조 · 각주 · 단어장 · 서재</footer>
   </div>
 
   <!-- ═══════════ 서재 탭 ═══════════ -->
@@ -959,7 +957,7 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
       <div class="in">
         <p><b>"API 키가 올바르지 않아요"</b> — 복사할 때 앞뒤 빈칸이 딸려왔을 수 있어요. 지우고 다시 붙여넣어 보세요.</p>
         <p><b>"인터넷 연결에 실패했어요"</b> — 광고 차단 프로그램이 막고 있을 수 있어요. 잠시 꺼보세요.</p>
-        <p><b>"모델을 쓸 수 없어요"</b> — 설정의 <b>모델</b>에서 다른 항목을 골라 보세요.</p>
+        <p><b>"모델을 쓸 수 없어요"</b> — 구글이 그 모델을 없앤 거예요. 설정에서 <b>목록 새로고침</b>을 누르면 지금 쓸 수 있는 것만 다시 담아옵니다.</p>
         <p><b>"한도에 걸렸어요"</b> — 오늘 몫을 다 썼어요. 1~2분 뒤나 내일 이어서 하세요.</p>
         <p><b>"이 링크는 읽지 못했어요"</b> — 위 <b>링크로 가져오기</b> 항목을 봐주세요.</p>
       </div>
@@ -1378,7 +1376,7 @@ function errMsg(status,data){
   if(status===400&&/API[_ ]?key|API ?키/i.test(msg))
     return 'API 키가 올바르지 않아요. 복사할 때 앞뒤 빈칸이 딸려오지 않았는지 확인해 주세요.';
   if(status===400)
-    return '구글이 이 요청을 받아주지 않았어요.\n설정에서 모델을 gemini-2.5-flash로 바꾸거나, 번역 속도를 "꼼꼼하게"로 두고 다시 해보세요.\n\n(구글이 보낸 말: '+msg+')';
+    return '구글이 이 요청을 받아주지 않았어요.\n설정에서 [목록 새로고침]을 눌러 다른 모델을 골라 보거나, 번역 속도를 "꼼꼼하게"로 두고 다시 해보세요.\n\n(구글이 보낸 말: '+msg+')';
   if(status===403) return '이 키로는 접근할 수 없어요.';
   if(status===404) return '선택한 모델을 쓸 수 없어요. 설정에서 다른 모델을 골라 주세요.';
   if(status===429) return '무료 사용량 한도에 걸렸어요. 1~2분 뒤 다시 해주세요.';
@@ -1742,6 +1740,14 @@ async function translate(){
     const box=document.createElement('div'); box.className='err';
     box.textContent=(done.length?`${done.length}개 부분까지는 옮겼어요.\n\n`:'')+err.message;
     $('output').appendChild(box);
+    /* 모델이 없어진 경우면 목록을 새로 받아 안내합니다 */
+    if(/모델을 쓸 수 없어요/.test(err.message)){
+      const ok=await refreshModels(true);
+      if(ok){
+        box.textContent += '\n\n쓸 수 있는 모델 목록을 새로 받아왔어요. 설정에서 확인하고 다시 번역해 주세요.';
+        $('cfgCard').classList.add('open');
+      }
+    }
   }finally{
     ['streamBox','streamNote'].forEach(k=>{const n=$(k); if(n) n.remove();});
     clearInterval(tickTimer); $('statusTime').textContent='';
@@ -2481,6 +2487,94 @@ $('downloadBtn').addEventListener('click',()=>{
 });
 window.addEventListener('beforeunload',e=>{ if(running){e.preventDefault();e.returnValue='';} });
 
+/* ════════════════════════════════════════════════════════════
+   모델 목록
+   ── 구글이 모델을 자주 갈아치우기 때문에, 코드에 박아두지 않고
+      키로 직접 물어봐서 지금 쓸 수 있는 것만 보여줍니다.
+   ════════════════════════════════════════════════════════════ */
+const FALLBACK_MODELS = [
+  'gemini-flash-latest',
+  'gemini-flash-lite-latest',
+  'gemini-3.6-flash',
+  'gemini-3.5-flash',
+  'gemini-3.5-flash-lite'
+];
+let MODELS = (()=>{ try{ return JSON.parse(store.get('models','')) || []; }catch(e){ return []; } })();
+
+/* 번역에 쓸 수 없는 것들(그림·음성·임베딩 등)은 걸러냅니다 */
+const BAD_MODEL = /embedding|imagen|image|veo|tts|audio|live|native|aqa|learnlm/i;
+
+function modelScore(id){
+  let s = 0;
+  if(/flash-lite/.test(id)) s += 40;      /* 빠르고 한도가 넉넉 */
+  else if(/flash/.test(id)) s += 30;
+  if(/latest/.test(id))     s += 15;      /* 알아서 최신을 따라감 */
+  if(/preview|exp/.test(id)) s -= 25;     /* 실험판은 뒤로 */
+  const m = id.match(/gemini-(\d+(?:\.\d+)?)/);
+  if(m) s += Math.min(parseFloat(m[1]), 9);
+  return s;
+}
+function labelFor(id){
+  if(/flash-lite/.test(id)) return id + ' · 가장 빠름';
+  if(/latest/.test(id))     return id + ' · 항상 최신';
+  if(/pro/.test(id))        return id + ' · 느리고 한도 적음';
+  return id;
+}
+function renderModelSelect(keep){
+  const list = (MODELS.length ? MODELS : FALLBACK_MODELS).slice()
+    .sort((a,b)=>modelScore(b)-modelScore(a));
+  const want = keep || store.get('model') || list[0];
+  $('model').innerHTML = list.map(id=>
+    `<option value="${esc(id)}"${id===want?' selected':''}>${esc(labelFor(id))}</option>`).join('');
+  if(!list.includes(want) && list.length){
+    $('model').value = list[0];
+    store.set('model', list[0]);
+  }
+}
+
+async function refreshModels(quiet){
+  const key = $('apikey').value.trim();
+  if(!key){ if(!quiet) toast('먼저 API 키를 넣어 주세요'); return false; }
+  const btn = $('modelSync');
+  btn.disabled = true; const old = btn.textContent; btn.textContent = '받는 중...';
+  try{
+    const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200',
+      { headers:{ 'x-goog-api-key': key } });
+    if(!res.ok){
+      const d = await res.json().catch(()=>null);
+      throw new Error(errMsg(res.status, d));
+    }
+    const data = await res.json();
+    const ids = (data.models||[])
+      .filter(m => (m.supportedGenerationMethods||[]).includes('generateContent'))
+      .map(m => String(m.name||'').replace(/^models\//,''))
+      .filter(id => id && !BAD_MODEL.test(id));
+
+    if(!ids.length) throw new Error('쓸 수 있는 모델을 찾지 못했어요');
+
+    MODELS = [...new Set(ids)];
+    store.set('models', JSON.stringify(MODELS));
+
+    const cur = store.get('model');
+    const stillOk = MODELS.includes(cur);
+    renderModelSelect(stillOk ? cur : null);
+    if(!stillOk){
+      store.set('model', $('model').value);
+      $('modelHint').innerHTML = `쓰던 모델이 없어져서 <b>${esc($('model').value)}</b>로 바꿨어요.`;
+    } else {
+      $('modelHint').textContent = `쓸 수 있는 모델 ${MODELS.length}개를 확인했어요.`;
+    }
+    if(!quiet) toast(`모델 ${MODELS.length}개를 확인했어요`);
+    return true;
+  }catch(err){
+    if(!quiet) toast(err.message);
+    return false;
+  }finally{
+    btn.disabled = false; btn.textContent = old;
+  }
+}
+$('modelSync').addEventListener('click',()=>refreshModels(false));
+
 /* ════════ 설명 시트 ════════ */
 function openHelp(section){
   openS('helpSheet','helpBackdrop');
@@ -2542,7 +2636,9 @@ $('hideStart').addEventListener('click',()=>{
   $('ghPath').value=store.get('ghpath');
   const ghat=store.get('ghat');
   if(ghat) $('ghState').textContent='마지막 올림 '+new Date(+ghat).toLocaleDateString('ko-KR');
-  const m=store.get('model'); if(m) $('model').value=m;
+  renderModelSelect(store.get('model'));
+  /* 저장된 목록이 없으면 조용히 한 번 받아옵니다 */
+  if(!MODELS.length && $('apikey').value.trim()) setTimeout(()=>refreshModels(true), 800);
   const c=store.get('chunk'); if(c) $('chunk').value=c;
   const sp=store.get('speed'); if(sp) $('speed').value=sp;
   updateTitleKo();
