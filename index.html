@@ -8,6 +8,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="글결">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>글결 · 소설 번역</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -703,7 +706,7 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
       </div>
     </section>
 
-    <footer>글결 · 4단계 (대조 · 각주 · 단어장)<br>선택 팝업 수정판</footer>
+    <footer>글결 v20 · 폰 설치판<br>원문 대조 · 각주 · 단어장 · 서재</footer>
   </div>
 
   <!-- ═══════════ 서재 탭 ═══════════ -->
@@ -2488,6 +2491,13 @@ $('hideStart').addEventListener('click',()=>{
   const c=store.get('chunk'); if(c) $('chunk').value=c;
   const sp=store.get('speed'); if(sp) $('speed').value=sp;
   updateTitleKo();
+
+  /* 오프라인에서도 서재를 읽을 수 있도록 준비합니다 */
+  if('serviceWorker' in navigator){
+    window.addEventListener('load',()=>{
+      navigator.serviceWorker.register('sw.js').catch(()=>{});
+    });
+  }
 
   /* 브라우저가 저장 내용을 함부로 지우지 않도록 요청합니다 */
   try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persist(); }catch(e){}
