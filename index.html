@@ -727,7 +727,7 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
       </div>
     </section>
 
-    <footer>글결 v26<br>원문 대조 · 각주 · 단어장 · 서재</footer>
+    <footer>글결 v27<br>원문 대조 · 각주 · 단어장 · 서재</footer>
   </div>
 
   <!-- ═══════════ 서재 탭 ═══════════ -->
@@ -1924,7 +1924,12 @@ async function translate(){
     }
 
     for(let i=0;i<chunks.length;i++){
-      const label = chunks.length>1 ? `옮기는 중 · ${i+1} / ${chunks.length}` : '옮기는 중이에요';
+      const base = chunks.length>1 ? `옮기는 중 · ${i+1} / ${chunks.length}` : '옮기는 중이에요';
+      /* 남은 시간: 첫 조각은 예상값으로, 이후엔 실제로 걸린 속도로 */
+      const rest = i===0
+        ? estimateSec(src.length, chunks.length, model)
+        : ((Date.now()-t0)/i) * (chunks.length-i) / 1000;
+      const label = rest>2 ? `${base} · 남은 시간 약 ${fmtDur(rest)}` : base;
       say(label);
 
       /* 글자가 만들어지는 대로 바로 흘려보냅니다 */
@@ -1951,6 +1956,8 @@ async function translate(){
       if(i<chunks.length-1) await new Promise(r=>setTimeout(r, hitLimit?6000:1000));
     }
     const secs=Math.round((Date.now()-t0)/1000);
+    learnRate(model, src.length, secs);
+    updateCount();
     celebrate(); sparkle($('result-card'));
     saveArchive(true);
     if(blockedCount){
@@ -2183,7 +2190,7 @@ async function translateTitle(key,model,title,memo){
 /* ════════ 전체 백업 · 복원 · 깃허브 연동 ════════ */
 function makeDump(){
   const dump={app:'글결', v:14, at:Date.now(), settings:{}, words:WORDS, cats:CATS, arcidx:ARC, arcs:{}};
-  ['key','model','chunk','speed','memo','read','mascot','view','title','titleko','curarc','ghtok','ghrepo','ghpath','url','terms','models']
+  ['key','model','chunk','speed','memo','read','mascot','view','title','titleko','curarc','ghtok','ghrepo','ghpath','url','terms','models','rate']
     .forEach(k=>dump.settings[k]=store.get(k));
   ARC.forEach(a=>{ const d=arcGet(a.id); if(d) dump.arcs[a.id]=d; });
   return dump;
@@ -2582,11 +2589,38 @@ $('qSaveWord').addEventListener('click',()=>{
 document.querySelectorAll('[data-toggle]').forEach(h=>
   h.addEventListener('click',()=>$(h.dataset.toggle).classList.toggle('open')));
 
+/* ════════════════════════════════════════════════════════════
+   예상 시간
+   ── 실제로 걸린 시간을 기억해 두고, 다음 예상에 반영합니다.
+      쓸수록 정확해져요.
+   ════════════════════════════════════════════════════════════ */
+function fmtDur(sec){
+  sec=Math.max(1,Math.round(sec));
+  if(sec<60) return sec+'초';
+  const m=Math.floor(sec/60), r=sec%60;
+  return r ? `${m}분 ${r}초` : `${m}분`;
+}
+let RATE=(()=>{ try{ return JSON.parse(store.get('rate','')) || {}; }catch(e){ return {}; } })();
+const rateFor = model => (RATE[model] && RATE[model].n>=1) ? RATE[model].spc : 0.009;  /* 1000자당 9초 */
+function estimateSec(chars, chunkCount, model){
+  return chars*rateFor(model) + chunkCount*1.5 + ($('docTitle').value.trim()?3:0);
+}
+function learnRate(model, chars, sec){
+  if(!chars || !sec) return;
+  const spc=sec/chars;
+  const r=RATE[model] || {spc:spc, n:0};
+  r.spc = r.n ? (r.spc*0.6 + spc*0.4) : spc;   /* 최근 결과를 더 무겁게 */
+  r.n=(r.n||0)+1;
+  RATE[model]=r; store.set('rate',JSON.stringify(RATE));
+}
+
 function updateCount(){
   const v=$('source').value,n=v.length;
   $('count').textContent=n.toLocaleString();
   const c=n?splitText(v,+$('chunk').value).length:0;
-  $('chunkInfo').textContent=c>1?`${c}번에 나눠서 옮길게요`:'';
+  if(!n){ $('chunkInfo').textContent=''; return; }
+  const est=fmtDur(estimateSec(n,c,$('model').value));
+  $('chunkInfo').textContent = c>1 ? `${c}번에 나눠서 · 약 ${est}` : `약 ${est}`;
 }
 $('source').addEventListener('input',()=>{updateCount();store.set('source',$('source').value);});
 $('docTitle').addEventListener('input',()=>{
@@ -2594,7 +2628,7 @@ $('docTitle').addEventListener('input',()=>{
   updateTitleKo();
 });
 $('chunk').addEventListener('change',()=>{ updateCount(); store.set('chunk',$('chunk').value); });
-$('model').addEventListener('change',()=>store.set('model',$('model').value));
+$('model').addEventListener('change',()=>{ store.set('model',$('model').value); updateCount(); });
 $('speed').addEventListener('change',()=>store.set('speed',$('speed').value));
 function updateMemoChip(){
   $('memoChip').textContent=$('memo').value.trim()?'적용 중':'비어 있음';
