@@ -1247,6 +1247,7 @@ function parseReply(raw){
 async function askGemini(key,model,prompt,system,maxTok,opts){
   opts=opts||{};
   let noThink = opts.noThink!=null ? !!opts.noThink : !!opts.fast;
+  let safeLv = 'BLOCK_NONE';   /* 소설 번역은 오작동이 잦아 가장 느슨하게 두고 시작합니다 */
   const say = opts.onStatus || (()=>{});
 
   const makeBody=()=>{
@@ -1259,7 +1260,7 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
       },
       safetySettings:['HARM_CATEGORY_HARASSMENT','HARM_CATEGORY_HATE_SPEECH',
         'HARM_CATEGORY_SEXUALLY_EXPLICIT','HARM_CATEGORY_DANGEROUS_CONTENT']
-        .map(c=>({category:c,threshold:'BLOCK_ONLY_HIGH'}))
+        .map(c=>({category:c,threshold:safeLv}))
     };
     if(system) b.systemInstruction={parts:[{text:system}]};
     if(opts.tools) b.tools=opts.tools;
@@ -1279,6 +1280,7 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
      구글이 한국어로 오류를 보내도 되도록, 메시지 글자에 의존하지 않습니다. */
   function retry400(){
     if(noThink){ noThink=false; say('설정을 바꿔 다시 시도하는 중'); return true; }
+    if(safeLv==='BLOCK_NONE'){ safeLv='BLOCK_ONLY_HIGH'; say('설정을 바꿔 다시 시도하는 중'); return true; }
     if((maxTok||16384)>8192){ maxTok=8192; say('분량을 줄여 다시 시도하는 중'); return true; }
     return false;
   }
@@ -1302,7 +1304,7 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
         if(!res.body) throw new Error('__nostream__');
 
         const reader=res.body.getReader(), dec=new TextDecoder();
-        let buf='', full='';
+        let buf='', full='', blocked='';
         while(true){
           const {value,done}=await reader.read();
           if(done) break;
@@ -1315,6 +1317,9 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
             if(!p || p==='[DONE]') continue;
             try{
               const j=JSON.parse(p);
+              const fr=j.candidates?.[0]?.finishReason;
+              if(j.promptFeedback?.blockReason) blocked=j.promptFeedback.blockReason;
+              if(fr==='SAFETY') blocked=blocked||'SAFETY';
               const t=(j.candidates?.[0]?.content?.parts||[])
                 .filter(x=>x.text&&!x.thought).map(x=>x.text).join('');
               if(t){ full+=t; opts.onChunk(full); }
@@ -1322,6 +1327,7 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
           }
         }
         if(full.trim()) return full.trim();
+        if(blocked) throw blockedError(`안전 필터에 막혔어요 (${blocked}).`);
         throw new Error('__nostream__');
       }catch(e){
         if(e.message==='__nostream__'){ opts=Object.assign({},opts,{onChunk:null}); continue; }
@@ -1348,7 +1354,8 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
     const cand=data?.candidates?.[0];
     if(!cand){
       const r=data?.promptFeedback?.blockReason;
-      throw new Error(r?`안전 필터에 막혔어요 (${r}).`:'응답이 비어 있어요.');
+      if(r) throw blockedError(`안전 필터에 막혔어요 (${r}).`);
+      throw new Error('응답이 비어 있어요.');
     }
     const text=(cand.content?.parts||[]).filter(p=>p.text&&!p.thought).map(p=>p.text).join('');
     if(cand.finishReason==='MAX_TOKENS'){
@@ -1356,7 +1363,7 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
       if(!text.trim()) throw new Error('분량이 커요. 설정에서 분량을 줄여 주세요.');
     }
     if(!text.trim()){
-      if(cand.finishReason==='SAFETY') throw new Error('안전 필터에 막혀 번역하지 못했어요.');
+      if(cand.finishReason==='SAFETY') throw blockedError('안전 필터에 막혀 번역하지 못했어요.');
       throw new Error('답이 비어 있어요. 다시 시도해 주세요.');
     }
     return text.trim();
@@ -1364,6 +1371,7 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
   throw new Error('서버가 계속 응답하지 않아요. 잠시 뒤 다시 해주세요.');
 }
 
+function blockedError(msg){ const e=new Error(msg); e.blocked=true; return e; }
 function safeJson(t){ try{ return JSON.parse(t); }catch(e){ return null; } }
 function errMsg(status,data){
   const msg=data?.error?.message||`HTTP ${status}`;
@@ -1634,17 +1642,66 @@ async function translate(){
       store.set('titleko',curTitleKo); updateTitleKo();
     } else { curTitleKo=''; store.set('titleko',''); updateTitleKo(); }
 
-    for(let i=0;i<chunks.length;i++){
-      const label = chunks.length>1 ? `옮기는 중 · ${i+1} / ${chunks.length}` : '옮기는 중이에요';
-      say(label);
+    /* 글 한 덩이를 문단 경계에서 반으로 가릅니다 */
+    function halve(t){
+      const mid=Math.floor(t.length/2);
+      let cut=t.lastIndexOf('\n\n',mid);
+      if(cut<t.length*0.15) cut=t.indexOf('\n\n',mid);
+      if(cut<0) cut=t.lastIndexOf('\n',mid);
+      if(cut<0) cut=t.lastIndexOf(' ',mid);
+      if(cut<0) cut=mid;
+      return [t.slice(0,cut).trim(), t.slice(cut).trim()].filter(Boolean);
+    }
 
+    let blockedCount=0;
+
+    /* 안전 필터에 막히면 통째로 포기하지 않고,
+       반으로 쪼개 되는 부분만 살려냅니다. */
+    async function askPiece(piece, label, live){
       let prompt='';
       if(memo.trim()) prompt+=`[작품·캐릭터 설정]\n${memo.trim()}\n\n`;
-      if(chunks.length>1) prompt+=`[안내] 긴 작품의 ${i+1}/${chunks.length} 번째 부분입니다. 인사말 없이 이 부분만 이어서 번역하세요.\n\n`;
+      if(chunks.length>1) prompt+=`[안내] 긴 작품의 한 부분입니다. 인사말 없이 이 부분만 이어서 번역하세요.\n\n`;
       if(gloss.length) prompt+=`[이미 정한 고유명사 표기 — 반드시 똑같이 쓰세요]\n`+
         gloss.slice(0,60).map(g=>`${g.ko} = ${g.or}`).join('\n')+`\n\n`;
       if(done.length) prompt+=`[직전 번역의 끝부분 — 문체를 이어가기 위한 참고용. 다시 출력하지 마세요]\n${done[done.length-1].dst.slice(-400)}\n\n`;
-      prompt+=`[번역할 원문]\n${chunks[i]}`;
+      prompt+=`[번역할 원문]\n${piece}`;
+
+      const box=live ? $('streamBox') : null;
+      if(box) box.textContent='';
+
+      const opt={noThink, onStatus};
+      if(box) opt.onChunk=(full)=>{
+        const cut=full.indexOf('<<<고유명사>>>');
+        box.textContent=(cut>=0?full.slice(0,cut):full).replace(/<<<번역>>>/g,'').trimStart();
+      };
+
+      try{
+        const raw=await askGemini(key,model,prompt,RULES,16384,opt);
+        const {body,gloss:g}=parseReply(raw);
+        g.forEach(x=>{ if(!gloss.some(y=>y.ko===x.ko)) gloss.push(x); });
+        return body;
+      }catch(err){
+        if(!err.blocked) throw err;
+
+        /* 더 쪼갤 수 없을 만큼 짧으면 그 자리만 표시하고 넘어갑니다 */
+        const parts=piece.length<400 ? [] : halve(piece);
+        if(parts.length<2){
+          blockedCount++;
+          return '⟪이 부분은 안전 필터에 막혀 번역하지 못했어요⟫';
+        }
+        say(label+' · 막힌 부분을 쪼개 다시 시도');
+        const out=[];
+        for(const sub of parts){
+          out.push(await askPiece(sub, label, false));
+          await new Promise(r=>setTimeout(r,800));
+        }
+        return out.filter(Boolean).join('\n\n');
+      }
+    }
+
+    for(let i=0;i<chunks.length;i++){
+      const label = chunks.length>1 ? `옮기는 중 · ${i+1} / ${chunks.length}` : '옮기는 중이에요';
+      say(label);
 
       /* 글자가 만들어지는 대로 바로 흘려보냅니다 */
       let box=$('streamBox');
@@ -1656,18 +1713,8 @@ async function translate(){
         $('output').appendChild(note);
         box=document.createElement('div'); box.id='streamBox'; $('output').appendChild(box);
       }
-      box.textContent='';
 
-      const raw=await askGemini(key,model,prompt,RULES,16384,{
-        noThink, onStatus,
-        onChunk:(full)=>{
-          const cut=full.indexOf('<<<고유명사>>>');
-          box.textContent=(cut>=0?full.slice(0,cut):full).replace(/<<<번역>>>/g,'').trimStart();
-        }
-      });
-
-      const {body,gloss:g}=parseReply(raw);
-      g.forEach(x=>{ if(!gloss.some(y=>y.ko===x.ko)) gloss.push(x); });
+      const body=await askPiece(chunks[i], label, true);
       done.push({src:chunks[i],dst:body});
 
       const pairs=buildDoc(done);
@@ -1681,7 +1728,15 @@ async function translate(){
     const secs=Math.round((Date.now()-t0)/1000);
     celebrate(); sparkle($('result-card'));
     saveArchive(true);
-    toast(`다 옮겼어요! (${secs}초)`);
+    if(blockedCount){
+      const w=document.createElement('div'); w.className='err';
+      w.textContent=`${blockedCount}군데가 안전 필터에 막혀 번역되지 않았어요.\n`+
+        `본문에 ⟪⟫ 표시로 남겨두었습니다. 그 부분만 따로 복사해 다시 시도하면 통과하는 경우도 있어요.`;
+      $('output').appendChild(w);
+      toast(`다 옮겼어요 · ${blockedCount}군데는 막힘 (${secs}초)`);
+    } else {
+      toast(`다 옮겼어요! (${secs}초)`);
+    }
   }catch(err){
     ['streamBox','streamNote'].forEach(k=>{const n=$(k); if(n) n.remove();});
     const box=document.createElement('div'); box.className='err';
