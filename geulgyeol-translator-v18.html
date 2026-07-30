@@ -1,0 +1,2482 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dawn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#F6F3FC">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="글결">
+<title>글결 · 소설 번역</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+
+<style>
+/* ════════ 테마 ════════ */
+[data-theme="dawn"]{
+  --paper:#F6F3FC; --card:#FFFFFF; --ink:#312B44; --soft:#7A719A;
+  --line:#E7E1F5; --accent:#7A69E2; --weak:#F0ECFD; --pop:#F09FC2; --warn:#DE5F77;
+  --g1:rgba(139,118,255,.30); --g2:rgba(255,166,208,.26); --g3:rgba(140,196,255,.24);
+  --glass:.80; --glass-strong:.93;
+}
+[data-theme="milk"]{
+  --paper:#FFF4F6; --card:#FFFDFD; --ink:#482E36; --soft:#8E6B75;
+  --line:#FADCE3; --accent:#E67089; --weak:#FFEAEF; --pop:#F5BC72; --warn:#C74A5E;
+  --g1:rgba(255,146,178,.30); --g2:rgba(255,204,150,.24); --g3:rgba(255,176,206,.22);
+  --glass:.80; --glass-strong:.93;
+}
+[data-theme="matcha"]{
+  --paper:#F2F7EB; --card:#FCFEF9; --ink:#2E3A28; --soft:#697860;
+  --line:#DDE9CE; --accent:#639753; --weak:#EAF3E1; --pop:#E3A45C; --warn:#C06248;
+  --g1:rgba(139,199,120,.28); --g2:rgba(233,203,124,.22); --g3:rgba(160,215,182,.24);
+  --glass:.80; --glass-strong:.93;
+}
+[data-theme="paper"]{
+  --paper:#F5EFE2; --card:#FDFAF3; --ink:#3A3329; --soft:#7B6E5B;
+  --line:#E7DCC7; --accent:#33705E; --weak:#E9F0EA; --pop:#CE9159; --warn:#B4503F;
+  --g1:rgba(211,175,120,.30); --g2:rgba(148,190,165,.24); --g3:rgba(226,201,160,.26);
+  --glass:.80; --glass-strong:.94;
+}
+[data-theme="night"]{
+  --paper:#161425; --card:#242038; --ink:#E7E3F3; --soft:#A099BE;
+  --line:#342F4E; --accent:#AE9DFF; --weak:#2E2848; --pop:#F09EC4; --warn:#F08A96;
+  --g1:rgba(122,100,224,.34); --g2:rgba(202,110,172,.24); --g3:rgba(70,112,192,.28);
+  --glass:.72; --glass-strong:.90;
+}
+[data-theme="ink"]{
+  --paper:#0A0A0D; --card:#16161A; --ink:#D9D6CF; --soft:#88847D;
+  --line:#26262D; --accent:#CDB47C; --weak:#221F19; --pop:#9FB8A8; --warn:#E08B7C;
+  --g1:rgba(190,160,100,.16); --g2:rgba(92,122,112,.14); --g3:rgba(122,112,92,.13);
+  --glass:.74; --glass-strong:.92;
+}
+:root{
+  --r-card:22px;
+  --shadow:0 1px 2px rgba(60,45,95,.05), 0 12px 30px -12px rgba(60,45,95,.18);
+  --read-font:'Pretendard Variable',Pretendard,sans-serif;
+  --read-size:17px; --read-leading:2.0; --read-gap:1.1em; --read-indent:0;
+  --cute:'Jua','Pretendard Variable',sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper);color:var(--ink);
+  font-family:'Pretendard Variable',Pretendard,-apple-system,system-ui,sans-serif;
+  font-size:15px;line-height:1.6;
+  padding:0 14px calc(52px + env(safe-area-inset-bottom));
+  transition:background .35s,color .35s;min-height:100vh
+}
+body::before{
+  content:'';position:fixed;inset:-25%;z-index:-2;pointer-events:none;
+  background:
+    radial-gradient(44% 36% at 20% 10%, var(--g1), transparent 63%),
+    radial-gradient(40% 32% at 84% 4%,  var(--g2), transparent 60%),
+    radial-gradient(50% 42% at 60% 92%, var(--g3), transparent 64%);
+  filter:blur(24px);animation:drift 42s ease-in-out infinite alternate
+}
+@keyframes drift{0%{transform:translate3d(0,0,0) scale(1)}
+  50%{transform:translate3d(-3%,2.5%,0) scale(1.07)}100%{transform:translate3d(2.5%,-2%,0) scale(1.03)}}
+body::after{
+  content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.04;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E")
+}
+.wrap{max-width:720px;margin:0 auto;position:relative}
+
+/* ════════ 마스코트 ════════ */
+.mascot{display:block;overflow:visible}
+.mascot .eyes-happy{display:none}
+.mascot.happy .eyes-open{display:none}
+.mascot.happy .eyes-happy{display:block}
+.mascot .eyes-open{animation:blink 6s infinite;transform-origin:24px 24px}
+@keyframes blink{0%,94%,100%{transform:scaleY(1)}96%,98%{transform:scaleY(.1)}}
+.mascot.bob{animation:bob 3.2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-1.2deg)}50%{transform:translateY(-3px) rotate(1.2deg)}}
+.mascot.think{animation:think .75s ease-in-out infinite}
+@keyframes think{0%,100%{transform:translateY(0) scale(1,1)}45%{transform:translateY(-4px) scale(.97,1.04)}70%{transform:translateY(0) scale(1.04,.96)}}
+img.mascot{object-fit:contain}
+.mascot.cheer{animation:cheer .55s ease-in-out 4 !important}
+@keyframes cheer{0%,100%{transform:translateY(0) rotate(0)}
+  30%{transform:translateY(-8px) rotate(-9deg) scale(1.08)}65%{transform:translateY(-2px) rotate(7deg) scale(1.03)}}
+.mslot{display:grid;place-items:center;line-height:0}
+
+/* ════════ 헤더 · 탭 ════════ */
+header{display:flex;align-items:center;gap:12px;padding:24px 4px 14px}
+.avatar{
+  position:relative;width:46px;height:46px;flex:none;border-radius:50%;display:grid;place-items:center;
+  background:linear-gradient(150deg,color-mix(in srgb,var(--pop) 30%,transparent),color-mix(in srgb,var(--accent) 22%,transparent));
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 22%,transparent),0 8px 20px -10px color-mix(in srgb,var(--accent) 70%,transparent)
+}
+.title{
+  font-family:var(--cute);font-size:25px;margin:0;line-height:1.1;
+  background:linear-gradient(100deg,var(--accent),color-mix(in srgb,var(--accent) 45%,var(--pop)));
+  -webkit-background-clip:text;background-clip:text;color:transparent
+}
+.subtitle{display:block;font-size:11px;font-weight:500;color:var(--soft);letter-spacing:.03em;margin-top:4px}
+.grow{flex:1}
+.icon-btn{
+  min-width:44px;height:44px;padding:0 14px;border-radius:15px;
+  border:1px solid color-mix(in srgb,var(--line) 80%,transparent);
+  background:color-mix(in srgb,var(--card) 72%,transparent);
+  -webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);
+  color:var(--accent);font-family:var(--cute);font-size:15px;cursor:pointer;
+  display:grid;place-items:center;box-shadow:var(--shadow);transition:transform .16s
+}
+.icon-btn:active{transform:scale(.92)}
+
+.tabs{
+  display:flex;gap:4px;padding:4px;border-radius:16px;margin-bottom:14px;
+  background:color-mix(in srgb,var(--card) 60%,transparent);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--line) 80%,transparent)
+}
+.tabs button{
+  flex:1;border:none;background:transparent;border-radius:12px;padding:10px 8px;
+  font-family:var(--cute);font-size:15px;color:var(--soft);cursor:pointer;transition:.18s
+}
+.tabs button.on{background:var(--accent);color:#fff;box-shadow:0 6px 14px -6px color-mix(in srgb,var(--accent) 90%,transparent)}
+.tabs button b{font-weight:400;opacity:.7;font-size:12px;margin-left:3px}
+
+/* ════════ 카드 ════════ */
+.card{
+  background:color-mix(in srgb,var(--card) calc(var(--glass)*100%),transparent);
+  -webkit-backdrop-filter:blur(18px) saturate(1.5);backdrop-filter:blur(18px) saturate(1.5);
+  border:1px solid color-mix(in srgb,var(--line) 78%,transparent);
+  border-radius:var(--r-card);padding:17px;margin-bottom:13px;box-shadow:var(--shadow)
+}
+#result-card{background:color-mix(in srgb,var(--card) calc(var(--glass-strong)*100%),transparent)}
+.card-head{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
+.badge{
+  width:30px;height:30px;flex:none;border-radius:10px;display:grid;place-items:center;color:var(--accent);
+  background:linear-gradient(145deg,color-mix(in srgb,var(--weak) 90%,transparent),color-mix(in srgb,var(--pop) 16%,transparent));
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 13%,transparent)
+}
+.badge svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.card-head h2,.sec-title{font-family:var(--cute);font-size:16px;font-weight:400;margin:0}
+.chip{
+  display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px;
+  background:color-mix(in srgb,var(--weak) 85%,transparent);color:var(--accent);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 14%,transparent)
+}
+.chip::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor}
+.chip.off{background:transparent;color:var(--warn);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--warn) 35%,transparent)}
+.caret{margin-left:auto;color:var(--soft);font-size:11px;opacity:.7;transition:transform .28s}
+.card.open .caret{transform:rotate(180deg)}
+.card-body{display:none;padding-top:15px}
+.card.open .card-body{display:block}
+.hint{font-size:12.5px;color:var(--soft);margin:7px 0 0;line-height:1.55}
+.hint a{color:var(--accent)}
+label.field{display:block;font-size:11px;font-weight:700;color:var(--soft);letter-spacing:.06em;margin:16px 0 7px}
+label.field:first-child{margin-top:0}
+input[type=text],input[type=password],select,textarea{
+  width:100%;background:color-mix(in srgb,var(--paper) 60%,transparent);color:var(--ink);
+  border:1px solid color-mix(in srgb,var(--line) 85%,transparent);border-radius:13px;
+  padding:12px 13px;font-size:15px;font-family:inherit;line-height:1.55;outline:none;
+  transition:border-color .16s,box-shadow .16s,background .16s
+}
+input:focus,select:focus,textarea:focus{
+  border-color:color-mix(in srgb,var(--accent) 55%,transparent);
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 12%,transparent);
+  background:color-mix(in srgb,var(--card) 70%,transparent)
+}
+textarea{resize:vertical}
+#memo{min-height:94px}
+#source{min-height:200px}
+#source:placeholder-shown{border-style:dashed}
+
+/* ════════ 버튼 ════════ */
+button{font-family:inherit}
+.btn{
+  border:none;border-radius:13px;padding:10px 15px;font-size:13px;font-weight:700;
+  background:color-mix(in srgb,var(--weak) 88%,transparent);color:var(--accent);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 12%,transparent);
+  cursor:pointer;transition:transform .15s
+}
+.btn:active{transform:scale(.94)}
+.btn.ghost{background:transparent;color:var(--soft);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--line) 90%,transparent)}
+.btn.danger{color:var(--warn);background:transparent;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--warn) 35%,transparent)}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px;align-items:center}
+.btn-main{
+  position:relative;width:100%;border:none;border-radius:999px;padding:17px;
+  font-family:var(--cute);font-size:19px;color:#fff;cursor:pointer;
+  background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 58%,var(--pop)));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 3px 0 color-mix(in srgb,var(--accent) 62%,#000 28%),
+    0 16px 30px -14px color-mix(in srgb,var(--accent) 90%,transparent);
+  transition:transform .12s,box-shadow .12s
+}
+.btn-main:active{transform:translateY(3px);box-shadow:inset 0 1px 0 rgba(255,255,255,.28)}
+.btn-main:disabled{opacity:.48;transform:none;cursor:default}
+.counter{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--soft);margin-top:10px}
+.counter b{font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+
+/* ════════ 진행 ════════ */
+#status{display:none;align-items:center;gap:11px;margin:16px 4px 0}
+#status.show{display:flex}
+#statusText{font-family:var(--cute);font-size:15px;color:var(--accent)}
+.stime{margin-left:auto;font-size:12px;color:var(--soft);font-variant-numeric:tabular-nums}
+#streamBox{
+  font-family:var(--read-font);font-size:var(--read-size);line-height:var(--read-leading);
+  white-space:pre-wrap;word-break:break-word;opacity:.72;margin-top:var(--read-gap)
+}
+#streamBox::after{content:'▍';color:var(--accent);animation:caret 1s steps(2) infinite}
+@keyframes caret{0%,49%{opacity:1}50%,100%{opacity:0}}
+.bar{height:8px;border-radius:999px;overflow:hidden;margin-top:11px;display:none;
+  background:color-mix(in srgb,var(--weak) 80%,transparent);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 12%,transparent)}
+.bar.show{display:block}
+.bar>i{display:block;height:100%;width:0;border-radius:999px;transition:width .45s cubic-bezier(.4,0,.2,1);
+  background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 70%,var(--pop)),var(--accent));
+  position:relative;overflow:hidden}
+.bar>i::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(100deg,transparent 20%,rgba(255,255,255,.45) 50%,transparent 80%);
+  animation:sheen 1.5s linear infinite}
+@keyframes sheen{to{transform:translateX(220%)}}
+
+/* ════════ 결과 · 대조 ════════ */
+#result-card{margin-top:14px}
+.result-top{display:flex;align-items:center;gap:10px;margin-bottom:13px}
+.viewbar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:15px}
+.seg{display:flex;gap:3px;padding:3px;border-radius:12px;
+  background:color-mix(in srgb,var(--weak) 60%,transparent);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--line) 85%,transparent)}
+.seg button{border:none;background:transparent;border-radius:9px;padding:7px 12px;
+  font-size:12.5px;font-weight:700;color:var(--soft);cursor:pointer;transition:.16s}
+.seg button.on{background:var(--card);color:var(--accent);box-shadow:0 2px 6px -2px rgba(0,0,0,.18)}
+.mini{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--soft);cursor:pointer}
+.mini input{width:17px;height:17px;accent-color:var(--accent);margin:0}
+
+#output{padding:2px}
+#output .para,.cmp .dst{
+  font-family:var(--read-font);font-size:var(--read-size);line-height:var(--read-leading);
+  text-indent:var(--read-indent);margin:0 0 var(--read-gap);word-break:break-word
+}
+#output .para:last-child{margin-bottom:0}
+.cmp{margin:0 0 calc(var(--read-gap) + 4px)}
+.cmp .src{
+  font-size:calc(var(--read-size) * .82);line-height:1.75;color:var(--soft);
+  margin:0 0 6px;word-break:break-word;
+  padding-left:11px;border-left:2px solid color-mix(in srgb,var(--accent) 28%,transparent)
+}
+.cmp .dst{margin:0}
+.cmp.side{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+.cmp.side .src{border-left:none;padding-left:0;padding-right:11px;
+  border-right:2px solid color-mix(in srgb,var(--accent) 22%,transparent);margin:0}
+.cmp.side .dst{font-size:calc(var(--read-size) * .92)}
+
+/* ════════ 각주 말풍선 · 각주 창 ════════ */
+#fnpop{
+  position:fixed;z-index:66;display:none;align-items:center;gap:9px;
+  padding:9px 11px;border-radius:14px;max-width:min(88vw,360px);
+  background:color-mix(in srgb,var(--card) 96%,transparent);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  box-shadow:0 10px 30px -8px rgba(0,0,0,.35),inset 0 0 0 1px color-mix(in srgb,var(--line) 90%,transparent)
+}
+#fnpop.show{display:flex}
+#fnpop .p-num{flex:none;width:20px;height:20px;border-radius:7px;display:grid;place-items:center;
+  font-size:10.5px;font-weight:700;background:var(--accent);color:#fff}
+#fnpop .p-ko{font-size:14px;font-weight:700;white-space:nowrap}
+#fnpop .p-or{font-size:14px;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#fnpop .p-ty{flex:none;font-size:10.5px;color:var(--soft);padding:2px 7px;border-radius:999px;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--line) 90%,transparent)}
+#fnpop .p-add{flex:none;border:none;background:var(--weak);color:var(--accent);
+  font-size:15px;line-height:1;cursor:pointer;padding:6px 9px;border-radius:10px}
+
+#fnPanel{
+  position:fixed;left:0;right:0;bottom:0;z-index:55;
+  max-height:46vh;display:flex;flex-direction:column;
+  background:color-mix(in srgb,var(--card) 95%,transparent);
+  -webkit-backdrop-filter:blur(22px) saturate(1.5);backdrop-filter:blur(22px) saturate(1.5);
+  border:1px solid color-mix(in srgb,var(--line) 80%,transparent);border-bottom:none;
+  border-radius:24px 24px 0 0;
+  transform:translateY(101%);
+  visibility:hidden;box-shadow:none;
+  transition:transform .32s cubic-bezier(.32,.72,0,1), visibility 0s linear .32s
+}
+#fnPanel.show{
+  transform:translateY(0);visibility:visible;
+  box-shadow:0 -10px 40px -10px rgba(0,0,0,.3);
+  transition:transform .32s cubic-bezier(.32,.72,0,1), visibility 0s
+}
+@media (min-width:721px){
+  #fnPanel{left:50%;right:auto;width:660px;transform:translate(-50%,101%)}
+  #fnPanel.show{transform:translate(-50%,0)}
+}
+.fnp-head{display:flex;align-items:center;gap:9px;padding:14px 16px 10px;flex:none}
+.fnp-title{font-family:var(--cute);font-size:15px;color:var(--accent)}
+.fnp-count{font-size:11px;color:var(--soft)}
+.fnp-x{border:none;background:transparent;color:var(--soft);font-size:16px;cursor:pointer;
+  padding:6px 8px;border-radius:10px}
+.fnp-x:active{background:var(--weak)}
+.fnp-body{overflow-y:auto;padding:0 16px calc(18px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}
+
+#fnFab{
+  position:fixed;right:16px;bottom:calc(20px + env(safe-area-inset-bottom));z-index:54;display:none;
+  align-items:center;gap:7px;padding:12px 17px;border:none;border-radius:999px;cursor:pointer;
+  font-family:var(--cute);font-size:14px;color:#fff;
+  background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 58%,var(--pop)));
+  box-shadow:0 10px 26px -8px color-mix(in srgb,var(--accent) 90%,transparent),inset 0 1px 0 rgba(255,255,255,.3);
+  transition:transform .14s
+}
+#fnFab.show{display:flex}
+#fnFab:active{transform:scale(.93)}
+#fnFab b{font-weight:400;font-size:12px;opacity:.85}
+body.fn-open{padding-bottom:calc(48vh + 20px)}
+
+sup.fn{
+  font-size:.62em;color:var(--accent);font-weight:700;cursor:pointer;
+  padding:0 1px 0 2px;vertical-align:super;text-indent:0
+}
+sup.fn:active{opacity:.5}
+.notes{
+  margin:22px 0 0;padding:15px 16px;border-radius:16px;list-style:none;
+  background:color-mix(in srgb,var(--weak) 55%,transparent);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--line) 85%,transparent)
+}
+.notes-title{font-family:var(--cute);font-size:13.5px;color:var(--accent);margin:0 0 10px}
+.notes li{display:flex;align-items:center;gap:9px;font-size:13.5px;padding:7px 0;line-height:1.5;
+  border-top:1px solid color-mix(in srgb,var(--line) 60%,transparent)}
+.notes li:first-of-type{border-top:none}
+.notes .num{flex:none;width:20px;height:20px;border-radius:7px;display:grid;place-items:center;
+  font-size:10.5px;font-weight:700;background:var(--accent);color:#fff}
+.notes .ko{font-weight:700}
+.notes .or{color:var(--soft)}
+.notes .ty{font-size:10.5px;color:var(--soft);opacity:.8;
+  padding:2px 7px;border-radius:999px;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--line) 90%,transparent)}
+.notes .add{margin-left:auto;flex:none;border:none;background:transparent;color:var(--accent);
+  font-size:17px;line-height:1;cursor:pointer;padding:4px 6px;border-radius:8px}
+.notes .add:active{transform:scale(.85)}
+.fn-hit{background:color-mix(in srgb,var(--pop) 45%,transparent);border-radius:4px}
+
+.empty{text-align:center;padding:30px 10px 26px}
+.empty .mslot{margin:0 auto 14px}
+.empty p{font-family:var(--cute);font-size:15px;color:var(--soft);margin:0}
+.empty .sub{display:block;font-size:12px;color:var(--soft);opacity:.7;margin-top:6px}
+.err{background:color-mix(in srgb,var(--weak) 70%,transparent);
+  border:1px dashed color-mix(in srgb,var(--warn) 55%,transparent);border-radius:14px;
+  padding:13px 15px;font-size:13.5px;line-height:1.6;white-space:pre-wrap;text-indent:0;margin-top:14px}
+.spark{position:fixed;width:9px;height:9px;pointer-events:none;z-index:80;font-size:10px;line-height:1}
+@keyframes fly{to{transform:translate(var(--dx),var(--dy)) scale(.2) rotate(150deg);opacity:0}}
+
+/* ════════ 선택 팝업 ════════ */
+#selpop{
+  position:fixed;z-index:70;display:none;gap:5px;padding:5px;border-radius:14px;
+  background:color-mix(in srgb,var(--card) 96%,transparent);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  box-shadow:0 10px 30px -8px rgba(0,0,0,.35),inset 0 0 0 1px color-mix(in srgb,var(--line) 90%,transparent)
+}
+#selpop.show{display:flex}
+#selpop button{border:none;background:transparent;color:var(--accent);font-size:13px;font-weight:700;
+  padding:8px 12px;border-radius:10px;cursor:pointer;white-space:nowrap}
+#selpop button:active{background:var(--weak)}
+
+/* ════════ 단어장 ════════ */
+/* ════════ 서재 ════════ */
+/* ════════ 도움말 아코디언 ════════ */
+.help{margin-top:12px;display:flex;flex-direction:column;gap:7px}
+.help details{
+  border-radius:14px;overflow:hidden;
+  background:color-mix(in srgb,var(--weak) 55%,transparent);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--line) 85%,transparent)
+}
+.help summary{
+  list-style:none;cursor:pointer;padding:12px 14px;
+  font-size:13.5px;font-weight:700;color:var(--accent);
+  display:flex;align-items:center;gap:8px
+}
+.help summary::-webkit-details-marker{display:none}
+.help summary::after{content:'＋';margin-left:auto;font-size:14px;opacity:.6;transition:transform .2s}
+.help details[open] summary::after{content:'－'}
+.help .in{padding:0 14px 14px;font-size:13.5px;line-height:1.75;color:var(--ink)}
+.help .in p{margin:0 0 9px}
+.help .in p:last-child{margin-bottom:0}
+.help .in b{color:var(--accent)}
+.help .in ol{margin:0 0 9px;padding-left:20px}
+.help .in li{margin-bottom:6px}
+.help .in a{color:var(--accent)}
+.help .in .box{
+  background:color-mix(in srgb,var(--card) 70%,transparent);border-radius:11px;
+  padding:10px 12px;margin:9px 0;font-size:12.5px;line-height:1.7;color:var(--soft)
+}
+.startcard{border-color:color-mix(in srgb,var(--accent) 40%,transparent)!important}
+.startcard .card-head h2{color:var(--accent)}
+
+/* ════════ 서재 정리 모드 ════════ */
+.acard .pick{flex:none;width:20px;height:20px;accent-color:var(--accent);margin:2px 0 0}
+.selbar{
+  display:none;align-items:center;gap:9px;margin-bottom:12px;padding:10px 13px;border-radius:14px;
+  background:color-mix(in srgb,var(--weak) 75%,transparent);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 18%,transparent)
+}
+.selbar.show{display:flex}
+.selbar span{font-size:13px;font-weight:700;color:var(--accent)}
+
+.acard{
+  padding:14px 16px;border-radius:16px;
+  background:color-mix(in srgb,var(--paper) 55%,transparent);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--line) 85%,transparent)
+}
+.acard.cur{box-shadow:inset 0 0 0 2px var(--accent)}
+.acard .atop{display:flex;align-items:flex-start;gap:9px}
+.acard .atitle{font-size:16px;font-weight:700;line-height:1.4;letter-spacing:-.01em;flex:1}
+.acard .aorig{font-size:12px;color:var(--soft);margin:3px 0 0;line-height:1.5}
+.acard .aprev{font-size:12.5px;color:var(--soft);margin:9px 0 0;line-height:1.6;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.acard .ameta{font-size:10.5px;color:var(--soft);opacity:.65;margin-top:9px}
+.acard .del{flex:none;border:none;background:transparent;color:var(--soft);
+  font-size:15px;cursor:pointer;opacity:.5;padding:2px 4px;border-radius:8px}
+.acard .del:active{opacity:1;color:var(--warn)}
+.acard .btn-row{margin-top:11px}
+.acard .now{font-size:10px;font-weight:700;color:var(--accent);
+  padding:3px 8px;border-radius:999px;background:color-mix(in srgb,var(--weak) 85%,transparent)}
+
+.urlrow{display:flex;gap:8px;align-items:center}
+.urlrow input{flex:1;min-width:0}
+.wtools{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+.wtools input{flex:1}
+.catbar{display:flex;gap:7px;overflow-x:auto;padding-bottom:3px;margin-bottom:14px;-webkit-overflow-scrolling:touch}
+.catbar button{
+  flex:none;border:none;border-radius:999px;padding:8px 14px;font-size:12.5px;font-weight:700;
+  background:color-mix(in srgb,var(--weak) 70%,transparent);color:var(--soft);cursor:pointer;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--line) 85%,transparent);transition:.16s
+}
+.catbar button.on{background:var(--accent);color:#fff;box-shadow:none}
+.wlist{display:flex;flex-direction:column;gap:9px}
+.wcard{
+  padding:13px 15px;border-radius:16px;
+  background:color-mix(in srgb,var(--paper) 55%,transparent);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--line) 85%,transparent)
+}
+.wcard .top{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.wcard .term{font-size:17px;font-weight:700;letter-spacing:-.01em}
+.wcard .cat{font-size:10.5px;font-weight:700;color:var(--accent);padding:3px 8px;border-radius:999px;
+  background:color-mix(in srgb,var(--weak) 85%,transparent)}
+.wcard .del{margin-left:auto;border:none;background:transparent;color:var(--soft);
+  font-size:16px;cursor:pointer;opacity:.5;padding:2px 4px;border-radius:8px}
+.wcard .del:active{opacity:1;color:var(--warn)}
+.wcard .mean{font-size:14px;color:var(--ink);margin:7px 0 0;line-height:1.6}
+.wcard .note{font-size:12px;color:var(--soft);margin:5px 0 0;line-height:1.55}
+.wcard .date{font-size:10.5px;color:var(--soft);opacity:.6;margin-top:7px}
+
+/* ════════ 시트 · 대화상자 ════════ */
+.backdrop{position:fixed;inset:0;background:rgba(24,16,42,.4);
+  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
+  opacity:0;pointer-events:none;transition:opacity .28s;z-index:50}
+.backdrop.show{opacity:1;pointer-events:auto}
+.sheet{
+  position:fixed;left:0;right:0;bottom:0;z-index:60;
+  background:color-mix(in srgb,var(--card) 94%,transparent);
+  -webkit-backdrop-filter:blur(24px) saturate(1.6);backdrop-filter:blur(24px) saturate(1.6);
+  border:1px solid color-mix(in srgb,var(--line) 80%,transparent);border-bottom:none;
+  border-radius:28px 28px 0 0;
+  padding:10px 18px calc(26px + env(safe-area-inset-bottom));
+  max-height:88vh;overflow-y:auto;transform:translateY(100%);
+  /* 닫혀 있을 땐 그림자까지 완전히 감춥니다 (화면 아래 검은 띠 방지) */
+  visibility:hidden;box-shadow:none;
+  transition:transform .36s cubic-bezier(.32,.72,0,1), visibility 0s linear .36s
+}
+.sheet.show{
+  transform:translateY(0);visibility:visible;
+  box-shadow:0 -10px 50px rgba(0,0,0,.2);
+  transition:transform .36s cubic-bezier(.32,.72,0,1), visibility 0s
+}
+@media (min-width:721px){
+  .sheet{left:50%;right:auto;width:640px;transform:translate(-50%,100%)}
+  .sheet.show{transform:translate(-50%,0)}
+}
+.handle{width:42px;height:4px;border-radius:99px;background:var(--line);margin:2px auto 18px}
+.sheet h3{font-size:11px;font-weight:700;color:var(--soft);letter-spacing:.1em;margin:24px 0 11px;text-transform:uppercase}
+.sheet h3:first-of-type{margin-top:0}
+.covers{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.cover{border:none;border-radius:16px;padding:0;overflow:hidden;cursor:pointer;
+  background:color-mix(in srgb,var(--card) 60%,transparent);
+  box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--line) 90%,transparent);transition:.16s}
+.cover:active{transform:scale(.94)}
+.cover[aria-pressed="true"]{box-shadow:inset 0 0 0 2px var(--accent)}
+.cover .face{height:52px;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:0 11px;position:relative}
+.cover .face i{display:block;height:3px;border-radius:9px;opacity:.45}
+.cover .face i:nth-child(3){width:74%}
+.cover .face i:nth-child(4){width:50%}
+.cover .ribbon{position:absolute;top:0;right:10px;width:7px;height:15px;border-radius:0 0 3px 3px}
+.cover .name{display:block;font-family:var(--cute);font-size:12.5px;padding:7px 0 9px;color:var(--soft)}
+.cover[aria-pressed="true"] .name{color:var(--accent)}
+.fgroup{margin-bottom:15px}
+.fgroup:last-child{margin-bottom:0}
+.fgroup-title{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;
+  font-family:var(--cute);font-size:13.5px;color:var(--accent);margin:0 2px 9px}
+.fgroup-title em{font-family:'Pretendard Variable',sans-serif;font-style:normal;font-size:11px;color:var(--soft)}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.font-opt{text-align:left;border:none;border-radius:14px;padding:11px 13px;
+  background:color-mix(in srgb,var(--paper) 55%,transparent);color:var(--ink);cursor:pointer;
+  box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--line) 90%,transparent);transition:.16s}
+.font-opt:active{transform:scale(.96)}
+.font-opt[aria-pressed="true"]{box-shadow:inset 0 0 0 2px var(--accent);background:color-mix(in srgb,var(--weak) 75%,transparent)}
+.font-opt b{display:block;font-size:15.5px;font-weight:500;margin-bottom:2px}
+.font-opt span{font-size:11px;color:var(--soft)}
+.mrow{display:flex;align-items:center;gap:14px}
+.mprev{width:74px;height:74px;flex:none;border-radius:20px;display:grid;place-items:center;
+  background:linear-gradient(150deg,color-mix(in srgb,var(--pop) 26%,transparent),color-mix(in srgb,var(--accent) 20%,transparent));
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 20%,transparent)}
+.mrow .hint{margin-top:8px}
+.slider{display:flex;align-items:center;gap:12px;margin-bottom:13px}
+.slider label{flex:none;width:64px;font-size:12.5px;font-weight:600;color:var(--soft)}
+.slider input{flex:1;accent-color:var(--accent);height:24px}
+.slider output{flex:none;width:46px;text-align:right;font-size:12px;color:var(--soft);font-variant-numeric:tabular-nums}
+.toggle{display:flex;align-items:center;gap:10px;padding:10px 0;cursor:pointer}
+.toggle span{font-size:13.5px;font-weight:600}
+.toggle input{width:19px;height:19px;accent-color:var(--accent);margin:0}
+.preview{background:color-mix(in srgb,var(--paper) 55%,transparent);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--line) 90%,transparent);
+  border-radius:16px;padding:17px 16px;margin-top:6px}
+.preview p{font-family:var(--read-font);font-size:var(--read-size);line-height:var(--read-leading);
+  text-indent:var(--read-indent);margin:0 0 var(--read-gap)}
+.preview p:last-child{margin-bottom:0}
+.catpick{display:flex;gap:7px;flex-wrap:wrap}
+.catpick button{border:none;border-radius:999px;padding:8px 13px;font-size:12.5px;font-weight:700;
+  background:color-mix(in srgb,var(--weak) 70%,transparent);color:var(--soft);cursor:pointer;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--line) 85%,transparent)}
+.catpick button.on{background:var(--accent);color:#fff;box-shadow:none}
+
+.toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,22px);
+  background:color-mix(in srgb,var(--ink) 92%,transparent);color:var(--card);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  font-family:var(--cute);font-size:15px;padding:11px 22px;border-radius:999px;
+  opacity:0;pointer-events:none;transition:.28s;z-index:99;box-shadow:0 10px 30px -8px rgba(0,0,0,.4)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;line-height:1.9;opacity:.7}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="avatar"><span class="mslot" id="headSlot" data-anim="bob" data-size="32"></span></div>
+    <div><h1 class="title">글결</h1><span class="subtitle">어떤 언어든 → 한국어 소설 번역</span></div>
+    <div class="grow"></div>
+    <button class="icon-btn" id="helpBtn" title="설명">?</button>
+    <button class="icon-btn" id="readBtn" title="읽기 설정">가a</button>
+  </header>
+
+  <nav class="tabs">
+    <button data-tab="tr" class="on">번역</button>
+    <button data-tab="ar">서재 <b id="arCount"></b></button>
+    <button data-tab="wd">단어장 <b id="wdCount"></b></button>
+  </nav>
+
+  <!-- ═══════════ 번역 탭 ═══════════ -->
+  <div id="tab-tr">
+
+    <section class="card startcard" id="startCard">
+      <div class="card-head" data-toggle="startCard">
+        <span class="badge"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.4 2.3c-.6.3-.9.8-.9 1.4v.3"/><path d="M12 16.8h.01"/></svg></span>
+        <h2>처음이신가요?</h2>
+        <span class="chip" id="startChip">여기부터</span><span class="caret">▾</span>
+      </div>
+      <div class="card-body">
+        <p class="hint" style="margin:0 0 12px">번역을 시작하려면 <b style="color:var(--accent)">API 키</b> 하나가 필요해요. 무료고, 3분이면 받습니다.</p>
+        <div class="btn-row">
+          <button class="btn" id="goKey">설정 열고 키 넣기</button>
+          <button class="btn ghost" id="hideStart">이 안내 그만 보기</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="cfgCard">
+      <div class="card-head" data-toggle="cfgCard">
+        <span class="badge"><svg viewBox="0 0 24 24"><path d="M4 8h10M18 8h2M4 16h4M12 16h8"/><circle cx="16" cy="8" r="2.2"/><circle cx="10" cy="16" r="2.2"/></svg></span>
+        <h2>설정</h2><span class="chip off" id="keyChip">키가 필요해요</span><span class="caret">▾</span>
+      </div>
+      <div class="card-body">
+        <label class="field" for="apikey">GEMINI API 키</label>
+        <input type="password" id="apikey" placeholder="AIza..." autocomplete="off" spellcheck="false">
+        <div class="btn-row" style="margin-top:10px">
+          <button class="btn" data-help="key">API 키가 뭔가요?</button>
+        </div>
+
+        <label class="field" for="model">모델</label>
+        <select id="model">
+          <option value="gemini-2.5-flash">gemini-2.5-flash (기본 · 품질 좋음)</option>
+          <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite (가장 빠름)</option>
+          <option value="gemini-flash-latest">gemini-flash-latest (최신)</option>
+          <option value="gemini-3.6-flash">gemini-3.6-flash</option>
+        </select>
+        <p class="hint">너무 느리면 <b>flash-lite</b>로 바꿔 보세요. 훨씬 빠른 대신 문장이 조금 밋밋해질 수 있어요.</p>
+        <label class="field" for="speed">번역 속도</label>
+        <select id="speed">
+          <option value="fast">빠르게 (권장)</option>
+          <option value="careful">꼼꼼하게 (느림)</option>
+        </select>
+        <p class="hint">빠르게는 인공지능이 곧바로 번역하고, 꼼꼼하게는 한 번 더 생각한 뒤 번역해요. 대부분은 빠르게로 충분합니다.</p>
+
+        <label class="field" for="chunk">한 번에 보낼 분량</label>
+        <select id="chunk">
+          <option value="2000">2,000자 (안전)</option>
+          <option value="3000" selected>3,000자 (기본)</option>
+          <option value="5000">5,000자 (빠름)</option>
+        </select>
+        <div class="btn-row"><button class="btn" id="saveCfg">설정 저장</button></div>
+        <label class="field">백업</label>
+        <p class="hint" style="margin:0 0 9px">브라우저 데이터를 지우면 저장한 내용이 함께 사라져요. 가끔 백업해 두시면 다른 기기로 옮길 때도 편합니다.</p>
+        <div class="btn-row" style="margin-top:0">
+          <button class="btn ghost" id="expAll">전체 내보내기</button>
+          <button class="btn ghost" id="impAll">불러오기</button>
+        </div>
+        <input type="file" id="impFile" accept=".json,application/json" hidden>
+
+        <label class="field">깃허브 연동 (폰 ↔ 컴퓨터)</label>
+        <p class="hint" style="margin:0 0 9px">비공개 저장소에 백업을 올려두고 폰과 컴퓨터에서 주고받아요.
+          <a href="#" data-help="github">설정하는 법 보기</a></p>
+        <input type="password" id="ghTok" placeholder="토큰 (ghp_... 또는 github_pat_...)" autocomplete="off" spellcheck="false">
+        <input type="text" id="ghRepo" placeholder="저장소 (예: mingyu/geulgyeol-data)" autocomplete="off" spellcheck="false" style="margin-top:8px">
+        <input type="text" id="ghPath" placeholder="파일 이름 (비우면 geulgyeol-backup.json)" autocomplete="off" spellcheck="false" style="margin-top:8px">
+        <div class="btn-row" style="margin-top:10px">
+          <button class="btn" id="ghUp">올리기</button>
+          <button class="btn ghost" id="ghDown">내려받기</button>
+          <span class="hint" id="ghState" style="margin:0"></span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="memoCard">
+      <div class="card-head" data-toggle="memoCard">
+        <span class="badge"><svg viewBox="0 0 24 24"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L9 17l-4 1 1-4z"/><path d="M14 6l4 4"/></svg></span>
+        <h2>작품·캐릭터 메모</h2><span class="chip" id="memoChip">비어 있음</span><span class="caret">▾</span>
+      </div>
+      <div class="card-body">
+        <textarea id="memo" placeholder="예) 프로세카 원더랜즈×쇼타임 — 유원지 극단이라 전반적으로 밝고 과장된 쇼 톤. 대사에 연극조 감탄사가 잦고, 진지한 장면에도 유머가 남아 있음.&#10;&#10;예) 아이나나 이누마루 토우마(狗丸トウマ) — ŹOOĻ 리더. 반말에 직설적이고 말투가 거칠지만 속은 다정한 편. 비아냥보다 직구로."></textarea>
+        <p class="hint">작품 분위기, 인물 성격, 말투, 호칭 습관 등을 적으면 번역에 반영돼요. 비워 두면 일반 소설 번역으로 처리합니다.</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head" style="cursor:default;margin-bottom:14px">
+        <span class="badge"><svg viewBox="0 0 24 24"><path d="M12 6.5C10.5 5 8.5 4.5 4 4.8v13c4.5-.3 6.5.2 8 1.7 1.5-1.5 3.5-2 8-1.7v-13c-4.5-.3-6.5.2-8 1.7z"/><path d="M12 6.5v13"/></svg></span>
+        <h2 class="sec-title">원문</h2><div class="grow"></div>
+        <button class="btn ghost" id="newDoc">새 글</button>
+        <button class="btn ghost" id="loadFile">txt 파일</button>
+      </div>
+      <label class="field" for="docTitle">제목</label>
+      <input type="text" id="docTitle" placeholder="작품 제목 (원문 그대로 적어도 됩니다)">
+      <p class="hint" id="titleKoLine" style="display:none"></p>
+
+      <label class="field" for="urlIn">링크로 가져오기</label>
+      <div class="urlrow">
+        <input type="url" id="urlIn" placeholder="https://..." autocomplete="off" spellcheck="false">
+        <button class="btn" id="urlGet">가져오기</button>
+      </div>
+      <p class="hint" style="margin:6px 0 0">되는 사이트가 제한적이에요. <a href="#" data-help="url">어떤 링크가 되나요?</a></p>
+
+      <label class="field" for="source">본문</label>
+      <input type="file" id="fileInput" accept=".txt,text/plain,.md" multiple hidden>
+      <p class="hint" id="srcNote" style="display:none;margin:0 0 8px;color:var(--accent)"></p>
+      <textarea id="source" placeholder="번역할 외국어 본문을 붙여넣어 주세요. 언어는 알아서 알아봐요!"></textarea>
+      <div class="counter"><span>글자 수 <b id="count">0</b></span><span id="chunkInfo"></span></div>
+      <div class="btn-row"><button class="btn ghost" id="clearSrc">본문 비우기</button></div>
+    </section>
+
+    <button class="btn-main" id="run">번역하기</button>
+
+    <div id="status"><span class="mslot" data-anim="think" data-size="32"></span><span id="statusText">읽는 중이에요</span><span id="statusTime" class="stime"></span></div>
+    <div class="bar" id="bar"><i></i></div>
+
+    <section class="card" id="result-card">
+      <div class="result-top">
+        <span class="badge"><svg viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M18.5 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/></svg></span>
+        <h2 class="sec-title">번역</h2><div class="grow"></div>
+        <button class="btn ghost" id="readBtn2">가a</button>
+        <button class="btn" id="copyBtn">복사</button>
+      </div>
+      <div class="viewbar" id="viewbar" style="display:none">
+        <div class="seg" id="viewSeg">
+          <button data-v="only" class="on">번역만</button>
+          <button data-v="alt">번갈아</button>
+          <button data-v="side">나란히</button>
+        </div>
+        <button class="btn ghost" id="fnPanelBtn" style="display:none">각주 창 <b id="fnBtnNum"></b></button>
+      </div>
+      <div id="output"></div>
+      <div class="btn-row" id="afterRow" style="display:none">
+        <button class="btn" id="arSave">서재에 저장</button>
+        <button class="btn ghost" id="downloadBtn">txt로 저장</button>
+      </div>
+    </section>
+
+    <footer>글결 · 4단계 (대조 · 각주 · 단어장)<br>선택 팝업 수정판</footer>
+  </div>
+
+  <!-- ═══════════ 서재 탭 ═══════════ -->
+  <div id="tab-ar" hidden>
+    <section class="card">
+      <div class="wtools">
+        <input type="text" id="arSearch" placeholder="제목으로 찾기">
+        <button class="btn ghost" id="arTidy">정리</button>
+      </div>
+      <div class="selbar" id="arSelbar">
+        <label class="mini"><input type="checkbox" id="arAll"> 전체 선택</label>
+        <span id="arSelCount">0편</span>
+        <div class="grow"></div>
+        <button class="btn danger" id="arDelSel">선택 삭제</button>
+      </div>
+      <div class="wlist" id="arList"></div>
+      <p class="hint" id="arSpace" style="margin-top:14px"></p>
+    </section>
+    <footer>번역이 끝나면 자동으로 여기에 담겨요</footer>
+  </div>
+
+  <!-- ═══════════ 단어장 탭 ═══════════ -->
+  <div id="tab-wd" hidden>
+    <section class="card">
+      <div class="wtools">
+        <input type="text" id="wSearch" placeholder="단어나 뜻으로 찾기">
+        <button class="btn" id="wAdd">＋ 추가</button>
+      </div>
+      <div class="catbar" id="catbar"></div>
+      <div class="wlist" id="wlist"></div>
+      <div class="btn-row">
+        <button class="btn ghost" id="wExport">txt로 내보내기</button>
+        <div class="grow"></div>
+        <button class="btn ghost" id="wCatEdit">분류 관리</button>
+      </div>
+    </section>
+    <footer>본문에서 단어를 길게 눌러 선택하면 바로 저장할 수 있어요</footer>
+  </div>
+</div>
+
+<div id="selpop"><button id="spSave">단어 저장</button><button id="spTrans">이 부분 번역</button></div>
+
+<!-- 각주 말풍선 -->
+<div id="fnpop">
+  <span class="p-num" id="fpNum"></span>
+  <span class="p-ko" id="fpKo"></span>
+  <span class="p-or" id="fpOr"></span>
+  <span class="p-ty" id="fpTy"></span>
+  <button class="p-add" id="fpAdd" title="단어장에 넣기">＋</button>
+</div>
+
+<!-- 각주 창 -->
+<button id="fnFab">각주 <b id="fnFabNum"></b></button>
+<div id="fnPanel">
+  <div class="fnp-head">
+    <span class="fnp-title">고유명사</span>
+    <span class="fnp-count" id="fnCount"></span>
+    <div class="grow"></div>
+    <button class="btn ghost" id="fnAll">전부 단어장에</button>
+    <button class="fnp-x" id="fnClose">✕</button>
+  </div>
+  <div class="fnp-body"><ul class="notes" id="fnList" style="margin:0;background:transparent;box-shadow:none;padding:0"></ul></div>
+</div>
+
+<!-- 읽기 설정 시트 -->
+<div class="backdrop" id="backdrop"></div>
+<div class="sheet" id="sheet" role="dialog" aria-label="읽기 설정">
+  <div class="handle"></div>
+  <h3>테마</h3><div class="covers" id="covers"></div>
+  <h3>본문 글꼴</h3><div id="fonts"></div>
+  <h3>마스코트</h3>
+  <div class="mrow">
+    <div class="mprev"><span class="mslot" data-anim="bob" data-size="56"></span></div>
+    <div style="flex:1">
+      <div class="btn-row" style="margin-top:0">
+        <button class="btn" id="pickMascot">그림 바꾸기</button>
+        <button class="btn ghost" id="resetMascot">기본으로</button>
+      </div>
+      <p class="hint">배경이 투명한 PNG를 넣으면 가장 예뻐요.</p>
+    </div>
+  </div>
+  <input type="file" id="mascotInput" accept="image/*" hidden>
+  <h3>여백과 크기</h3>
+  <div class="slider"><label for="sSize">글자</label><input type="range" id="sSize" min="14" max="26" step="1"><output id="oSize"></output></div>
+  <div class="slider"><label for="sLead">줄 간격</label><input type="range" id="sLead" min="1.5" max="2.6" step="0.05"><output id="oLead"></output></div>
+  <div class="slider"><label for="sGap">문단 사이</label><input type="range" id="sGap" min="0.3" max="2.2" step="0.1"><output id="oGap"></output></div>
+  <label class="toggle"><input type="checkbox" id="cIndent"><span>문단 첫 줄 들여쓰기</span></label>
+  <h3>미리보기</h3>
+  <div class="preview">
+    <p>그날 밤, 창밖에는 조용히 눈이 내리고 있었다.</p>
+    <p>그는 아무 말 없이 커튼을 조금 열었다. 유리에 닿은 숨이 하얗게 번졌다가, 천천히 사라졌다.</p>
+  </div>
+  <div class="btn-row" style="margin-top:20px">
+    <button class="btn ghost" id="resetRead">기본값으로</button>
+    <div class="grow"></div><button class="btn" id="closeSheet">완료</button>
+  </div>
+</div>
+
+<!-- 단어 저장 시트 -->
+<div class="backdrop" id="wBackdrop"></div>
+<div class="sheet" id="wSheet" role="dialog" aria-label="단어 저장">
+  <div class="handle"></div>
+  <h3 id="wSheetTitle">단어 저장</h3>
+  <label class="field" for="wTerm">단어</label>
+  <input type="text" id="wTerm" placeholder="원문 단어">
+  <label class="field" for="wMean">뜻</label>
+  <textarea id="wMean" style="min-height:70px" placeholder="뜻·읽는 법·품사"></textarea>
+  <div class="btn-row" style="margin-top:8px">
+    <button class="btn" id="wAuto">✨ AI로 뜻 채우기</button>
+  </div>
+  <label class="field">분류</label>
+  <div class="catpick" id="wCatPick"></div>
+  <label class="field" for="wNote">메모 (선택)</label>
+  <input type="text" id="wNote" placeholder="작품명, 문맥 등">
+  <div class="btn-row" style="margin-top:20px">
+    <button class="btn ghost" id="wCancel">취소</button>
+    <div class="grow"></div>
+    <button class="btn" id="wSave">저장</button>
+  </div>
+</div>
+
+<!-- 부분 번역 결과 시트 -->
+<div class="backdrop" id="qBackdrop"></div>
+<div class="sheet" id="qSheet" role="dialog" aria-label="부분 번역">
+  <div class="handle"></div>
+  <h3>원문</h3>
+  <p id="qSrc" style="font-size:14px;color:var(--soft);line-height:1.7;margin:0"></p>
+  <h3>번역</h3>
+  <p id="qDst" style="font-family:var(--read-font);font-size:16px;line-height:1.9;margin:0"></p>
+  <div class="btn-row" style="margin-top:20px">
+    <button class="btn ghost" id="qSaveWord">단어장에 넣기</button>
+    <div class="grow"></div><button class="btn" id="qClose">닫기</button>
+  </div>
+</div>
+
+<!-- 설명 시트 -->
+<div class="backdrop" id="helpBackdrop"></div>
+<div class="sheet" id="helpSheet" role="dialog" aria-label="설명">
+  <div class="handle"></div>
+  <h3>글결 사용 설명</h3>
+  <div class="help">
+
+    <details data-h="intro">
+      <summary>이 앱이 뭐예요?</summary>
+      <div class="in">
+        <p>외국어로 된 소설을 <b>한국어로 바꿔주는 앱</b>이에요. 일본어든 영어든, 무슨 언어인지 몰라도 그냥 붙여넣으면 알아서 알아보고 번역해 줍니다.</p>
+        <p>번역한 글은 <b>서재</b>에 쌓이고, 모르는 단어는 <b>단어장</b>에 모아둘 수 있어요.</p>
+      </div>
+    </details>
+
+    <details data-h="key">
+      <summary>API 키가 뭐예요?</summary>
+      <div class="in">
+        <p>번역을 실제로 해주는 건 구글의 인공지능이에요. 이 앱은 "이거 번역해 줘"라고 <b>부탁을 전달하는 심부름꾼</b>일 뿐입니다.</p>
+        <p>구글 입장에서는 누가 부탁하는 건지 알아야겠죠. 그래서 <b>내 이름표</b>를 하나 받아와야 해요. 그게 API 키입니다.</p>
+        <div class="box">도서관 회원증 같은 거예요. 회원증이 있어야 책을 빌리듯, 이 키가 있어야 번역을 부탁할 수 있어요. 한 번 받아두면 계속 씁니다.</div>
+        <p><b>AIza</b>로 시작하는 길쭉한 영어·숫자 뭉치예요.</p>
+      </div>
+    </details>
+
+    <details data-h="getkey">
+      <summary>키를 어떻게 받아요? (3분)</summary>
+      <div class="in">
+        <ol>
+          <li><a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> 를 누르세요.</li>
+          <li>구글 계정으로 로그인해요. 평소 쓰는 지메일 계정이면 됩니다.</li>
+          <li><b>Create API key</b> 버튼을 누르세요.</li>
+          <li><b>AIza…</b>로 시작하는 글자를 <b>복사</b>하세요.</li>
+          <li>앱의 <b>설정</b>을 열어 그 칸에 <b>붙여넣기</b> 하면 끝이에요.</li>
+        </ol>
+        <p>넣는 순간 저절로 저장돼요. 다음에 앱을 켜면 이미 들어가 있습니다.</p>
+      </div>
+    </details>
+
+    <details data-h="money">
+      <summary>돈이 드나요?</summary>
+      <div class="in">
+        <p><b>무료예요.</b> 카드를 등록하지 않아도 되고, 자동으로 돈이 빠져나가지도 않아요.</p>
+        <p>대신 <b>하루에 쓸 수 있는 양</b>이 정해져 있어요. 다 쓰면 "한도에 걸렸어요"라고 뜹니다. 잠시 쉬었다 하거나 다음 날 하시면 돼요.</p>
+      </div>
+    </details>
+
+    <details data-h="safe">
+      <summary>키를 넣어도 안전한가요?</summary>
+      <div class="in">
+        <p>네. 키는 <b>지금 쓰는 이 기기 안에만</b> 저장돼요. 다른 누구에게도 전송되지 않습니다.</p>
+        <p>다만 <b>남에게 키를 알려주지는 마세요.</b> 회원증을 빌려주는 것과 같아서, 남이 내 몫을 대신 써버릴 수 있어요. 실수로 알려줬다면 위 사이트에서 그 키를 지우고 새로 만들면 됩니다.</p>
+      </div>
+    </details>
+
+    <details data-h="use">
+      <summary>어떻게 쓰는 건가요?</summary>
+      <div class="in">
+        <ol>
+          <li><b>제목</b> 칸에 작품 이름을 적어요. (안 적어도 괜찮아요)</li>
+          <li><b>본문</b> 칸에 외국어 소설을 붙여넣어요.</li>
+          <li><b>번역하기</b>를 누르고 기다려요.</li>
+        </ol>
+        <p>글이 아주 길어도 괜찮아요. 앱이 알아서 여러 조각으로 나눠 번역한 뒤 이어붙입니다.</p>
+        <p>글자 크기·색·글꼴은 오른쪽 위 <b>가a</b> 버튼에서 바꿀 수 있어요.</p>
+      </div>
+    </details>
+
+    <details data-h="stream">
+      <summary>번역문이 한 줄씩 나타나요. 고장인가요?</summary>
+      <div class="in">
+        <p><b>정상이에요.</b> 인공지능은 글을 한꺼번에 완성하지 않고 <b>앞에서부터 한 글자씩 써 내려갑니다.</b> 사람이 글을 쓰는 것과 비슷해요.</p>
+        <p>이 앱은 다 쓸 때까지 기다리지 않고 <b>써지는 대로 바로 보여줍니다.</b> 그래서 문장이 조금씩 늘어나고, 끝에 깜빡이는 막대(▍)가 따라다녀요.</p>
+        <div class="box">막대가 깜빡이는 동안은 <b>아직 쓰는 중</b>이에요. 다 쓰면 막대가 사라지고, 각주 번호가 붙은 정식 화면으로 바뀝니다.</div>
+        <p>중간에 글이 어색해 보여도 걱정 마세요. 문장이 끝까지 안 써진 상태라 그렇게 보이는 것뿐이에요.</p>
+        <p>화면 오른쪽에 <b>흐른 시간</b>이 나옵니다. 너무 오래 걸리면 설정에서 <b>번역 속도</b>를 빠르게로 두거나, 모델을 <b>flash-lite</b>로 바꿔 보세요.</p>
+      </div>
+    </details>
+
+    <details data-h="url">
+      <summary>링크로 가져오기 · 어떤 링크가 되나요?</summary>
+      <div class="in">
+        <p>소설이 올라온 페이지 주소를 넣으면, <b>인공지능이 그 페이지를 읽어 본문을 채워줍니다.</b> 이때도 번역은 하지 않아요. 원문을 가져오기만 합니다.</p>
+        <div class="box"><b>솔직히 말씀드리면 안 되는 곳이 더 많아요.</b> 되면 편하고, 안 되면 본문을 복사해 붙여넣는 게 확실합니다.</div>
+        <p><b>대체로 되는 곳</b> — 로그인 없이 바로 글이 보이는 블로그, 공개 게시판, 위키 같은 곳</p>
+        <p><b>대체로 안 되는 곳</b></p>
+        <ol>
+          <li>로그인해야 보이는 곳 (픽시브, 비공개 작품 등)</li>
+          <li>앱으로만 볼 수 있는 곳</li>
+          <li>연령 확인이 필요한 곳</li>
+          <li>주소를 눌러야 본문이 나타나는 곳</li>
+        </ol>
+        <p>가져오기가 실패하면 <b>이 링크는 읽지 못했어요</b>라고 알려드려요. 그때는 본문을 직접 복사해서 붙여넣어 주세요.</p>
+        <p><b>가져왔더라도 꼭 확인하세요.</b> 인공지능이 긴 글을 중간에 줄이거나 뒷부분을 빠뜨리는 일이 있어요. 글자 수를 보고 원래 분량과 비슷한지 확인한 뒤 번역하시는 걸 권합니다.</p>
+      </div>
+    </details>
+
+    <details data-h="github">
+      <summary>깃허브로 폰과 컴퓨터 잇기</summary>
+      <div class="in">
+        <ol>
+          <li>깃허브에서 <b>비공개(Private) 저장소</b>를 하나 만드세요. (예: <b>geulgyeol-data</b>)</li>
+          <li><b>Settings → Developer settings → Personal access tokens → Fine-grained tokens</b> 로 갑니다.</li>
+          <li><b>Generate new token</b> → Repository access에서 방금 만든 저장소 <b>하나만</b> 고릅니다.</li>
+          <li>Permissions에서 <b>Contents</b>를 <b>Read and write</b>로 바꿉니다.</li>
+          <li>만들어진 토큰을 복사해 설정의 깃허브 칸에 붙여넣으세요.</li>
+        </ol>
+        <div class="box">꼭 저장소 <b>하나에만</b> 권한을 주세요. 그래야 토큰을 잃어버려도 피해가 없어요.</div>
+        <p>컴퓨터에서 <b>올리기</b>, 폰에서 <b>내려받기</b> 하면 서재·단어장·설정이 통째로 옮겨갑니다.</p>
+      </div>
+    </details>
+
+    <details data-h="err">
+      <summary>오류가 떠요</summary>
+      <div class="in">
+        <p><b>"API 키가 올바르지 않아요"</b> — 복사할 때 앞뒤 빈칸이 딸려왔을 수 있어요. 지우고 다시 붙여넣어 보세요.</p>
+        <p><b>"인터넷 연결에 실패했어요"</b> — 광고 차단 프로그램이 막고 있을 수 있어요. 잠시 꺼보세요.</p>
+        <p><b>"모델을 쓸 수 없어요"</b> — 설정의 <b>모델</b>에서 다른 항목을 골라 보세요.</p>
+        <p><b>"한도에 걸렸어요"</b> — 오늘 몫을 다 썼어요. 1~2분 뒤나 내일 이어서 하세요.</p>
+        <p><b>"이 링크는 읽지 못했어요"</b> — 위 <b>링크로 가져오기</b> 항목을 봐주세요.</p>
+      </div>
+    </details>
+
+  </div>
+  <div class="btn-row" style="margin-top:20px">
+    <div class="grow"></div><button class="btn" id="helpClose">닫기</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const store = {
+  get:(k,d='')=>{try{return localStorage.getItem('gg_'+k) ?? d}catch(e){return d}},
+  set:(k,v)=>{try{localStorage.setItem('gg_'+k,v)}catch(e){}}
+};
+let toastTimer;
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),1900);}
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function sparkle(el){
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const r = el.getBoundingClientRect();
+  for (let i=0;i<12;i++){
+    const s=document.createElement('div');
+    s.className='spark'; s.textContent=['✦','✧','·','✦'][i%4];
+    s.style.color = i%2 ? 'var(--accent)' : 'var(--pop)';
+    s.style.left=(r.left+r.width/2)+'px'; s.style.top=(r.top+r.height/2)+'px';
+    const a=(Math.PI*2*i)/12, d=60+Math.random()*70;
+    s.style.setProperty('--dx',Math.cos(a)*d+'px');
+    s.style.setProperty('--dy',Math.sin(a)*d+'px');
+    s.style.animation=`fly ${700+Math.random()*400}ms ease-out forwards`;
+    document.body.appendChild(s); setTimeout(()=>s.remove(),1200);
+  }
+}
+
+/* ════════════════════════════════════════════════════════════
+   탭
+   ════════════════════════════════════════════════════════════ */
+const TABS=['tr','ar','wd'];
+function gotoTab(name){
+  document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on', x.dataset.tab===name));
+  TABS.forEach(t=>$('tab-'+t).hidden = (t!==name));
+  hideSelPop(); hideFnPop();
+  if(name!=='tr') closeFnPanel();
+  window.scrollTo({top:0});
+}
+document.querySelectorAll('.tabs button').forEach(b=>
+  b.addEventListener('click',()=>gotoTab(b.dataset.tab)));
+
+/* ════════════════════════════════════════════════════════════
+   마스코트
+   ════════════════════════════════════════════════════════════ */
+let customMascot = store.get('mascot','');
+function defaultMascot(anim,size){
+  const mouth = anim==='think'
+    ? `<path d="M21.8 31.4h4.4" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/>`
+    : `<path d="M21.6 31.2q2.4 2.3 4.8 0" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/>`;
+  return `<svg class="mascot ${anim}" viewBox="0 0 48 48" style="width:${size}px;height:${size}px" aria-hidden="true">
+    <path d="M29 2h6.5v12.5L32.25 12 29 14.5z" fill="var(--pop)"/>
+    <rect x="7" y="10" width="34" height="30" rx="13" fill="var(--card)" stroke="var(--accent)" stroke-width="2.1"/>
+    <ellipse cx="14.2" cy="29.5" rx="3.1" ry="2" fill="var(--pop)" opacity=".5"/>
+    <ellipse cx="33.8" cy="29.5" rx="3.1" ry="2" fill="var(--pop)" opacity=".5"/>
+    <g class="eyes-open"><circle cx="18.5" cy="24.5" r="2.4" fill="var(--accent)"/><circle cx="29.5" cy="24.5" r="2.4" fill="var(--accent)"/></g>
+    <g class="eyes-happy" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round">
+      <path d="M16.1 25.6q2.4-3.1 4.8 0"/><path d="M27.1 25.6q2.4-3.1 4.8 0"/></g>
+    ${mouth}</svg>`;
+}
+const mascotMarkup = (anim,size) => customMascot
+  ? `<img class="mascot ${anim}" src="${customMascot}" alt="" style="width:${size}px;height:${size}px">`
+  : defaultMascot(anim,size);
+function paintMascots(){
+  document.querySelectorAll('.mslot').forEach(s =>
+    s.innerHTML = mascotMarkup(s.dataset.anim||'bob', s.dataset.size||32));
+}
+function celebrate(){
+  const el = $('headSlot').firstElementChild; if (!el) return;
+  el.classList.add('cheer');
+  if (el.tagName!=='IMG') el.classList.add('happy');
+  setTimeout(()=>el.classList.remove('cheer','happy'), 2600);
+}
+function fileToMascot(file){
+  return new Promise((resolve,reject)=>{
+    const fr=new FileReader();
+    fr.onerror=()=>reject(new Error('파일을 읽지 못했어요.'));
+    fr.onload=()=>{
+      const img=new Image();
+      img.onerror=()=>reject(new Error('이미지 형식을 읽지 못했어요.'));
+      img.onload=()=>{
+        const MAX=240, k=Math.min(1,MAX/Math.max(img.width,img.height));
+        const w=Math.max(1,Math.round(img.width*k)), h=Math.max(1,Math.round(img.height*k));
+        const c=document.createElement('canvas'); c.width=w; c.height=h;
+        c.getContext('2d').drawImage(img,0,0,w,h);
+        resolve(c.toDataURL('image/png'));
+      };
+      img.src=fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+$('pickMascot').addEventListener('click', ()=>$('mascotInput').click());
+$('mascotInput').addEventListener('change', async e=>{
+  const f=e.target.files[0]; e.target.value=''; if(!f) return;
+  try{
+    const d=await fileToMascot(f);
+    try{ localStorage.setItem('gg_mascot',d); }
+    catch(err){ return toast('그림이 너무 커요'); }
+    customMascot=d; paintMascots(); toast('마스코트를 바꿨어요!');
+  }catch(err){ toast(err.message); }
+});
+$('resetMascot').addEventListener('click', ()=>{
+  customMascot=''; try{localStorage.removeItem('gg_mascot');}catch(e){}
+  paintMascots(); toast('기본 마스코트로 돌아왔어요');
+});
+
+/* ════════════════════════════════════════════════════════════
+   테마 · 글꼴
+   ════════════════════════════════════════════════════════════ */
+const THEMES=[
+  {id:'dawn',name:'새벽',paper:'#F6F3FC',ink:'#312B44',accent:'#7A69E2'},
+  {id:'milk',name:'딸기우유',paper:'#FFF4F6',ink:'#482E36',accent:'#E67089'},
+  {id:'matcha',name:'말차',paper:'#F2F7EB',ink:'#2E3A28',accent:'#639753'},
+  {id:'paper',name:'종이',paper:'#F5EFE2',ink:'#3A3329',accent:'#33705E'},
+  {id:'night',name:'밤하늘',paper:'#161425',ink:'#E7E3F3',accent:'#AE9DFF'},
+  {id:'ink',name:'먹',paper:'#0A0A0D',ink:'#D9D6CF',accent:'#CDB47C'}
+];
+const FONTS={
+  pretendard:{group:'고딕',name:'프리텐다드',note:'또렷하고 깔끔',css:"'Pretendard Variable',Pretendard,sans-serif",url:null},
+  notosans:{group:'고딕',name:'본고딕',note:'가장 무난한 표준',css:"'Noto Sans KR',sans-serif",
+    url:'https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500&display=swap'},
+  gowundodum:{group:'고딕',name:'고운돋움',note:'둥글고 말랑한',css:"'Gowun Dodum',sans-serif",
+    url:'https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap'},
+  ibmplex:{group:'고딕',name:'IBM 고딕',note:'획이 굵고 시원한',css:"'IBM Plex Sans KR',sans-serif",
+    url:'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500&display=swap'},
+  nanumgothic:{group:'고딕',name:'나눔고딕',note:'익숙하고 편한',css:"'Nanum Gothic',sans-serif",
+    url:'https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700&display=swap'},
+  notoserif:{group:'명조',name:'본명조',note:'단정한 기본',css:"'Noto Serif KR',serif",
+    url:'https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500&display=swap'},
+  gowunbatang:{group:'명조',name:'고운바탕',note:'부드러운 획',css:"'Gowun Batang',serif",
+    url:'https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap'},
+  nanummyeongjo:{group:'명조',name:'나눔명조',note:'종이책 느낌',css:"'Nanum Myeongjo',serif",
+    url:'https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700&display=swap'},
+  gaegu:{group:'손글씨',name:'개구',note:'가벼운 손글씨',css:"'Gaegu',cursive",
+    url:'https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap'}
+};
+const loadedF=new Set();
+function loadFont(id){
+  const f=FONTS[id]; if(!f||!f.url||loadedF.has(id)) return;
+  const l=document.createElement('link'); l.rel='stylesheet'; l.href=f.url;
+  document.head.appendChild(l); loadedF.add(id);
+}
+const DEFAULTS={theme:'dawn',font:'pretendard',size:17,lead:2.0,gap:1.1,indent:0};
+let R={...DEFAULTS};
+function applyRead(){
+  document.documentElement.dataset.theme=R.theme;
+  const t=THEMES.find(x=>x.id===R.theme);
+  if(t) document.querySelector('meta[name=theme-color]').content=t.paper;
+  loadFont(R.font);
+  const s=document.documentElement.style;
+  s.setProperty('--read-font',FONTS[R.font].css);
+  s.setProperty('--read-size',R.size+'px');
+  s.setProperty('--read-leading',R.lead);
+  s.setProperty('--read-gap',R.gap+'em');
+  s.setProperty('--read-indent',R.indent?'1em':'0');
+  $('sSize').value=R.size; $('oSize').textContent=R.size+'px';
+  $('sLead').value=R.lead; $('oLead').textContent=Number(R.lead).toFixed(2);
+  $('sGap').value=R.gap;   $('oGap').textContent=Number(R.gap).toFixed(1)+'em';
+  $('cIndent').checked=!!R.indent;
+  document.querySelectorAll('#covers .cover').forEach(b=>b.setAttribute('aria-pressed',b.dataset.id===R.theme));
+  document.querySelectorAll('#fonts .font-opt').forEach(b=>b.setAttribute('aria-pressed',b.dataset.id===R.font));
+  store.set('read',JSON.stringify(R));
+}
+$('covers').innerHTML=THEMES.map(t=>`
+  <button class="cover" data-id="${t.id}" aria-pressed="false" title="${t.name}">
+    <span class="face" style="background:${t.paper}">
+      <span class="ribbon" style="background:${t.accent}"></span>
+      <i style="background:${t.ink}"></i><i style="background:${t.ink}"></i><i style="background:${t.ink}"></i>
+    </span><span class="name">${t.name}</span></button>`).join('');
+const GROUP_NOTE={'고딕':'폰으로 오래 읽을 땐 이쪽이 덜 피로해요','명조':'종이책 느낌 · 글자를 키웠을 때','손글씨':''};
+$('fonts').innerHTML=[...new Set(Object.values(FONTS).map(f=>f.group))].map(g=>{
+  const items=Object.entries(FONTS).filter(([,f])=>f.group===g).map(([id,f])=>`
+    <button class="font-opt" data-id="${id}" aria-pressed="false">
+      <b style="font-family:${f.css}">${f.name}</b><span>${f.note}</span></button>`).join('');
+  return `<div class="fgroup"><div class="fgroup-title">${g}${GROUP_NOTE[g]?`<em>${GROUP_NOTE[g]}</em>`:''}</div>
+    <div class="fgrid">${items}</div></div>`;
+}).join('');
+Object.keys(FONTS).forEach(loadFont);
+
+$('covers').addEventListener('click',e=>{const b=e.target.closest('.cover'); if(b){R.theme=b.dataset.id;applyRead();}});
+$('fonts').addEventListener('click',e=>{const b=e.target.closest('.font-opt'); if(b){R.font=b.dataset.id;applyRead();}});
+$('sSize').addEventListener('input',e=>{R.size=+e.target.value;applyRead();});
+$('sLead').addEventListener('input',e=>{R.lead=+e.target.value;applyRead();});
+$('sGap').addEventListener('input',e=>{R.gap=+e.target.value;applyRead();});
+$('cIndent').addEventListener('change',e=>{R.indent=e.target.checked?1:0;applyRead();});
+$('resetRead').addEventListener('click',()=>{R={...DEFAULTS};applyRead();toast('처음 모습으로 돌아왔어요');});
+
+function openS(sh,bd){$(sh).classList.add('show');$(bd).classList.add('show');}
+function closeS(sh,bd){$(sh).classList.remove('show');$(bd).classList.remove('show');}
+$('readBtn').addEventListener('click',()=>openS('sheet','backdrop'));
+$('readBtn2').addEventListener('click',()=>openS('sheet','backdrop'));
+$('backdrop').addEventListener('click',()=>closeS('sheet','backdrop'));
+$('closeSheet').addEventListener('click',()=>closeS('sheet','backdrop'));
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){closeS('sheet','backdrop');closeS('wSheet','wBackdrop');closeS('qSheet','qBackdrop');hideSelPop();}
+});
+
+/* ════════════════════════════════════════════════════════════
+   번역 규칙 — 고유명사는 본문에 괄호로 넣지 않고 목록으로 따로 받습니다
+   ════════════════════════════════════════════════════════════ */
+const RULES = `당신은 소설·팬픽 전문 번역가입니다. 아래 규칙을 반드시 지켜 원문을 한국어로 옮기세요.
+
+[규칙]
+1. 원문의 언어를 스스로 판별해 한국어로 번역한다.
+2. 절대 요약하지 않는다. 원문의 모든 문장과 문단을 빠짐없이 완역한다. 해설·요약·감상·사족을 덧붙이지 않는다.
+3. 직역투를 피하고 자연스러운 한국어로 의역하되, 원문의 의미와 뉘앙스는 그대로 유지한다.
+4. 대사는 인물별 말투·성격·인칭이 드러나게 번역한다.
+5. 고유명사(인명·지명·조직·설정 용어 등)는 본문 안에 괄호로 원문을 병기하지 않는다. 본문에는 한국어 표기만 쓰고, 원문 표기는 아래 [고유명사] 목록에 따로 적는다.
+6. 일본어 호칭(くん・さん・ちゃん・様・先輩 등)은 번역하지 말고 발음 그대로 붙여 쓴다. 예: 하루토군, 사쿠라상, 미유쨩, 선배. 다른 언어의 호칭·애칭도 뉘앙스가 살아나게 처리한다.
+7. 원문의 문단 나눔과 줄바꿈 구조를 그대로 지킨다. 문단 수를 임의로 합치거나 늘리지 않는다.
+
+[출력 형식 — 아래 두 구획을 정확히 이 표시와 함께 출력한다]
+<<<번역>>>
+(번역된 한국어 본문만. 머리말·꼬리말·설명·마크다운 기호 없이)
+
+<<<고유명사>>>
+(한 줄에 하나씩)  한국어표기 | 원문표기 | 분류
+분류는 인명·지명·조직·용어 중 하나. 고유명사가 없으면 "없음"이라고만 쓴다.`;
+
+function splitText(text,limit){
+  if(text.length<=limit) return [text];
+  const paras=text.split(/\n\s*\n/); const chunks=[]; let buf='';
+  const push=()=>{if(buf.trim())chunks.push(buf.trim());buf='';};
+  for(const p of paras){
+    if(p.length>limit){
+      push();
+      const sents=p.match(/[^。．.!?！？\n]+[。．.!?！？\n]*/g)||[p];
+      let s='';
+      for(const sn of sents){ if((s+sn).length>limit&&s){chunks.push(s.trim());s='';} s+=sn; }
+      if(s.trim())chunks.push(s.trim());
+      continue;
+    }
+    if((buf+'\n\n'+p).length>limit&&buf) push();
+    buf=buf?buf+'\n\n'+p:p;
+  }
+  push(); return chunks;
+}
+
+/* 응답에서 본문과 고유명사 목록을 갈라냅니다 */
+function parseReply(raw){
+  let body=raw, gloss=[];
+  const gi=raw.indexOf('<<<고유명사>>>');
+  if(gi>=0){
+    body=raw.slice(0,gi);
+    raw.slice(gi+9).split('\n').forEach(line=>{
+      const t=line.trim();
+      if(!t||t==='없음'||t.startsWith('<<<')) return;
+      const p=t.split('|').map(x=>x.trim());
+      if(p.length>=2 && p[0] && p[1]) gloss.push({ko:p[0],or:p[1],ty:p[2]||''});
+    });
+  }
+  body=body.replace(/<<<번역>>>/g,'').replace(/<<<고유명사>>>/g,'').trim();
+  return {body,gloss};
+}
+
+/* opts.fast    = true  → 짧은 답(단어 뜻 등)용. 잘린 답을 오류로 처리합니다.
+   opts.noThink = true  → 모델이 "속으로 생각하는" 과정을 끕니다 (훨씬 빠름).
+   opts.onStatus(msg)   → 기다리는 중일 때 화면에 상황을 알려줍니다. */
+async function askGemini(key,model,prompt,system,maxTok,opts){
+  opts=opts||{};
+  let noThink = opts.noThink!=null ? !!opts.noThink : !!opts.fast;
+  const say = opts.onStatus || (()=>{});
+
+  const makeBody=()=>{
+    const parts=[{text:prompt}];
+    const b={
+      contents:[{role:'user',parts}],
+      generationConfig:{
+        temperature:opts.temp!=null?opts.temp:0.8, topP:0.95,
+        maxOutputTokens:maxTok||16384
+      },
+      safetySettings:['HARM_CATEGORY_HARASSMENT','HARM_CATEGORY_HATE_SPEECH',
+        'HARM_CATEGORY_SEXUALLY_EXPLICIT','HARM_CATEGORY_DANGEROUS_CONTENT']
+        .map(c=>({category:c,threshold:'BLOCK_ONLY_HIGH'}))
+    };
+    if(system) b.systemInstruction={parts:[{text:system}]};
+    if(opts.tools) b.tools=opts.tools;
+    if(noThink) b.generationConfig.thinkingConfig={thinkingBudget:0};
+    return b;
+  };
+
+  const base=`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}`;
+  const headers={'Content-Type':'application/json','x-goog-api-key':key};
+
+  /* 기다릴 땐 몇 초 남았는지 보여줍니다 (조용히 멈춘 것처럼 보이지 않게) */
+  async function waitVisibly(sec, why){
+    for(let s=sec; s>0; s--){ say(`${why} · ${s}초 뒤 다시 시도`); await new Promise(r=>setTimeout(r,1000)); }
+  }
+
+  for(let a=0;a<4;a++){
+    /* ── 스트리밍: 글자가 만들어지는 대로 바로 보여줍니다 ── */
+    if(opts.onChunk){
+      try{
+        const res=await fetch(base+':streamGenerateContent?alt=sse',
+          {method:'POST',headers,body:JSON.stringify(makeBody())});
+        if(res.status===400 && noThink){
+          const t=await res.text();
+          if(/think/i.test(t)){ noThink=false; continue; }
+          throw new Error(errMsg(res.status, safeJson(t)));
+        }
+        if((res.status===429||res.status>=500) && a<3){
+          await waitVisibly(res.status===429?20:6, res.status===429?'사용량 한도에 걸렸어요':'서버가 바빠요');
+          continue;
+        }
+        if(!res.ok) throw new Error(errMsg(res.status, safeJson(await res.text())));
+        if(!res.body) throw new Error('__nostream__');
+
+        const reader=res.body.getReader(), dec=new TextDecoder();
+        let buf='', full='';
+        while(true){
+          const {value,done}=await reader.read();
+          if(done) break;
+          buf+=dec.decode(value,{stream:true});
+          let i;
+          while((i=buf.indexOf('\n'))>=0){
+            const line=buf.slice(0,i).trim(); buf=buf.slice(i+1);
+            if(!line.startsWith('data:')) continue;
+            const p=line.slice(5).trim();
+            if(!p || p==='[DONE]') continue;
+            try{
+              const j=JSON.parse(p);
+              const t=(j.candidates?.[0]?.content?.parts||[])
+                .filter(x=>x.text&&!x.thought).map(x=>x.text).join('');
+              if(t){ full+=t; opts.onChunk(full); }
+            }catch(e){}
+          }
+        }
+        if(full.trim()) return full.trim();
+        throw new Error('__nostream__');
+      }catch(e){
+        if(e.message==='__nostream__'){ opts=Object.assign({},opts,{onChunk:null}); continue; }
+        if(e instanceof TypeError) throw new Error('인터넷 연결에 실패했어요. 웹 주소(https)로 열었는지 확인해 주세요.');
+        throw e;
+      }
+    }
+
+    /* ── 일반 방식 ── */
+    let res;
+    try{
+      res=await fetch(base+':generateContent',{method:'POST',headers,body:JSON.stringify(makeBody())});
+    }catch(e){ throw new Error('인터넷 연결에 실패했어요. 웹 주소(https)로 열었는지 확인해 주세요.'); }
+
+    if((res.status===429||res.status>=500)&&a<3){
+      await waitVisibly(res.status===429?20:6, res.status===429?'사용량 한도에 걸렸어요':'서버가 바빠요');
+      continue;
+    }
+    const data=await res.json().catch(()=>null);
+    if(!res.ok){
+      const msg=data?.error?.message||`HTTP ${res.status}`;
+      if(res.status===400 && noThink && /think/i.test(msg)){ noThink=false; continue; }
+      throw new Error(errMsg(res.status,data));
+    }
+    const cand=data?.candidates?.[0];
+    if(!cand){
+      const r=data?.promptFeedback?.blockReason;
+      throw new Error(r?`안전 필터에 막혔어요 (${r}).`:'응답이 비어 있어요.');
+    }
+    const text=(cand.content?.parts||[]).filter(p=>p.text&&!p.thought).map(p=>p.text).join('');
+    if(cand.finishReason==='MAX_TOKENS'){
+      if(opts.fast && a<3){ maxTok=(maxTok||2048)*2; noThink=true; continue; }
+      if(!text.trim()) throw new Error('분량이 커요. 설정에서 분량을 줄여 주세요.');
+    }
+    if(!text.trim()){
+      if(cand.finishReason==='SAFETY') throw new Error('안전 필터에 막혀 번역하지 못했어요.');
+      throw new Error('답이 비어 있어요. 다시 시도해 주세요.');
+    }
+    return text.trim();
+  }
+  throw new Error('서버가 계속 응답하지 않아요. 잠시 뒤 다시 해주세요.');
+}
+
+function safeJson(t){ try{ return JSON.parse(t); }catch(e){ return null; } }
+function errMsg(status,data){
+  const msg=data?.error?.message||`HTTP ${status}`;
+  if(status===400&&/API key/i.test(msg)) return 'API 키가 올바르지 않아요.';
+  if(status===403) return '이 키로는 접근할 수 없어요.';
+  if(status===404) return '선택한 모델을 쓸 수 없어요. 설정에서 다른 모델을 골라 주세요.';
+  if(status===429) return '무료 사용량 한도에 걸렸어요. 1~2분 뒤 다시 해주세요.';
+  return msg;
+}
+
+/* 뜻 답변에서 군더더기를 걷어내고 한 줄만 남깁니다 */
+function cleanMeaning(raw){
+  const bad=/format|constraint|instruction|json|출력\s*형식/i;
+  const line=(raw||'')
+    .replace(/```[\s\S]*?```/g,' ')
+    .split('\n').map(s=>s.trim())
+    .filter(s=>s && !bad.test(s) && !/^[*\-#>|]/.test(s))[0] || '';
+  return line.replace(/^["'“”‘’\s*·\-]+/,'').replace(/["'“”‘’\s]+$/,'').trim();
+}
+
+/* ════════════════════════════════════════════════════════════
+   각주 달기 — 고유명사가 처음 나온 자리에 번호를 꽂습니다
+   ════════════════════════════════════════════════════════════ */
+function annotate(paras,gloss){
+  const pending=gloss.filter(g=>g.ko).slice();
+  const notes=[];
+  const out=paras.map(text=>{
+    const hits=[];
+    for(let i=pending.length-1;i>=0;i--){
+      const g=pending[i], at=text.indexOf(g.ko);
+      if(at>=0){ hits.push({g,at:at+g.ko.length}); pending.splice(i,1); }
+    }
+    hits.sort((a,b)=>a.at-b.at);
+    let s='',prev=0;
+    hits.forEach(h=>{
+      notes.push(h.g);
+      s+=text.slice(prev,h.at)+`\u0001${notes.length}\u0002`;
+      prev=h.at;
+    });
+    return s+text.slice(prev);
+  });
+  return {paras:out,notes};
+}
+function paraNode(line,cls){
+  const p=document.createElement('p'); p.className=cls;
+  line.split(/\u0001(\d+)\u0002/).forEach((s,i)=>{
+    if(i%2===0){ if(s) p.appendChild(document.createTextNode(s)); }
+    else{
+      const sup=document.createElement('sup');
+      sup.className='fn'; sup.textContent=s; sup.dataset.num=s;
+      p.appendChild(sup);
+    }
+  });
+  return p;
+}
+const stripMarks = s => s.replace(/\u0001\d+\u0002/g,'');
+
+/* ════════════════════════════════════════════════════════════
+   문서 상태 · 그리기
+   ════════════════════════════════════════════════════════════ */
+let DOC = null;   // {pairs:[{s,d}], notes:[{ko,or,ty}]}
+let viewMode = store.get('view','only');
+
+function buildDoc(chunks){
+  // chunks: [{src, dst}] → 문단 짝 + 각주
+  const pairs=[]; let allDst=[];
+  chunks.forEach(c=>{
+    const sp=c.src.split(/\n+/).map(x=>x.trim()).filter(Boolean);
+    const dp=c.dst.split(/\n+/).map(x=>x.trim()).filter(Boolean);
+    const n=Math.max(sp.length,dp.length);
+    for(let i=0;i<n;i++) pairs.push({s:sp[i]||'', d:dp[i]||''});
+  });
+  return pairs;
+}
+
+function renderDoc(){
+  const out=$('output'); out.innerHTML='';
+  if(!DOC || !DOC.pairs.length){ showEmpty(); return; }
+  $('viewbar').style.display='flex';
+  $('afterRow').style.display='flex';
+
+  DOC.pairs.forEach(p=>{
+    if(viewMode==='only'){
+      if(p.d) out.appendChild(paraNode(p.d,'para'));
+      return;
+    }
+    const box=document.createElement('div');
+    box.className='cmp'+(viewMode==='side'?' side':'');
+    if(p.s){ const s=document.createElement('p'); s.className='src'; s.textContent=p.s; box.appendChild(s); }
+    if(p.d) box.appendChild(paraNode(p.d,'dst'));
+    out.appendChild(box);
+  });
+
+  if(viewMode==='side') out.classList.add('has-side');
+
+  renderNotes();
+  store.set('doc', JSON.stringify(DOC));
+  store.set('view', viewMode);
+}
+
+/* 각주 창 내용 그리기 — 본문에는 더 이상 목록을 붙이지 않습니다 */
+function renderNotes(){
+  const n = DOC ? DOC.notes.length : 0;
+  $('fnPanelBtn').style.display = n ? 'inline-flex' : 'none';
+  $('fnBtnNum').textContent = n || '';
+  $('fnFabNum').textContent = n || '';
+  $('fnCount').textContent = n ? `${n}개` : '';
+  $('fnFab').classList.toggle('show', n>0 && !$('fnPanel').classList.contains('show'));
+  if(!n){ closeFnPanel(); $('fnList').innerHTML=''; return; }
+
+  $('fnList').innerHTML = DOC.notes.map((x,i)=>`
+    <li id="note-${i+1}">
+      <span class="num">${i+1}</span>
+      <span class="ko">${esc(x.ko)}</span>
+      <span class="or">${esc(x.or)}</span>
+      ${x.ty?`<span class="ty">${esc(x.ty)}</span>`:''}
+      <button class="add" title="단어장에 넣기" data-i="${i}">＋</button>
+    </li>`).join('');
+}
+
+function openFnPanel(){
+  if(!DOC || !DOC.notes.length) return toast('각주가 없어요');
+  $('fnPanel').classList.add('show');
+  $('fnFab').classList.remove('show');
+  document.body.classList.add('fn-open');
+  store.set('fnopen','1');
+}
+function closeFnPanel(){
+  $('fnPanel').classList.remove('show');
+  document.body.classList.remove('fn-open');
+  $('fnFab').classList.toggle('show', !!(DOC && DOC.notes.length));
+  store.set('fnopen','');
+}
+$('fnPanelBtn').addEventListener('click',()=>{
+  $('fnPanel').classList.contains('show') ? closeFnPanel() : openFnPanel();
+});
+$('fnFab').addEventListener('click',openFnPanel);
+$('fnClose').addEventListener('click',closeFnPanel);
+
+/* 각주 목록에서 단어장으로 */
+$('fnList').addEventListener('click',e=>{
+  const b=e.target.closest('.add'); if(!b||!DOC) return;
+  const n=DOC.notes[+b.dataset.i];
+  openWordSheet({term:n.or, mean:n.ko, cat:'인명·고유명사'});
+});
+$('fnAll').addEventListener('click',()=>{
+  if(!DOC || !DOC.notes.length) return;
+  let added=0;
+  DOC.notes.forEach(n=>{
+    if(WORDS.some(w=>w.term===n.or)) return;
+    WORDS.push({id:String(Date.now())+Math.random().toString(36).slice(2,6),
+      term:n.or, mean:n.ko, cat:'인명·고유명사', note:n.ty||'', at:Date.now()});
+    added++;
+  });
+  saveWords(); renderWords();
+  toast(added?`${added}개를 넣었어요!`:'이미 다 들어 있어요');
+});
+
+function showEmpty(){
+  $('output').innerHTML=`<div class="empty">
+    <span class="mslot" data-anim="bob" data-size="58"></span>
+    <p>번역한 글이 여기에 나타나요</p>
+    <span class="sub">위에 원문을 넣고 번역하기를 눌러 주세요</span></div>`;
+  paintMascots();
+  $('viewbar').style.display='none';
+  $('afterRow').style.display='none';
+  $('fnPanelBtn').style.display='none';
+  $('fnFab').classList.remove('show');
+  closeFnPanel();
+}
+
+const plainResult = () => DOC ? DOC.pairs.map(p=>stripMarks(p.d)).filter(Boolean).join('\n\n') : '';
+
+$('viewSeg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  viewMode=b.dataset.v;
+  $('viewSeg').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+  renderDoc();
+});
+
+/* 각주 번호를 누르면 그 자리에 작게 뜹니다 (화면이 움직이지 않아요) */
+let fnPopIdx=-1;
+function hideFnPop(){ $('fnpop').classList.remove('show'); }
+function showFnPop(sup){
+  if(!DOC) return;
+  const i=+sup.dataset.num-1, n=DOC.notes[i];
+  if(!n) return;
+  fnPopIdx=i;
+  $('fpNum').textContent=i+1;
+  $('fpKo').textContent=n.ko;
+  $('fpOr').textContent=n.or;
+  $('fpTy').textContent=n.ty||'';
+  $('fpTy').style.display=n.ty?'':'none';
+  const r=sup.getBoundingClientRect();
+  placeNode($('fnpop'), r.left+r.width/2, r.top);
+
+  /* 각주 창이 열려 있으면 창 안에서만 해당 줄로 이동합니다 */
+  if($('fnPanel').classList.contains('show')){
+    const li=$('note-'+(i+1)), body=document.querySelector('.fnp-body');
+    if(li && body){
+      body.scrollTop = li.offsetTop - 30;
+      li.classList.add('fn-hit'); setTimeout(()=>li.classList.remove('fn-hit'),1400);
+    }
+  }
+}
+$('fpAdd').addEventListener('click',()=>{
+  if(!DOC||fnPopIdx<0) return;
+  const n=DOC.notes[fnPopIdx];
+  hideFnPop();
+  openWordSheet({term:n.or, mean:n.ko, cat:'인명·고유명사'});
+});
+
+$('output').addEventListener('click',e=>{
+  const sup=e.target.closest('sup.fn');
+  if(sup){ showFnPop(sup); return; }
+  hideFnPop();
+});
+document.addEventListener('pointerdown',e=>{
+  if(!e.target.closest('#fnpop') && !e.target.closest('sup.fn')) hideFnPop();
+});
+window.addEventListener('scroll',hideFnPop,{passive:true});
+
+/* ════════════════════════════════════════════════════════════
+   번역 실행
+   ════════════════════════════════════════════════════════════ */
+let running=false, tickTimer=null;
+async function translate(){
+  if(running) return;
+  const key=$('apikey').value.trim(), model=$('model').value;
+  const limit=+$('chunk').value, memo=$('memo').value, src=$('source').value.trim();
+  const noThink = $('speed').value==='fast';
+  if(!key){ $('cfgCard').classList.add('open'); $('apikey').focus(); return toast('API 키를 먼저 넣어 주세요'); }
+  if(!src){ $('source').focus(); return toast('번역할 원문이 없어요'); }
+
+  const chunks=splitText(src,limit);
+  running=true; $('run').disabled=true;
+  $('status').classList.add('show');
+  $('bar').classList.toggle('show',chunks.length>1);
+  $('bar').firstElementChild.style.width='0%';
+  $('output').innerHTML=''; $('viewbar').style.display='none'; $('afterRow').style.display='none';
+
+  /* 흐른 시간을 계속 보여줍니다 */
+  const t0=Date.now();
+  clearInterval(tickTimer);
+  tickTimer=setInterval(()=>{ $('statusTime').textContent=Math.round((Date.now()-t0)/1000)+'초'; },500);
+  const say = m => { $('statusText').textContent=m; };
+
+  /* 한도에 걸린 적이 있을 때만 조각 사이를 넉넉히 쉽니다 */
+  let hitLimit=false;
+  const onStatus = m => { if(/한도/.test(m)) hitLimit=true; say(m); };
+
+  const done=[]; let gloss=[];
+  try{
+    const rawTitle=$('docTitle').value.trim();
+    if(rawTitle){
+      say('제목을 보는 중');
+      curTitleKo=await translateTitle(key,model,rawTitle,memo);
+      store.set('titleko',curTitleKo); updateTitleKo();
+    } else { curTitleKo=''; store.set('titleko',''); updateTitleKo(); }
+
+    for(let i=0;i<chunks.length;i++){
+      const label = chunks.length>1 ? `옮기는 중 · ${i+1} / ${chunks.length}` : '옮기는 중이에요';
+      say(label);
+
+      let prompt='';
+      if(memo.trim()) prompt+=`[작품·캐릭터 설정]\n${memo.trim()}\n\n`;
+      if(chunks.length>1) prompt+=`[안내] 긴 작품의 ${i+1}/${chunks.length} 번째 부분입니다. 인사말 없이 이 부분만 이어서 번역하세요.\n\n`;
+      if(gloss.length) prompt+=`[이미 정한 고유명사 표기 — 반드시 똑같이 쓰세요]\n`+
+        gloss.slice(0,60).map(g=>`${g.ko} = ${g.or}`).join('\n')+`\n\n`;
+      if(done.length) prompt+=`[직전 번역의 끝부분 — 문체를 이어가기 위한 참고용. 다시 출력하지 마세요]\n${done[done.length-1].dst.slice(-400)}\n\n`;
+      prompt+=`[번역할 원문]\n${chunks[i]}`;
+
+      /* 글자가 만들어지는 대로 바로 흘려보냅니다 */
+      let box=$('streamBox');
+      if(!box){
+        const note=document.createElement('p');
+        note.id='streamNote'; note.className='hint';
+        note.style.cssText='margin:0 0 6px;color:var(--soft)';
+        note.innerHTML='한 줄씩 나타나는 게 정상이에요. 다 쓰면 각주가 붙은 화면으로 바뀝니다. <a href="#" data-help="stream">왜?</a>';
+        $('output').appendChild(note);
+        box=document.createElement('div'); box.id='streamBox'; $('output').appendChild(box);
+      }
+      box.textContent='';
+
+      const raw=await askGemini(key,model,prompt,RULES,16384,{
+        noThink, onStatus,
+        onChunk:(full)=>{
+          const cut=full.indexOf('<<<고유명사>>>');
+          box.textContent=(cut>=0?full.slice(0,cut):full).replace(/<<<번역>>>/g,'').trimStart();
+        }
+      });
+
+      const {body,gloss:g}=parseReply(raw);
+      g.forEach(x=>{ if(!gloss.some(y=>y.ko===x.ko)) gloss.push(x); });
+      done.push({src:chunks[i],dst:body});
+
+      const pairs=buildDoc(done);
+      const ann=annotate(pairs.map(p=>p.d),gloss);
+      DOC={pairs:pairs.map((p,k)=>({s:p.s,d:ann.paras[k]})),notes:ann.notes};
+      renderDoc();
+
+      $('bar').firstElementChild.style.width=((i+1)/chunks.length*100)+'%';
+      if(i<chunks.length-1) await new Promise(r=>setTimeout(r, hitLimit?6000:1000));
+    }
+    const secs=Math.round((Date.now()-t0)/1000);
+    celebrate(); sparkle($('result-card'));
+    saveArchive(true);
+    toast(`다 옮겼어요! (${secs}초)`);
+  }catch(err){
+    ['streamBox','streamNote'].forEach(k=>{const n=$(k); if(n) n.remove();});
+    const box=document.createElement('div'); box.className='err';
+    box.textContent=(done.length?`${done.length}개 부분까지는 옮겼어요.\n\n`:'')+err.message;
+    $('output').appendChild(box);
+  }finally{
+    ['streamBox','streamNote'].forEach(k=>{const n=$(k); if(n) n.remove();});
+    clearInterval(tickTimer); $('statusTime').textContent='';
+    running=false; $('run').disabled=false;
+    $('status').classList.remove('show'); $('bar').classList.remove('show');
+  }
+}
+
+/* ════════════════════════════════════════════════════════════
+   서재 (아카이브)
+   ── 목록은 gg_arcidx 에, 본문은 글마다 gg_arc_<id> 에 따로 저장합니다.
+      한 덩어리로 두면 글이 늘어날수록 저장이 느려지고 잘 깨져서요.
+   ════════════════════════════════════════════════════════════ */
+let ARC=(()=>{ try{ return JSON.parse(store.get('arcidx','')) || []; }catch(e){ return []; } })();
+let curArc=store.get('curarc','');
+let curTitleKo=store.get('titleko','');
+let arQuery='';
+
+const saveArcIdx=()=>{ store.set('arcidx',JSON.stringify(ARC)); $('arCount').textContent=ARC.length||''; };
+function arcGet(id){ try{ return JSON.parse(store.get('arc_'+id,'')) || null; }catch(e){ return null; } }
+function arcPut(id,data){
+  try{ localStorage.setItem('gg_arc_'+id, JSON.stringify(data)); return true; }
+  catch(e){ return false; }
+}
+function arcDel(id){
+  try{ localStorage.removeItem('gg_arc_'+id); }catch(e){}
+  ARC=ARC.filter(a=>a.id!==id);
+  if(curArc===id){ curArc=''; store.set('curarc',''); }
+  saveArcIdx(); renderArc();
+}
+
+function saveArchive(auto){
+  if(!DOC || !DOC.pairs.length){ if(!auto) toast('저장할 번역이 없어요'); return null; }
+  const title=$('docTitle').value.trim();
+  const id=curArc || ('a'+Date.now().toString(36)+Math.random().toString(36).slice(2,5));
+  const at=Date.now();
+  const ok=arcPut(id,{title, titleKo:curTitleKo, memo:$('memo').value,
+    src:$('source').value, pairs:DOC.pairs, notes:DOC.notes, at});
+  if(!ok){ toast('저장 공간이 부족해요. 서재에서 오래된 글을 지워 주세요'); return null; }
+
+  const plain=plainResult();
+  const rec={id, title, titleKo:curTitleKo, at, chars:plain.length, preview:plain.slice(0,90)};
+  const i=ARC.findIndex(a=>a.id===id);
+  if(i>=0) ARC[i]=rec; else ARC.unshift(rec);
+  curArc=id; store.set('curarc',id);
+  saveArcIdx(); renderArc();
+  if(!auto) toast('서재에 저장했어요!');
+  return id;
+}
+
+function loadArchive(id){
+  const d=arcGet(id);
+  if(!d) return toast('내용을 불러오지 못했어요');
+  $('docTitle').value=d.title||'';
+  $('source').value=d.src||'';
+  $('memo').value=d.memo||'';
+  curTitleKo=d.titleKo||'';
+  DOC={pairs:d.pairs||[], notes:d.notes||[]};
+  curArc=id;
+  store.set('curarc',id); store.set('title',$('docTitle').value);
+  store.set('source',$('source').value); store.set('memo',$('memo').value);
+  store.set('titleko',curTitleKo); store.set('doc',JSON.stringify(DOC));
+  updateCount(); updateTitleKo(); updateMemoChip();
+  renderDoc(); renderArc();
+  gotoTab('tr');
+  toast('불러왔어요');
+}
+
+function newDoc(){
+  if($('source').value.trim() && !confirm('지금 글을 접고 새로 시작할까요?\n(서재에 저장한 내용은 그대로 남습니다)')) return;
+  curArc=''; curTitleKo='';
+  $('docTitle').value=''; $('source').value='';
+  DOC=null;
+  store.set('curarc',''); store.set('titleko',''); store.set('title','');
+  store.set('source',''); store.set('doc','');
+  updateCount(); updateTitleKo(); showEmpty(); renderArc();
+  gotoTab('tr'); toast('새 글로 시작해요');
+}
+$('newDoc').addEventListener('click',newDoc);
+$('arSave').addEventListener('click',()=>saveArchive(false));
+
+let arTidy=false, arSel=new Set();
+
+function arcSize(id){
+  try{ return ((localStorage.getItem('gg_arc_'+id)||'').length*2)/1024; }catch(e){ return 0; }
+}
+
+function renderArc(){
+  $('arCount').textContent=ARC.length||'';
+  const q=arQuery.trim().toLowerCase();
+  const list=ARC.filter(a=>!q || ((a.title||'')+' '+(a.titleKo||'')+' '+(a.preview||'')).toLowerCase().includes(q));
+  $('arSelbar').classList.toggle('show', arTidy && ARC.length>0);
+  $('arTidy').textContent = arTidy ? '정리 끝' : '정리';
+
+  $('arList').innerHTML = list.length ? list.map(a=>{
+    const main=a.titleKo || a.title || '무제';
+    const sub=(a.titleKo && a.title && a.titleKo!==a.title) ? a.title : '';
+    const kb=arcSize(a.id);
+    return `<div class="acard ${a.id===curArc?'cur':''}">
+      <div class="atop">
+        ${arTidy?`<input type="checkbox" class="pick" data-act="pick" data-id="${a.id}" ${arSel.has(a.id)?'checked':''}>`:''}
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
+            <span class="atitle">${esc(main)}</span>
+            ${a.id===curArc?'<span class="now">보는 중</span>':''}
+          </div>
+          ${sub?`<p class="aorig">${esc(sub)}</p>`:''}
+        </div>
+        ${arTidy?'':`<button class="del" data-act="del" data-id="${a.id}" title="지우기">✕</button>`}
+      </div>
+      <p class="aprev">${esc(a.preview||'')}</p>
+      <div class="ameta">${new Date(a.at).toLocaleDateString('ko-KR')} · ${(a.chars||0).toLocaleString()}자 · ${kb<1024?kb.toFixed(0)+'KB':(kb/1024).toFixed(1)+'MB'}</div>
+      ${arTidy?'':`<div class="btn-row">
+        <button class="btn" data-act="open" data-id="${a.id}">열기</button>
+        <button class="btn ghost" data-act="rename" data-id="${a.id}">제목 바꾸기</button>
+      </div>`}
+    </div>`;
+  }).join('')
+  : `<div class="empty"><p>${ARC.length?'찾는 글이 없어요':'아직 담아둔 글이 없어요'}</p>
+     <span class="sub">번역이 끝나면 자동으로 여기에 담깁니다</span></div>`;
+
+  $('arSelCount').textContent=`${arSel.size}편`;
+  $('arAll').checked = ARC.length>0 && arSel.size===ARC.length;
+  showSpace();
+}
+
+$('arTidy').addEventListener('click',()=>{
+  arTidy=!arTidy;
+  if(!arTidy) arSel.clear();
+  renderArc();
+});
+$('arAll').addEventListener('change',e=>{
+  arSel.clear();
+  if(e.target.checked) ARC.forEach(a=>arSel.add(a.id));
+  renderArc();
+});
+$('arDelSel').addEventListener('click',()=>{
+  if(!arSel.size) return toast('고른 글이 없어요');
+  if(!confirm(`${arSel.size}편을 서재에서 지울까요? 되돌릴 수 없어요.`)) return;
+  [...arSel].forEach(id=>{
+    try{ localStorage.removeItem('gg_arc_'+id); }catch(e){}
+    if(curArc===id){ curArc=''; store.set('curarc',''); }
+  });
+  ARC=ARC.filter(a=>!arSel.has(a.id));
+  const n=arSel.size; arSel.clear();
+  saveArcIdx(); renderArc();
+  toast(`${n}편을 지웠어요`);
+});
+
+$('arList').addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]'); if(!b) return;
+  const id=b.dataset.id, a=ARC.find(x=>x.id===id); if(!a) return;
+  if(b.dataset.act==='pick'){
+    b.checked ? arSel.add(id) : arSel.delete(id);
+    $('arSelCount').textContent=`${arSel.size}편`;
+    $('arAll').checked = ARC.length>0 && arSel.size===ARC.length;
+    return;
+  }
+  if(b.dataset.act==='open') return loadArchive(id);
+  if(b.dataset.act==='del'){
+    if(confirm(`"${a.titleKo||a.title||'무제'}"을(를) 서재에서 지울까요?`)){ arcDel(id); toast('지웠어요'); }
+    return;
+  }
+  if(b.dataset.act==='rename'){
+    const n=prompt('새 제목', a.titleKo || a.title || '');
+    if(n===null) return;
+    a.titleKo=n.trim();
+    const d=arcGet(id); if(d){ d.titleKo=a.titleKo; arcPut(id,d); }
+    if(id===curArc){ curTitleKo=a.titleKo; store.set('titleko',curTitleKo); updateTitleKo(); }
+    saveArcIdx(); renderArc(); toast('제목을 바꿨어요');
+  }
+});
+$('arSearch').addEventListener('input',e=>{ arQuery=e.target.value; renderArc(); });
+
+/* 저장 공간이 얼마나 찼는지 알려줍니다 */
+function showSpace(){
+  let bytes=0;
+  try{ for(const k in localStorage) if(k.startsWith('gg_')) bytes+=(localStorage[k]||'').length*2; }catch(e){}
+  const mb=bytes/1048576;
+  $('arSpace').textContent = ARC.length
+    ? `보관 중인 글 ${ARC.length}편 · 저장 공간 약 ${mb.toFixed(1)}MB 사용 (보통 5MB까지)`
+    : '';
+}
+
+/* ════════ 제목 번역 ════════ */
+function updateTitleKo(){
+  const line=$('titleKoLine');
+  if(curTitleKo && curTitleKo!==$('docTitle').value.trim()){
+    line.textContent='번역 제목 · '+curTitleKo;
+    line.style.display='';
+  } else line.style.display='none';
+}
+async function translateTitle(key,model,title,memo){
+  if(!title) return '';
+  /* 이미 한국어로만 되어 있으면 그대로 둡니다 */
+  if(!/[^\s가-힣0-9.,!?~·:;()\[\]{}<>'"\-–—]/.test(title)) return title;
+  try{
+    const t=await askGemini(key,model,
+      (memo?`[작품 설정]\n${memo}\n\n`:'')+
+      `다음은 소설의 제목입니다. 자연스러운 한국어 제목으로 옮기세요. 설명 없이 제목 한 줄만 출력하세요.\n\n${title}`,
+      null, 1024, {fast:true, temp:0.4});
+    return cleanMeaning(t) || title;
+  }catch(e){ return title; }
+}
+
+/* ════════ 전체 백업 · 복원 · 깃허브 연동 ════════ */
+function makeDump(){
+  const dump={app:'글결', v:14, at:Date.now(), settings:{}, words:WORDS, cats:CATS, arcidx:ARC, arcs:{}};
+  ['key','model','chunk','speed','memo','read','mascot','view','title','titleko','curarc','ghtok','ghrepo','ghpath','url']
+    .forEach(k=>dump.settings[k]=store.get(k));
+  ARC.forEach(a=>{ const d=arcGet(a.id); if(d) dump.arcs[a.id]=d; });
+  return dump;
+}
+function applyDump(d){
+  if(!d || !d.settings) throw new Error('백업 내용이 아니에요');
+  Object.entries(d.settings||{}).forEach(([k,v])=>{ if(v!=null) store.set(k,v); });
+  if(d.words) store.set('words',JSON.stringify(d.words));
+  if(d.cats)  store.set('cats',JSON.stringify(d.cats));
+  if(d.arcidx) store.set('arcidx',JSON.stringify(d.arcidx));
+  Object.entries(d.arcs||{}).forEach(([id,v])=>arcPut(id,v));
+}
+
+$('expAll').addEventListener('click',()=>{
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(makeDump())],{type:'application/json'}));
+  a.download=`글결_백업_${new Date().toISOString().slice(0,10)}.json`;
+  a.click(); URL.revokeObjectURL(a.href);
+  toast('내보냈어요 (API 키도 들어 있으니 잘 보관하세요)');
+});
+$('impAll').addEventListener('click',()=>$('impFile').click());
+$('impFile').addEventListener('change',e=>{
+  const f=e.target.files[0]; e.target.value=''; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    let d; try{ d=JSON.parse(r.result); }catch(err){ return toast('백업 파일이 아니에요'); }
+    if(!confirm('지금 이 기기의 설정·서재·단어장을 백업 내용으로 덮어씁니다. 계속할까요?')) return;
+    try{ applyDump(d); toast('복원했어요. 앱을 다시 엽니다'); setTimeout(()=>location.reload(),900); }
+    catch(err){ toast(err.message); }
+  };
+  r.readAsText(f,'utf-8');
+});
+
+/* ── 깃허브 ── */
+function b64enc(str){
+  const bytes=new TextEncoder().encode(str);
+  let bin=''; const CH=0x8000;
+  for(let i=0;i<bytes.length;i+=CH) bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+CH));
+  return btoa(bin);
+}
+function b64dec(b64){
+  const bin=atob(String(b64).replace(/\s/g,''));
+  const bytes=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+function ghCfg(){
+  return {
+    tok:$('ghTok').value.trim(),
+    repo:$('ghRepo').value.trim().replace(/^https?:\/\/github\.com\//,'').replace(/\.git$/,'').replace(/\/+$/,''),
+    path:($('ghPath').value.trim()||'geulgyeol-backup.json').replace(/^\/+/,'')
+  };
+}
+function ghSaveCfg(){
+  const c=ghCfg();
+  store.set('ghtok',c.tok); store.set('ghrepo',c.repo); store.set('ghpath',$('ghPath').value.trim());
+}
+['ghTok','ghRepo','ghPath'].forEach(id=>$(id).addEventListener('input',ghSaveCfg));
+
+async function ghFetch(url,init){
+  const {tok}=ghCfg();
+  const r=await fetch(url,Object.assign({},init,{headers:Object.assign({
+    'Authorization':'Bearer '+tok,
+    'Accept':'application/vnd.github+json',
+    'X-GitHub-Api-Version':'2022-11-28'
+  },(init&&init.headers)||{})}));
+  return r;
+}
+function ghErr(res,body){
+  if(res.status===401) return '토큰이 올바르지 않아요. 다시 만들어 붙여넣어 주세요.';
+  if(res.status===403) return '권한이 없어요. 토큰의 Contents 권한을 Read and write로 바꿔 주세요.';
+  if(res.status===404) return '저장소나 파일을 찾지 못했어요. 저장소 이름(계정/저장소)을 확인해 주세요.';
+  if(res.status===409) return '다른 기기에서 먼저 올린 내용이 있어요. 내려받기를 먼저 해주세요.';
+  return (body&&body.message) || `깃허브 오류 (${res.status})`;
+}
+const ghUrl = () => {
+  const {repo,path}=ghCfg();
+  return `https://api.github.com/repos/${repo}/contents/${path.split('/').map(encodeURIComponent).join('/')}`;
+};
+function ghNote(msg){ $('ghState').textContent=msg; }
+
+$('ghUp').addEventListener('click',async ()=>{
+  const {tok,repo}=ghCfg();
+  if(!tok||!repo) return toast('토큰과 저장소를 먼저 적어 주세요');
+  const btn=$('ghUp'); btn.disabled=true; ghNote('올리는 중...');
+  try{
+    let sha=null;
+    const got=await ghFetch(ghUrl());
+    if(got.ok){ const j=await got.json(); sha=j.sha; }
+    else if(got.status!==404){ throw new Error(ghErr(got, await got.json().catch(()=>null))); }
+
+    const put=await ghFetch(ghUrl(),{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        message:'글결 백업 '+new Date().toISOString(),
+        content:b64enc(JSON.stringify(makeDump())),
+        sha:sha||undefined
+      })
+    });
+    if(!put.ok) throw new Error(ghErr(put, await put.json().catch(()=>null)));
+    store.set('ghat',String(Date.now()));
+    ghNote('방금 올렸어요');
+    toast('깃허브에 올렸어요!');
+  }catch(err){ ghNote(''); toast(err.message); }
+  finally{ btn.disabled=false; }
+});
+
+$('ghDown').addEventListener('click',async ()=>{
+  const {tok,repo}=ghCfg();
+  if(!tok||!repo) return toast('토큰과 저장소를 먼저 적어 주세요');
+  if(!confirm('깃허브에 있는 내용으로 이 기기의 설정·서재·단어장을 덮어씁니다. 계속할까요?')) return;
+  const btn=$('ghDown'); btn.disabled=true; ghNote('내려받는 중...');
+  try{
+    const got=await ghFetch(ghUrl());
+    if(!got.ok) throw new Error(ghErr(got, await got.json().catch(()=>null)));
+    const j=await got.json();
+    const d=JSON.parse(b64dec(j.content||''));
+    applyDump(d);
+    toast('내려받았어요. 앱을 다시 엽니다');
+    setTimeout(()=>location.reload(),900);
+  }catch(err){ ghNote(''); toast(err.message); }
+  finally{ btn.disabled=false; }
+});
+const DEF_CATS=['명사','동사','형용사','표현','인명·고유명사'];
+let CATS = (()=>{ try{ return JSON.parse(store.get('cats','')) || DEF_CATS; }catch(e){ return DEF_CATS; } })();
+let WORDS= (()=>{ try{ return JSON.parse(store.get('words','')) || []; }catch(e){ return []; } })();
+let catFilter='전체', wQuery='';
+
+const saveWords=()=>{ store.set('words',JSON.stringify(WORDS)); $('wdCount').textContent=WORDS.length?WORDS.length:''; };
+const saveCats =()=> store.set('cats',JSON.stringify(CATS));
+
+function renderCatbar(){
+  const all=['전체',...CATS];
+  $('catbar').innerHTML=all.map(c=>{
+    const n = c==='전체' ? WORDS.length : WORDS.filter(w=>w.cat===c).length;
+    return `<button data-c="${esc(c)}" class="${c===catFilter?'on':''}">${esc(c)}${n?` ${n}`:''}</button>`;
+  }).join('');
+}
+function renderWords(){
+  renderCatbar();
+  const q=wQuery.trim().toLowerCase();
+  const list=WORDS.filter(w=>{
+    if(catFilter!=='전체' && w.cat!==catFilter) return false;
+    if(!q) return true;
+    return (w.term+' '+w.mean+' '+(w.note||'')).toLowerCase().includes(q);
+  }).slice().reverse();
+
+  $('wlist').innerHTML = list.length ? list.map(w=>`
+    <div class="wcard" data-id="${w.id}">
+      <div class="top">
+        <span class="term">${esc(w.term)}</span>
+        <span class="cat">${esc(w.cat)}</span>
+        <button class="del" data-id="${w.id}" title="지우기">✕</button>
+      </div>
+      ${w.mean?`<p class="mean">${esc(w.mean)}</p>`:''}
+      ${w.note?`<p class="note">${esc(w.note)}</p>`:''}
+      <div class="date">${new Date(w.at).toLocaleDateString('ko-KR')}</div>
+    </div>`).join('')
+    : `<div class="empty"><p>${WORDS.length?'찾는 단어가 없어요':'저장한 단어가 아직 없어요'}</p>
+       <span class="sub">번역문에서 단어를 선택하면 바로 저장할 수 있어요</span></div>`;
+}
+$('catbar').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  catFilter=b.dataset.c; renderWords();
+});
+$('wlist').addEventListener('click',e=>{
+  const d=e.target.closest('.del'); if(!d) return;
+  WORDS=WORDS.filter(w=>w.id!==d.dataset.id);
+  saveWords(); renderWords(); toast('지웠어요');
+});
+$('wSearch').addEventListener('input',e=>{ wQuery=e.target.value; renderWords(); });
+$('wAdd').addEventListener('click',()=>openWordSheet({}));
+$('wExport').addEventListener('click',()=>{
+  if(!WORDS.length) return toast('내보낼 단어가 없어요');
+  const txt=CATS.map(c=>{
+    const ws=WORDS.filter(w=>w.cat===c);
+    if(!ws.length) return '';
+    return `■ ${c}\n`+ws.map(w=>`${w.term}\t${w.mean}${w.note?'\t('+w.note+')':''}`).join('\n');
+  }).filter(Boolean).join('\n\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain;charset=utf-8'}));
+  a.download=`단어장_${new Date().toISOString().slice(0,10)}.txt`;
+  a.click(); URL.revokeObjectURL(a.href);
+});
+$('wCatEdit').addEventListener('click',()=>{
+  const cur=CATS.join(', ');
+  const next=prompt('분류를 쉼표로 구분해 적어 주세요.\n(단어에 이미 붙은 분류를 지워도 단어는 남습니다)',cur);
+  if(next===null) return;
+  const arr=next.split(',').map(s=>s.trim()).filter(Boolean);
+  if(!arr.length) return toast('분류가 비어 있어요');
+  CATS=[...new Set(arr)]; saveCats(); renderWords(); toast('분류를 바꿨어요');
+});
+
+/* 단어 저장 시트 */
+let wPickCat=DEF_CATS[0];
+function renderCatPick(){
+  $('wCatPick').innerHTML=CATS.map(c=>
+    `<button data-c="${esc(c)}" class="${c===wPickCat?'on':''}">${esc(c)}</button>`).join('')+
+    `<button data-c="__new" style="color:var(--soft)">＋ 새 분류</button>`;
+}
+$('wCatPick').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  if(b.dataset.c==='__new'){
+    const n=prompt('새 분류 이름');
+    if(!n||!n.trim()) return;
+    if(!CATS.includes(n.trim())){ CATS.push(n.trim()); saveCats(); }
+    wPickCat=n.trim();
+  } else wPickCat=b.dataset.c;
+  renderCatPick();
+});
+function openWordSheet({term='',mean='',cat='',note=''}){
+  $('wTerm').value=term; $('wMean').value=mean; $('wNote').value=note;
+  wPickCat = cat && CATS.includes(cat) ? cat : CATS[0];
+  renderCatPick();
+  openS('wSheet','wBackdrop');
+  if(!term) setTimeout(()=>$('wTerm').focus(),350);
+}
+$('wCancel').addEventListener('click',()=>closeS('wSheet','wBackdrop'));
+$('wBackdrop').addEventListener('click',()=>closeS('wSheet','wBackdrop'));
+$('wSave').addEventListener('click',()=>{
+  const term=$('wTerm').value.trim();
+  if(!term) return toast('단어를 적어 주세요');
+  WORDS.push({id:String(Date.now())+Math.random().toString(36).slice(2,6),
+    term, mean:$('wMean').value.trim(), cat:wPickCat, note:$('wNote').value.trim(), at:Date.now()});
+  saveWords(); renderWords(); closeS('wSheet','wBackdrop'); toast('단어장에 넣었어요!');
+});
+/* 형식 지시는 시스템 쪽에만 두고, 사용자 메시지에는 단어만 보냅니다.
+   그래야 모델이 지시문을 답변 내용으로 착각하지 않습니다. */
+const DICT_SYSTEM = `당신은 한국어 사전입니다. 사용자가 보낸 낱말이나 표현의 뜻을 한국어로 한 줄만 답합니다.
+일본어·중국어처럼 읽는 법이 필요한 말이면 읽는 법을 맨 앞에 쓰고, 이어서 품사, 그다음 뜻을 씁니다.
+각 항목은 가운뎃점(·)으로 나눕니다. 읽는 법이 필요 없는 언어라면 그 부분은 씁니다.
+인사말·해설·예문·따옴표·기호를 덧붙이지 않고, 오직 그 한 줄만 출력합니다.`;
+
+$('wAuto').addEventListener('click',async ()=>{
+  const key=$('apikey').value.trim(), term=$('wTerm').value.trim();
+  if(!key) return toast('API 키가 필요해요');
+  if(!term) return toast('단어를 먼저 적어 주세요');
+  const btn=$('wAuto');
+  btn.disabled=true; btn.textContent='찾는 중...';
+  try{
+    const raw=await askGemini(key,$('model').value, term, DICT_SYSTEM, 2048, {fast:true, temp:0.3});
+    const line=cleanMeaning(raw);
+    if(line.length<2) throw new Error('뜻을 찾지 못했어요. 다시 눌러 보세요');
+    $('wMean').value=line;
+  }catch(err){ toast(err.message); }
+  finally{ btn.disabled=false; btn.textContent='✨ AI로 뜻 채우기'; }
+});
+
+/* ════════════════════════════════════════════════════════════
+   본문에서 선택 → 저장 / 부분 번역
+   ════════════════════════════════════════════════════════════ */
+let selText='', selTimer=null;
+function hideSelPop(){ $('selpop').classList.remove('show'); }
+
+/* 화면 안에 들어오도록 자리를 잡습니다 (좌표는 화면 기준) */
+function placeNode(p, cx, cy){
+  p.classList.add('show');                 // 크기를 재려면 먼저 보여야 함
+  const w=p.offsetWidth, h=p.offsetHeight;
+  const vw=document.documentElement.clientWidth;
+  const vh=document.documentElement.clientHeight;
+  const left=Math.max(10, Math.min(cx-w/2, vw-w-10));
+  let top=cy-h-10;
+  if(top<8) top=cy+26;                     // 위가 좁으면 아래쪽에
+  p.style.left=left+'px';
+  p.style.top=Math.max(8, Math.min(top, vh-h-8))+'px';
+}
+const placePop=(cx,cy)=>placeNode($('selpop'),cx,cy);
+
+function updateSelPop(){
+  const ae=document.activeElement;
+
+  /* ① 원문 입력칸 안에서 선택한 경우
+        textarea의 선택은 window.getSelection()으로 읽히지 않으므로
+        selectionStart / selectionEnd 로 직접 확인합니다 */
+  if(ae && ae.id==='source'){
+    const a=ae.selectionStart, b=ae.selectionEnd;
+    const t=(a!==b) ? ae.value.slice(a,b).trim() : '';
+    if(!t || t.length>200) return hideSelPop();
+    selText=t;
+    const r=ae.getBoundingClientRect();
+    return placePop(r.left+r.width/2, Math.max(r.top+40, 52));
+  }
+
+  /* ② 번역문에서 선택한 경우 */
+  const sel=window.getSelection();
+  if(!sel || sel.isCollapsed || !sel.rangeCount) return hideSelPop();
+  const t=sel.toString().trim();
+  if(!t || t.length>200) return hideSelPop();
+  const node=sel.anchorNode;
+  const host=node && (node.nodeType===1 ? node : node.parentElement);
+  if(!host || !host.closest('#output')) return hideSelPop();
+  const r=sel.getRangeAt(0).getBoundingClientRect();
+  if(!r.width && !r.height) return hideSelPop();
+  selText=t;
+  placePop(r.left+r.width/2, r.top);
+}
+function queueSelPop(ms){
+  clearTimeout(selTimer);
+  selTimer=setTimeout(updateSelPop, ms==null?200:ms);
+}
+
+document.addEventListener('selectionchange', ()=>queueSelPop());
+['mouseup','touchend','keyup','focus'].forEach(ev=>
+  $('source').addEventListener(ev, ()=>queueSelPop(120)));
+window.addEventListener('scroll', ()=>queueSelPop(60), {passive:true});
+window.addEventListener('resize', ()=>queueSelPop(60));
+
+/* 버튼을 눌러도 선택이 풀리지 않도록 pointerdown에서 처리합니다 */
+function bindPop(btn, fn){
+  let fired=false;
+  btn.addEventListener('pointerdown', e=>{
+    e.preventDefault(); fired=true; fn();
+    setTimeout(()=>{ fired=false; }, 500);
+  });
+  btn.addEventListener('click', ()=>{ if(!fired) fn(); });
+}
+bindPop($('spSave'), ()=>{
+  const t=selText; hideSelPop(); openWordSheet({term:t});
+});
+bindPop($('spTrans'), ()=>{
+  const t=selText; hideSelPop(); quickTranslate(t);
+});
+
+async function quickTranslate(text){
+  const key=$('apikey').value.trim();
+  if(!key) return toast('API 키가 필요해요');
+  if(!text) return;
+  $('qSrc').textContent=text; $('qDst').textContent='옮기는 중...';
+  openS('qSheet','qBackdrop');
+  try{
+    const memo=$('memo').value.trim();
+    const t=await askGemini(key,$('model').value,
+      (memo?`[작품·캐릭터 설정]\n${memo}\n\n`:'')+
+      `아래 부분을 자연스러운 한국어로 번역하세요. 설명 없이 번역문만 출력하세요.\n\n${text}`,
+      null, 4096, {fast:true});
+    $('qDst').textContent=t;
+  }catch(err){ $('qDst').textContent=err.message; }
+}
+$('qClose').addEventListener('click',()=>closeS('qSheet','qBackdrop'));
+$('qBackdrop').addEventListener('click',()=>closeS('qSheet','qBackdrop'));
+$('qSaveWord').addEventListener('click',()=>{
+  closeS('qSheet','qBackdrop');
+  openWordSheet({term:$('qSrc').textContent, mean:$('qDst').textContent});
+});
+
+/* ════════════════════════════════════════════════════════════
+   나머지
+   ════════════════════════════════════════════════════════════ */
+document.querySelectorAll('[data-toggle]').forEach(h=>
+  h.addEventListener('click',()=>$(h.dataset.toggle).classList.toggle('open')));
+
+function updateCount(){
+  const v=$('source').value,n=v.length;
+  $('count').textContent=n.toLocaleString();
+  const c=n?splitText(v,+$('chunk').value).length:0;
+  $('chunkInfo').textContent=c>1?`${c}번에 나눠서 옮길게요`:'';
+}
+$('source').addEventListener('input',()=>{updateCount();store.set('source',$('source').value);});
+$('docTitle').addEventListener('input',()=>{
+  store.set('title',$('docTitle').value);
+  updateTitleKo();
+});
+$('chunk').addEventListener('change',()=>{ updateCount(); store.set('chunk',$('chunk').value); });
+$('model').addEventListener('change',()=>store.set('model',$('model').value));
+$('speed').addEventListener('change',()=>store.set('speed',$('speed').value));
+function updateMemoChip(){
+  $('memoChip').textContent=$('memo').value.trim()?'적용 중':'비어 있음';
+}
+$('memo').addEventListener('input',()=>{
+  store.set('memo',$('memo').value);
+  updateMemoChip();
+});
+$('apikey').addEventListener('input',()=>{
+  const on=$('apikey').value.trim().length>0;
+  $('keyChip').textContent=on?'연결됐어요':'키가 필요해요';
+  $('keyChip').className=on?'chip':'chip off';
+  store.set('key',$('apikey').value.trim());   /* 입력하는 즉시 저장 */
+  refreshStart();
+});
+$('saveCfg').addEventListener('click',()=>{
+  store.set('key',$('apikey').value.trim());
+  store.set('model',$('model').value);
+  store.set('chunk',$('chunk').value);
+  $('cfgCard').classList.remove('open'); toast('저장했어요');
+});
+/* ════════════════════════════════════════════════════════════
+   txt 파일 불러오기 · 링크로 가져오기
+   ════════════════════════════════════════════════════════════ */
+const readTextFile = f => new Promise((res,rej)=>{
+  const r=new FileReader();
+  r.onerror=()=>rej(new Error('파일을 읽지 못했어요'));
+  r.onload=()=>res(r.result);
+  r.readAsText(f,'utf-8');
+});
+function srcNote(msg,warn){
+  const n=$('srcNote');
+  n.innerHTML=msg;
+  n.style.color = warn ? 'var(--warn)' : 'var(--accent)';
+  n.style.display = msg ? '' : 'none';
+}
+
+/* ── txt 파일 ── */
+const TXT_OK=/\.(txt|md|csv|log|srt)$/i;
+$('loadFile').addEventListener('click',()=>$('fileInput').click());
+$('fileInput').addEventListener('change',async e=>{
+  const input=e.target, files=[...input.files];
+  if(!files.length){ input.value=''; return; }
+
+  const good=[], bad=[];
+  files.forEach(f=>{
+    const isText = (f.type||'').startsWith('text/') || TXT_OK.test(f.name) || !f.type;
+    (isText ? good : bad).push(f);
+  });
+
+  const picked=[];
+  try{
+    for(const f of good){
+      try{ picked.push(await readTextFile(f)); }
+      catch(err){ bad.push(f); }
+    }
+    const joined=picked.filter(t=>t && t.trim()).join('\n\n');
+    if(joined){
+      const cur=$('source').value.trim();
+      $('source').value = cur ? cur+'\n\n'+joined : joined;
+      updateCount(); store.set('source',$('source').value);
+      toast(`${joined.length.toLocaleString()}자를 불러왔어요`);
+    }
+    if(bad.length){
+      srcNote('글자 파일(.txt)만 넣을 수 있어요 — '+esc(bad.map(f=>f.name).join(', ')), true);
+    } else if(!joined){
+      srcNote('파일에 글자가 없어요.', true);
+    }
+  }catch(err){ toast(err.message); }
+  finally{ input.value=''; }
+});
+
+/* ── 링크로 가져오기 ──
+   브라우저는 다른 사이트 내용을 직접 못 가져오므로(보안 정책),
+   제미나이의 URL 읽기 기능에 대신 부탁합니다. */
+const URL_SYSTEM = `당신은 웹페이지에서 소설 본문만 뽑아내는 도구입니다.
+
+[해야 할 일]
+주어진 주소의 페이지를 읽고, 그 페이지에 실린 소설·글의 본문을 원문 언어 그대로 옮겨 적습니다.
+
+[규칙]
+1. 번역하지 않는다. 페이지에 적힌 언어 그대로 옮긴다.
+2. 요약하지 않는다. 본문 전체를 처음부터 끝까지 빠짐없이 옮긴다.
+3. 메뉴·광고·댓글·추천·태그·작가의 다른 작품 목록 등 본문이 아닌 부분은 뺀다.
+4. 문단 나눔과 줄바꿈을 그대로 살린다.
+5. 설명·머리말·꼬리말·마크다운 기호를 붙이지 않는다. 본문만 출력한다.
+6. 페이지를 열 수 없거나(로그인 필요·접근 차단 등) 소설 본문이 없으면,
+   다른 말 없이 정확히 이렇게만 출력한다: NO_ACCESS`;
+
+async function fetchFromUrl(){
+  const key=$('apikey').value.trim();
+  const url=$('urlIn').value.trim();
+  if(!key){ $('cfgCard').classList.add('open'); return toast('API 키를 먼저 넣어 주세요'); }
+  if(!/^https?:\/\/\S+$/i.test(url)) return toast('주소를 https:// 부터 정확히 넣어 주세요');
+
+  const btn=$('urlGet'); btn.disabled=true;
+  $('status').classList.add('show');
+  $('statusText').textContent='링크를 읽는 중';
+  srcNote('');
+  try{
+    const t=await askGemini(key,$('model').value,
+      `아래 주소의 페이지에서 소설 본문을 그대로 옮겨 적어 주세요.\n\n${url}`,
+      URL_SYSTEM, 32768,
+      {noThink:false, temp:0.1, tools:[{url_context:{}}],
+       onStatus:m=>{$('statusText').textContent=m;}});
+
+    const body=t.replace(/^```[\w]*\n?|```$/g,'').trim();
+    if(!body || /^NO_ACCESS/i.test(body)){
+      srcNote('이 링크는 읽지 못했어요. 로그인이 필요하거나 접근이 막힌 페이지일 수 있어요.<br>본문을 직접 복사해서 아래 칸에 붙여넣어 주세요.', true);
+      return;
+    }
+    if(body.length < 200){
+      srcNote('가져온 글이 너무 짧아요. 본문 대신 안내문만 읽혔을 수 있으니 확인해 주세요.', true);
+    }
+    const cur=$('source').value.trim();
+    $('source').value = cur ? cur+'\n\n'+body : body;
+    updateCount(); store.set('source',$('source').value);
+    if(!$('docTitle').value.trim()){
+      try{ $('docTitle').value=new URL(url).hostname.replace(/^www\./,''); store.set('title',$('docTitle').value); }catch(e){}
+    }
+    if(body.length>=200)
+      srcNote('링크에서 가져온 글이에요. <b>빠진 부분이나 잘린 곳이 없는지 꼭 확인</b>한 뒤 번역하세요.');
+    $('source').scrollIntoView({behavior:'smooth',block:'center'});
+    toast(`${body.length.toLocaleString()}자를 가져왔어요`);
+  }catch(err){
+    srcNote('가져오지 못했어요 — '+esc(err.message), true);
+  }finally{
+    btn.disabled=false;
+    $('status').classList.remove('show');
+  }
+}
+$('urlGet').addEventListener('click',fetchFromUrl);
+$('urlIn').addEventListener('input',()=>store.set('url',$('urlIn').value));
+$('urlIn').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); fetchFromUrl(); } });
+
+/* 본문을 직접 고치기 시작하면 안내를 치웁니다 */
+$('source').addEventListener('input',()=>{ $('srcNote').style.display='none'; });
+$('clearSrc').addEventListener('click',()=>{
+  if(!$('source').value||confirm('원문을 지울까요?')){
+    $('source').value=''; updateCount(); store.set('source','');
+  }
+});
+$('run').addEventListener('click',translate);
+$('copyBtn').addEventListener('click',async ()=>{
+  const t=plainResult();
+  if(!t.trim()) return toast('복사할 번역문이 없어요');
+  try{ await navigator.clipboard.writeText(t); toast('복사했어요!'); }
+  catch(e){
+    const ta=document.createElement('textarea'); ta.value=t;
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+    toast('복사했어요!');
+  }
+});
+$('downloadBtn').addEventListener('click',()=>{
+  let t=plainResult();
+  if(!t.trim()) return toast('저장할 번역문이 없어요');
+  if(DOC && DOC.notes.length)
+    t+='\n\n── 고유명사 ──\n'+DOC.notes.map((n,i)=>`${i+1}. ${n.ko} — ${n.or}${n.ty?' ('+n.ty+')':''}`).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([t],{type:'text/plain;charset=utf-8'}));
+  a.download=`번역_${new Date().toISOString().slice(0,10)}.txt`;
+  a.click(); URL.revokeObjectURL(a.href);
+});
+window.addEventListener('beforeunload',e=>{ if(running){e.preventDefault();e.returnValue='';} });
+
+/* ════════ 설명 시트 ════════ */
+function openHelp(section){
+  openS('helpSheet','helpBackdrop');
+  const sheet=$('helpSheet');
+  sheet.querySelectorAll('details').forEach(d=>d.open=false);
+  if(section){
+    const d=sheet.querySelector('details[data-h="'+section+'"]');
+    if(d){
+      d.open=true;
+      setTimeout(()=>{ sheet.scrollTop=Math.max(0, d.offsetTop-70); },60);
+      return;
+    }
+  }
+  sheet.scrollTop=0;
+}
+$('helpBtn').addEventListener('click',()=>openHelp());
+$('helpClose').addEventListener('click',()=>closeS('helpSheet','helpBackdrop'));
+$('helpBackdrop').addEventListener('click',()=>closeS('helpSheet','helpBackdrop'));
+
+/* data-help="..." 가 붙은 버튼·링크는 모두 해당 항목을 펼쳐 줍니다 */
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-help]');
+  if(!t) return;
+  e.preventDefault();
+  openHelp(t.dataset.help);
+});
+
+/* ════════ 처음 안내 카드 ════════ */
+function refreshStart(){
+  const hide = store.get('hidestart')==='1' || !!$('apikey').value.trim();
+  $('startCard').style.display = hide ? 'none' : '';
+  if(!hide) $('startCard').classList.add('open');
+}
+$('goKey').addEventListener('click',()=>{
+  $('cfgCard').classList.add('open');
+  $('cfgCard').scrollIntoView({behavior:'smooth',block:'start'});
+  setTimeout(()=>$('apikey').focus(),400);
+});
+$('hideStart').addEventListener('click',()=>{
+  store.set('hidestart','1'); refreshStart(); toast('안내를 숨겼어요');
+});
+
+/* ════════════════════════════════════════════════════════════
+   시작
+   ════════════════════════════════════════════════════════════ */
+(function init(){
+  try{ R={...DEFAULTS,...JSON.parse(store.get('read','{}'))}; }catch(e){}
+  if(!FONTS[R.font]) R.font=DEFAULTS.font;
+  if(!THEMES.some(t=>t.id===R.theme)) R.theme=DEFAULTS.theme;
+  applyRead(); paintMascots();
+
+  $('apikey').value=store.get('key');
+  $('memo').value=store.get('memo');
+  $('source').value=store.get('source');
+  $('docTitle').value=store.get('title');
+  $('urlIn').value=store.get('url');
+  $('ghTok').value=store.get('ghtok');
+  $('ghRepo').value=store.get('ghrepo');
+  $('ghPath').value=store.get('ghpath');
+  const ghat=store.get('ghat');
+  if(ghat) $('ghState').textContent='마지막 올림 '+new Date(+ghat).toLocaleDateString('ko-KR');
+  const m=store.get('model'); if(m) $('model').value=m;
+  const c=store.get('chunk'); if(c) $('chunk').value=c;
+  const sp=store.get('speed'); if(sp) $('speed').value=sp;
+  updateTitleKo();
+
+  /* 브라우저가 저장 내용을 함부로 지우지 않도록 요청합니다 */
+  try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persist(); }catch(e){}
+
+  $('viewSeg').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===viewMode));
+  try{ DOC=JSON.parse(store.get('doc','')) || null; }catch(e){ DOC=null; }
+  if(DOC && DOC.pairs && DOC.pairs.length){
+    renderDoc();
+    if(store.get('fnopen')==='1') openFnPanel();
+  } else showEmpty();
+
+  $('apikey').dispatchEvent(new Event('input'));
+  $('memo').dispatchEvent(new Event('input'));
+  updateCount();
+  saveWords(); renderWords();
+  saveArcIdx(); renderArc();
+  refreshStart();
+  if(!$('apikey').value) $('cfgCard').classList.add('open');
+})();
+</script>
+</body>
+</html>
