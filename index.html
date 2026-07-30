@@ -277,10 +277,23 @@ button{font-family:inherit}
   box-shadow:0 12px 34px -8px rgba(0,0,0,.4),inset 0 0 0 1px color-mix(in srgb,var(--line) 90%,transparent)
 }
 #origpop.show{display:flex}
-#origpop .op-head{font-family:var(--cute);font-size:13px;color:var(--accent)}
+#origpop .op-head{font-family:var(--cute);font-size:12.5px;color:var(--soft)}
+#origpop .op-head span{color:var(--accent)}
+#origpop .op-hit{
+  font-size:19px;font-weight:700;line-height:1.6;color:var(--ink);
+  padding:4px 0 2px;word-break:break-word
+}
+#origpop .op-hit:empty{display:none}
+#origpop .op-body{display:none}
+#origpop.full .op-body{display:block}
+#origpop mark{
+  background:color-mix(in srgb,var(--pop) 55%,transparent);
+  color:inherit;border-radius:4px;padding:0 2px
+}
 #origpop .op-body{
-  font-size:14.5px;line-height:1.85;color:var(--ink);white-space:pre-line;
-  max-height:40vh;overflow-y:auto;-webkit-overflow-scrolling:touch
+  font-size:14px;line-height:1.85;color:var(--soft);white-space:pre-line;
+  max-height:36vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding-top:8px;border-top:1px dashed color-mix(in srgb,var(--line) 90%,transparent)
 }
 
 #meanpop{
@@ -755,7 +768,7 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
       </div>
     </section>
 
-    <footer>글결 v31<br>원문 대조 · 각주 · 단어장 · 서재</footer>
+    <footer>글결 v32<br>원문 대조 · 각주 · 단어장 · 서재</footer>
   </div>
 
   <!-- ═══════════ 서재 탭 ═══════════ -->
@@ -805,9 +818,11 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
 
 <!-- 원문 보기 말풍선 -->
 <div id="origpop">
-  <div class="op-head">원문</div>
+  <div class="op-head"><span id="opPick"></span> 의 원문</div>
+  <div class="op-hit" id="opHit"></div>
   <div class="op-body" id="opBody"></div>
   <div class="mp-row">
+    <button class="btn ghost" id="opMore">문단 전체</button>
     <button class="btn" id="opCopy">복사</button>
     <button class="btn ghost" id="opClose">닫기</button>
   </div>
@@ -2645,8 +2660,13 @@ window.addEventListener('scroll',hideMeanPop,{passive:true});
 
 function hideOrigPop(){ $('origpop').classList.remove('show'); }
 $('opClose').addEventListener('click',hideOrigPop);
+$('opMore').addEventListener('click',()=>{
+  const el=$('origpop');
+  el.classList.toggle('full');
+  $('opMore').textContent = el.classList.contains('full') ? '조각만' : '문단 전체';
+});
 $('opCopy').addEventListener('click',async ()=>{
-  const t=$('opBody').textContent;
+  const t=$('opHit').textContent || $('opBody').textContent;
   if(!t) return;
   try{ await navigator.clipboard.writeText(t); toast('원문을 복사했어요'); }
   catch(e){
@@ -2660,13 +2680,79 @@ document.addEventListener('pointerdown',e=>{
 });
 window.addEventListener('scroll',hideOrigPop,{passive:true});
 
-bindPop($('spOrig'), ()=>{
+/* 번역문에서 고른 부분이 원문의 어디에 해당하는지 찾아 줍니다 */
+const MATCH_SYSTEM = `당신은 원문과 번역문을 대조해 주는 도구입니다.
+사용자가 번역문의 일부를 지목하면, 그에 해당하는 원문 조각만 찾아 원문에 적힌 그대로 출력합니다.
+
+규칙
+- 원문에 실제로 있는 글자만, 이어진 한 조각으로 출력한다.
+- 조사나 어미까지 억지로 맞추지 말고, 뜻이 대응하는 최소 단위만 고른다.
+- 설명·번역·따옴표·기호를 덧붙이지 않는다. 조각만 한 줄로 출력한다.
+- 대응하는 부분을 찾을 수 없으면 NONE 이라고만 출력한다.`;
+
+const origCache={};
+function paintOrig(pick, hit, full){
+  $('opPick').textContent = pick;
+  $('opHit').textContent = hit || '';
+  const el=$('origpop');
+  if(hit){
+    /* 문단 전체에서 그 조각을 표시해 둡니다 */
+    const i=full.indexOf(hit);
+    if(i>=0){
+      $('opBody').innerHTML = esc(full.slice(0,i))+'<mark>'+esc(hit)+'</mark>'+esc(full.slice(i+hit.length));
+    } else $('opBody').textContent = full;
+    $('opMore').style.display='';
+    el.classList.remove('full');
+    $('opMore').textContent='문단 전체';
+  } else {
+    $('opBody').textContent = full;
+    $('opMore').style.display='none';
+    el.classList.add('full');
+  }
+}
+
+bindPop($('spOrig'), async ()=>{
   if(!DOC || selPairIdx<0) return toast('원문을 찾지 못했어요');
   const pr=DOC.pairs[selPairIdx];
   if(!pr || !(pr.s||'').trim()) return toast('이 문단은 원문이 없어요');
+
+  const pick=selText.trim(), full=pr.s;
   const r=$('selpop').getBoundingClientRect();
   hideSelPop(); hideMeanPop();
-  $('opBody').textContent=pr.s;
+
+  const key=$('apikey').value.trim();
+  const cacheKey=selPairIdx+'|'+pick;
+
+  /* 긴 문장을 골랐거나 키가 없으면 문단 전체를 보여줍니다 */
+  if(!key || pick.length>25 || pick.length<1){
+    paintOrig(pick, '', full);
+    placeNode($('origpop'), r.left+r.width/2, r.top);
+    return;
+  }
+  if(origCache[cacheKey]!==undefined){
+    paintOrig(pick, origCache[cacheKey], full);
+    placeNode($('origpop'), r.left+r.width/2, r.top);
+    return;
+  }
+
+  $('opPick').textContent=pick;
+  $('opHit').textContent='찾는 중...';
+  $('opBody').textContent=full;
+  $('opMore').style.display='none';
+  placeNode($('origpop'), r.left+r.width/2, r.top);
+
+  try{
+    const out=await askGemini(key,$('model').value,
+      `[원문]\n${full}\n\n[번역문]\n${stripMarks(pr.d)}\n\n[번역문에서 지목한 부분]\n${pick}`,
+      MATCH_SYSTEM, 1024, {fast:true, temp:0.1});
+    let hit=cleanMeaning(out);
+    /* 지어낸 답을 걸러냅니다 — 원문에 실제로 있어야 인정 */
+    if(!hit || /^NONE$/i.test(hit) || full.indexOf(hit)<0) hit='';
+    origCache[cacheKey]=hit;
+    paintOrig(pick, hit, full);
+  }catch(err){
+    paintOrig(pick, '', full);
+  }
   placeNode($('origpop'), r.left+r.width/2, r.top);
 });
 
