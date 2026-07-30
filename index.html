@@ -269,6 +269,20 @@ button{font-family:inherit}
 .cmp.side .dst{font-size:calc(var(--read-size) * .92)}
 
 /* ════════ 각주 말풍선 · 각주 창 ════════ */
+#origpop{
+  position:fixed;z-index:68;display:none;flex-direction:column;gap:9px;
+  padding:13px 15px;border-radius:16px;max-width:min(92vw,420px);
+  background:color-mix(in srgb,var(--card) 97%,transparent);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  box-shadow:0 12px 34px -8px rgba(0,0,0,.4),inset 0 0 0 1px color-mix(in srgb,var(--line) 90%,transparent)
+}
+#origpop.show{display:flex}
+#origpop .op-head{font-family:var(--cute);font-size:13px;color:var(--accent)}
+#origpop .op-body{
+  font-size:14.5px;line-height:1.85;color:var(--ink);white-space:pre-line;
+  max-height:40vh;overflow-y:auto;-webkit-overflow-scrolling:touch
+}
+
 #meanpop{
   position:fixed;z-index:68;display:none;flex-direction:column;gap:8px;
   padding:12px 14px;border-radius:16px;max-width:min(90vw,340px);
@@ -336,6 +350,20 @@ sup.fn.wn{color:var(--pop);font-size:.66em}
   padding:6px 8px;border-radius:10px}
 .fnp-x:active{background:var(--weak)}
 .fnp-body{overflow-y:auto;padding:0 16px calc(18px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}
+
+#topBtn{
+  position:fixed;left:16px;bottom:calc(20px + env(safe-area-inset-bottom));z-index:54;
+  width:46px;height:46px;border:none;border-radius:50%;cursor:pointer;
+  display:none;place-items:center;font-size:19px;line-height:1;color:var(--accent);
+  background:color-mix(in srgb,var(--card) 88%,transparent);
+  -webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);
+  box-shadow:0 8px 22px -8px rgba(0,0,0,.35),inset 0 0 0 1px color-mix(in srgb,var(--accent) 22%,transparent);
+  transition:transform .16s, opacity .2s
+}
+#topBtn.show{display:grid}
+#topBtn:active{transform:scale(.9)}
+/* 각주 창이 열리면 그 위로 비켜섭니다 */
+body.fn-open #topBtn{bottom:calc(48vh + 16px)}
 
 #fnFab{
   position:fixed;right:16px;bottom:calc(20px + env(safe-area-inset-bottom));z-index:54;display:none;
@@ -727,7 +755,7 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
       </div>
     </section>
 
-    <footer>글결 v27<br>원문 대조 · 각주 · 단어장 · 서재</footer>
+    <footer>글결 v31<br>원문 대조 · 각주 · 단어장 · 서재</footer>
   </div>
 
   <!-- ═══════════ 서재 탭 ═══════════ -->
@@ -769,9 +797,20 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
 </div>
 
 <div id="selpop">
+  <button id="spOrig">원문</button>
   <button id="spMean">뜻 보기</button>
   <button id="spSave">단어장</button>
   <button id="spTrans">번역</button>
+</div>
+
+<!-- 원문 보기 말풍선 -->
+<div id="origpop">
+  <div class="op-head">원문</div>
+  <div class="op-body" id="opBody"></div>
+  <div class="mp-row">
+    <button class="btn" id="opCopy">복사</button>
+    <button class="btn ghost" id="opClose">닫기</button>
+  </div>
 </div>
 
 <!-- 낱말 뜻 말풍선 -->
@@ -795,6 +834,7 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
 </div>
 
 <!-- 각주 창 -->
+<button id="topBtn" title="맨 위로" aria-label="맨 위로">↑</button>
 <button id="fnFab">각주 <b id="fnFabNum"></b></button>
 <div id="fnPanel">
   <div class="fnp-head">
@@ -990,13 +1030,30 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
       </div>
     </details>
 
+    <details data-h="quota">
+      <summary>"한도에 걸렸어요"가 떠요</summary>
+      <div class="in">
+        <p>번역은 구글 인공지능이 해주는데, 무료로 쓸 수 있는 양이 정해져 있어요. 그 양을 다 쓰면 이 안내가 뜹니다.</p>
+        <div class="box">한도는 <b>모델마다 따로</b> 걸려 있어요. 그래서 <b>모델을 바꾸면 그 자리에서 이어서 쓸 수 있습니다.</b> 이게 가장 빠른 해결책이에요.</div>
+        <p><b>1. 모델 바꾸기 (제일 빠름)</b></p>
+        <p>오류 상자에 나오는 <b>다른 모델로 바꾸기</b> 버튼을 누르거나, 설정에서 직접 고르세요. 이름에 <b>flash-lite</b>가 들어간 것이 한도가 가장 넉넉합니다.</p>
+        <p><b>2. 잠시 기다리기</b></p>
+        <p>1~2분 만에 풀리면 "잠깐 너무 많이 요청했어요"였던 거예요. 계속 안 되면 하루치를 다 쓴 것이고, <b>한국 시간 오후 4시쯤</b> 초기화됩니다. (겨울에는 오후 5시)</p>
+        <p><b>3. 아껴 쓰기</b></p>
+        <p>한도는 글자 수가 아니라 <b>요청 횟수</b>로 셉니다. 설정에서 <b>한 번에 보낼 분량</b>을 5,000자로 올리면 요청이 거의 절반으로 줄어요.</p>
+        <p>서재에 저장한 글을 다시 볼 때는 <b>열기</b>를 쓰세요. 번역하기를 또 누르면 한도를 다시 씁니다.</p>
+        <p><b>4. 다른 계정</b></p>
+        <p>한도는 계정 단위라, 같은 계정에서 키만 새로 만들어도 늘지 않아요. 정말 급하면 <b>다른 구글 계정</b>으로 키를 받으면 됩니다.</p>
+      </div>
+    </details>
+
     <details data-h="err">
       <summary>오류가 떠요</summary>
       <div class="in">
         <p><b>"API 키가 올바르지 않아요"</b> — 복사할 때 앞뒤 빈칸이 딸려왔을 수 있어요. 지우고 다시 붙여넣어 보세요.</p>
         <p><b>"인터넷 연결에 실패했어요"</b> — 광고 차단 프로그램이 막고 있을 수 있어요. 잠시 꺼보세요.</p>
         <p><b>"모델을 쓸 수 없어요"</b> — 구글이 그 모델을 없앤 거예요. 설정에서 <b>목록 새로고침</b>을 누르면 지금 쓸 수 있는 것만 다시 담아옵니다.</p>
-        <p><b>"한도에 걸렸어요"</b> — 오늘 몫을 다 썼어요. 1~2분 뒤나 내일 이어서 하세요.</p>
+        <p><b>"한도에 걸렸어요"</b> — 위의 <b>"한도에 걸렸어요"가 떠요</b> 항목을 봐주세요. 모델을 바꾸면 바로 이어서 쓸 수 있어요.</p>
         <p><b>"이 링크는 읽지 못했어요"</b> — 위 <b>링크로 가져오기</b> 항목을 봐주세요.</p>
       </div>
     </details>
@@ -1067,6 +1124,7 @@ function gotoTab(name){
   hideSelPop(); hideFnPop();
   if(name!=='tr') closeFnPanel();
   window.scrollTo({top:0});
+  const tb=$('topBtn'); if(tb) tb.classList.remove('show');
 }
 document.querySelectorAll('.tabs button').forEach(b=>
   b.addEventListener('click',()=>gotoTab(b.dataset.tab)));
@@ -1449,8 +1507,14 @@ function errMsg(status,data){
   if(status===429){
     /* 하루 한도와 분당 한도는 대처법이 달라서 구분해 줍니다 */
     if(/per\s*day|PerDay|daily/i.test(msg))
-      return '오늘 쓸 수 있는 양을 다 썼어요.\n한국 시간 오후 4시쯤 초기화됩니다. (겨울에는 오후 5시)\n\n'+
-        '지금 이어서 하고 싶다면 설정에서 다른 모델(flash-lite 계열)로 바꿔 보세요. 모델마다 한도가 따로예요.';
+      return '오늘 이 모델로 쓸 수 있는 양을 다 썼어요.\n\n'+
+        '▸ 지금 바로 이어서 하려면\n'+
+        '   설정에서 모델을 다른 것으로 바꾸세요. 한도는 모델마다 따로 걸려 있어서,\n'+
+        '   바꾸면 그 모델의 몫을 새로 쓸 수 있어요. flash-lite 계열이 한도가 넉넉합니다.\n\n'+
+        '▸ 기다리려면\n'+
+        '   한국 시간 오후 4시쯤 초기화됩니다. (겨울에는 오후 5시)\n\n'+
+        '▸ 모델을 다 써버렸다면\n'+
+        '   다른 구글 계정으로 키를 새로 받으면 한도도 새로 받습니다.';
     return '잠깐 너무 많이 요청했어요. 1~2분 뒤에 다시 해주세요.\n\n'+
       '자주 걸리면 설정에서 "한 번에 보낼 분량"을 5,000자로 올려 보세요. 요청 횟수가 줄어듭니다.';
   }
@@ -1600,13 +1664,14 @@ function renderDoc(){
   $('viewbar').style.display='flex';
   $('afterRow').style.display='flex';
 
-  DOC.pairs.forEach(p=>{
+  DOC.pairs.forEach((p,pi)=>{
     if(viewMode==='only'){
-      if(p.d) out.appendChild(paraNode(p.d,'para'));
+      if(p.d){ const el=paraNode(p.d,'para'); el.dataset.i=pi; out.appendChild(el); }
       return;
     }
     const box=document.createElement('div');
     box.className='cmp'+(viewMode==='side'?' side':'');
+    box.dataset.i=pi;
     if(p.s){ const s=document.createElement('p'); s.className='src'; s.textContent=p.s; box.appendChild(s); }
     if(p.d) box.appendChild(paraNode(p.d,'dst'));
     out.appendChild(box);
@@ -1974,6 +2039,24 @@ async function translate(){
     const box=document.createElement('div'); box.className='err';
     box.textContent=(done.length?`${done.length}개 부분까지는 옮겼어요.\n\n`:'')+err.message;
     $('output').appendChild(box);
+    /* 하루 한도면 그 자리에서 모델을 바꿀 수 있게 해줍니다 */
+    if(/오늘 이 모델로 쓸 수 있는 양/.test(err.message)){
+      const b=document.createElement('button');
+      b.className='btn'; b.style.marginTop='12px';
+      b.textContent='다른 모델로 바꾸기';
+      b.addEventListener('click',()=>{
+        const sel=$('model'), opts=[...sel.options].map(o=>o.value);
+        if(opts.length<2) return toast('설정에서 [목록 새로고침]을 먼저 눌러 주세요');
+        const next=opts[(opts.indexOf(sel.value)+1)%opts.length];
+        sel.value=next; store.set('model',next); updateCount();
+        $('cfgCard').classList.add('open');
+        $('cfgCard').scrollIntoView({behavior:'smooth',block:'start'});
+        toast(next+' 로 바꿨어요. 다시 번역해 보세요');
+      });
+      box.appendChild(document.createElement('br'));
+      box.appendChild(b);
+    }
+
     /* 모델이 없어진 경우면 목록을 새로 받아 안내합니다 */
     if(/모델을 쓸 수 없어요/.test(err.message)){
       const ok=await refreshModels(true);
@@ -2443,7 +2526,7 @@ $('wAuto').addEventListener('click',async ()=>{
 /* ════════════════════════════════════════════════════════════
    본문에서 선택 → 저장 / 부분 번역
    ════════════════════════════════════════════════════════════ */
-let selText='', selTimer=null;
+let selText='', selTimer=null, selPairIdx=-1;
 function hideSelPop(){ $('selpop').classList.remove('show'); }
 
 /* 화면 안에 들어오도록 자리를 잡습니다 (좌표는 화면 기준) */
@@ -2470,7 +2553,9 @@ function updateSelPop(){
     const a=ae.selectionStart, b=ae.selectionEnd;
     const t=(a!==b) ? ae.value.slice(a,b).trim() : '';
     if(!t || t.length>200) return hideSelPop();
-    selText=t;
+    selText=t; selPairIdx=-1;
+    $('spOrig').style.display='none';
+    $('spSave').style.display='';
     const r=ae.getBoundingClientRect();
     return placePop(r.left+r.width/2, Math.max(r.top+40, 52));
   }
@@ -2486,6 +2571,18 @@ function updateSelPop(){
   const r=sel.getRangeAt(0).getBoundingClientRect();
   if(!r.width && !r.height) return hideSelPop();
   selText=t;
+
+  /* 이 문단이 몇 번째 짝인지 찾아둡니다 (원문 보기에 씁니다) */
+  const holder=host.closest('[data-i]');
+  selPairIdx = holder ? +holder.dataset.i : -1;
+
+  /* 대조 보기에서 위쪽 원문 줄을 골랐는지, 번역문을 골랐는지 구분합니다.
+     원문 줄 → 단어장 / 번역문 → 원문 보기                            */
+  const inSrc = !!host.closest('.src');
+  const hasOrig = DOC && selPairIdx>=0 && DOC.pairs[selPairIdx] && (DOC.pairs[selPairIdx].s||'').trim();
+  $('spOrig').style.display = (!inSrc && hasOrig) ? '' : 'none';
+  $('spSave').style.display = inSrc ? '' : 'none';
+
   placePop(r.left+r.width/2, r.top);
 }
 function queueSelPop(ms){
@@ -2545,6 +2642,33 @@ document.addEventListener('pointerdown',e=>{
   if(!e.target.closest('#meanpop') && !e.target.closest('#selpop')) hideMeanPop();
 });
 window.addEventListener('scroll',hideMeanPop,{passive:true});
+
+function hideOrigPop(){ $('origpop').classList.remove('show'); }
+$('opClose').addEventListener('click',hideOrigPop);
+$('opCopy').addEventListener('click',async ()=>{
+  const t=$('opBody').textContent;
+  if(!t) return;
+  try{ await navigator.clipboard.writeText(t); toast('원문을 복사했어요'); }
+  catch(e){
+    const ta=document.createElement('textarea'); ta.value=t;
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+    toast('원문을 복사했어요');
+  }
+});
+document.addEventListener('pointerdown',e=>{
+  if(!e.target.closest('#origpop') && !e.target.closest('#selpop')) hideOrigPop();
+});
+window.addEventListener('scroll',hideOrigPop,{passive:true});
+
+bindPop($('spOrig'), ()=>{
+  if(!DOC || selPairIdx<0) return toast('원문을 찾지 못했어요');
+  const pr=DOC.pairs[selPairIdx];
+  if(!pr || !(pr.s||'').trim()) return toast('이 문단은 원문이 없어요');
+  const r=$('selpop').getBoundingClientRect();
+  hideSelPop(); hideMeanPop();
+  $('opBody').textContent=pr.s;
+  placeNode($('origpop'), r.left+r.width/2, r.top);
+});
 
 bindPop($('spMean'), ()=>{
   const t=selText.trim();
@@ -2927,6 +3051,25 @@ $('teSave').addEventListener('click',()=>{
   closeS('teSheet','teBackdrop');
   toast($('teKeep').checked ? '고쳤어요. 다음 번역에도 이렇게 나와요' : '고쳤어요');
 });
+
+/* ════════ 맨 위로 ════════ */
+(function(){
+  const btn=$('topBtn');
+  let ticking=false;
+  function check(){
+    ticking=false;
+    btn.classList.toggle('show', window.scrollY > 500);
+  }
+  window.addEventListener('scroll',()=>{
+    if(!ticking){ ticking=true; requestAnimationFrame(check); }
+  },{passive:true});
+  btn.addEventListener('click',()=>{
+    const smooth=!matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({top:0, behavior: smooth?'smooth':'auto'});
+    hideSelPop(); hideFnPop();
+  });
+  check();
+})();
 
 /* ════════ 설명 시트 ════════ */
 function openHelp(section){
