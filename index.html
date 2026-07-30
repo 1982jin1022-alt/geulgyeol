@@ -269,6 +269,29 @@ button{font-family:inherit}
 .cmp.side .dst{font-size:calc(var(--read-size) * .92)}
 
 /* ════════ 각주 말풍선 · 각주 창 ════════ */
+#meanpop{
+  position:fixed;z-index:68;display:none;flex-direction:column;gap:8px;
+  padding:12px 14px;border-radius:16px;max-width:min(90vw,340px);
+  background:color-mix(in srgb,var(--card) 97%,transparent);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  box-shadow:0 12px 34px -8px rgba(0,0,0,.4),inset 0 0 0 1px color-mix(in srgb,var(--line) 90%,transparent)
+}
+#meanpop.show{display:flex}
+#meanpop .mp-term{font-size:16px;font-weight:700;color:var(--accent)}
+#meanpop .mp-body{font-size:14px;line-height:1.6;color:var(--ink)}
+#meanpop .mp-row{display:flex;gap:7px}
+sup.fn.wn{color:var(--pop);font-size:.66em}
+.notes li.wnote .num{background:var(--pop)}
+.notes-sub{
+  font-family:var(--cute);font-size:12.5px;color:var(--soft);
+  margin:14px 0 6px;padding-top:12px;
+  border-top:1px dashed color-mix(in srgb,var(--line) 90%,transparent)
+}
+.notes-sub:first-child{margin-top:0;padding-top:0;border-top:none}
+.notes .edit{flex:none;border:none;background:transparent;color:var(--soft);
+  font-size:14px;cursor:pointer;padding:4px 5px;border-radius:8px}
+.notes .edit:active{color:var(--accent)}
+
 #fnpop{
   position:fixed;z-index:66;display:none;align-items:center;gap:9px;
   padding:9px 11px;border-radius:14px;max-width:min(88vw,360px);
@@ -704,7 +727,7 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
       </div>
     </section>
 
-    <footer>글결 v23<br>원문 대조 · 각주 · 단어장 · 서재</footer>
+    <footer>글결 v25<br>원문 대조 · 각주 · 단어장 · 서재</footer>
   </div>
 
   <!-- ═══════════ 서재 탭 ═══════════ -->
@@ -745,7 +768,21 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
   </div>
 </div>
 
-<div id="selpop"><button id="spSave">단어 저장</button><button id="spTrans">이 부분 번역</button></div>
+<div id="selpop">
+  <button id="spMean">뜻 보기</button>
+  <button id="spSave">단어장</button>
+  <button id="spTrans">번역</button>
+</div>
+
+<!-- 낱말 뜻 말풍선 -->
+<div id="meanpop">
+  <div class="mp-term" id="mpTerm"></div>
+  <div class="mp-body" id="mpBody">찾는 중...</div>
+  <div class="mp-row">
+    <button class="btn" id="mpFoot">각주로 달기</button>
+    <button class="btn ghost" id="mpSave">단어장에</button>
+  </div>
+</div>
 
 <!-- 각주 말풍선 -->
 <div id="fnpop">
@@ -753,6 +790,7 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
   <span class="p-ko" id="fpKo"></span>
   <span class="p-or" id="fpOr"></span>
   <span class="p-ty" id="fpTy"></span>
+  <button class="p-add" id="fpEdit" title="표기 고치기">✎</button>
   <button class="p-add" id="fpAdd" title="단어장에 넣기">＋</button>
 </div>
 
@@ -969,6 +1007,27 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
   </div>
 </div>
 
+<!-- 고유명사 표기 고치기 -->
+<div class="backdrop" id="teBackdrop"></div>
+<div class="sheet" id="teSheet" role="dialog" aria-label="고유명사 표기 고치기">
+  <div class="handle"></div>
+  <h3>고유명사 표기 고치기</h3>
+  <label class="field">원문</label>
+  <p id="teOrig" style="font-size:17px;font-weight:700;margin:0 0 4px"></p>
+  <label class="field" for="teKo">한국어 표기</label>
+  <input type="text" id="teKo" placeholder="예: 메리">
+  <label class="toggle" style="margin-top:8px">
+    <input type="checkbox" id="teKeep" checked>
+    <span>앞으로 번역할 때도 이 표기 쓰기</span>
+  </label>
+  <p class="hint">본문에 있는 표기가 전부 한 번에 바뀌고, 표기집에 저장돼요.</p>
+  <div class="btn-row" style="margin-top:18px">
+    <button class="btn ghost" id="teCancel">취소</button>
+    <div class="grow"></div>
+    <button class="btn" id="teSave">고치기</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1181,6 +1240,9 @@ const RULES = `당신은 소설·팬픽 전문 번역가입니다. 아래 규칙
 5. 고유명사(인명·지명·조직·설정 용어 등)는 본문 안에 괄호로 원문을 병기하지 않는다. 본문에는 한국어 표기만 쓰고, 원문 표기는 아래 [고유명사] 목록에 따로 적는다.
 6. 일본어 호칭(くん・さん・ちゃん・様・先輩 등)은 번역하지 말고 발음 그대로 붙여 쓴다. 예: 하루토군, 사쿠라상, 미유쨩, 선배. 다른 언어의 호칭·애칭도 뉘앙스가 살아나게 처리한다.
 7. 원문의 문단 나눔과 줄바꿈 구조를 그대로 지킨다. 문단 수를 임의로 합치거나 늘리지 않는다.
+8. 번역문 안에 원문 문자(히라가나·가타카나·한자 등)를 절대 남기지 않는다. 외래어·의성어·상표명도 전부 한글로 옮긴다.
+   예: スヌーズ → 스누즈, コンビニ → 편의점, ドキドキ → 두근두근
+   원문 표기가 필요한 고유명사는 본문이 아니라 [고유명사] 목록에만 적는다.
 
 [출력 형식 — 아래 두 구획을 정확히 이 표시와 함께 출력한다]
 <<<번역>>>
@@ -1408,39 +1470,60 @@ function cleanMeaning(raw){
 /* ════════════════════════════════════════════════════════════
    각주 달기 — 고유명사가 처음 나온 자리에 번호를 꽂습니다
    ════════════════════════════════════════════════════════════ */
-function annotate(paras,gloss){
-  const pending=gloss.filter(g=>g.ko).slice();
-  const notes=[];
+const WORD_MARKS=['ㄱ','ㄴ','ㄷ','ㄹ','ㅁ','ㅂ','ㅅ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+const wordMark = n => WORD_MARKS[(n-1)%WORD_MARKS.length] + (n>WORD_MARKS.length ? Math.ceil(n/WORD_MARKS.length) : '');
+
+/* 고유명사는 숫자(1,2,3), 낱말 뜻풀이는 자음(ㄱ,ㄴ,ㄷ)으로 표시합니다 */
+function annotate(paras,gloss,words){
+  const pending=[
+    ...(gloss||[]).filter(g=>g.ko).map(g=>({g, find:g.ko, kind:'n'})),
+    ...(words||[]).filter(w=>w.term).map(w=>({g:w, find:w.term, kind:'w'}))
+  ];
+  const notes=[], wnotes=[];
   const out=paras.map(text=>{
     const hits=[];
     for(let i=pending.length-1;i>=0;i--){
-      const g=pending[i], at=text.indexOf(g.ko);
-      if(at>=0){ hits.push({g,at:at+g.ko.length}); pending.splice(i,1); }
+      const e=pending[i], at=text.indexOf(e.find);
+      if(at>=0){ hits.push({e,at:at+e.find.length}); pending.splice(i,1); }
     }
     hits.sort((a,b)=>a.at-b.at);
     let s='',prev=0;
     hits.forEach(h=>{
-      notes.push(h.g);
-      s+=text.slice(prev,h.at)+`\u0001${notes.length}\u0002`;
+      let mark;
+      if(h.e.kind==='n'){ notes.push(h.e.g); mark=`\u0001${notes.length}\u0002`; }
+      else { wnotes.push(h.e.g); mark=`\u0003${wnotes.length}\u0004`; }
+      s+=text.slice(prev,h.at)+mark;
       prev=h.at;
     });
     return s+text.slice(prev);
   });
-  return {paras:out,notes};
+  return {paras:out,notes,wnotes};
+}
+
+/* 표시를 지우고 다시 매기기 (낱말을 추가하거나 표기를 고쳤을 때) */
+function reannotate(){
+  if(!DOC) return;
+  const raw=DOC.pairs.map(x=>stripMarks(x.d));
+  const a=annotate(raw, DOC.notes||[], DOC.wnotes||[]);
+  DOC.pairs=DOC.pairs.map((x,i)=>({s:x.s,d:a.paras[i]}));
+  DOC.notes=a.notes; DOC.wnotes=a.wnotes;
 }
 function paraNode(line,cls){
   const p=document.createElement('p'); p.className=cls;
-  line.split(/\u0001(\d+)\u0002/).forEach((s,i)=>{
-    if(i%2===0){ if(s) p.appendChild(document.createTextNode(s)); }
-    else{
-      const sup=document.createElement('sup');
-      sup.className='fn'; sup.textContent=s; sup.dataset.num=s;
-      p.appendChild(sup);
-    }
-  });
+  const re=/\u0001(\d+)\u0002|\u0003(\d+)\u0004/g;
+  let last=0,m;
+  while((m=re.exec(line))){
+    if(m.index>last) p.appendChild(document.createTextNode(line.slice(last,m.index)));
+    const sup=document.createElement('sup');
+    if(m[1]){ sup.className='fn'; sup.textContent=m[1]; sup.dataset.num=m[1]; }
+    else { sup.className='fn wn'; sup.textContent=wordMark(+m[2]); sup.dataset.wnum=m[2]; }
+    p.appendChild(sup);
+    last=re.lastIndex;
+  }
+  if(last<line.length) p.appendChild(document.createTextNode(line.slice(last)));
   return p;
 }
-const stripMarks = s => s.replace(/\u0001\d+\u0002/g,'');
+const stripMarks = s => s.replace(/\u0001\d+\u0002|\u0003\d+\u0004/g,'');
 
 /* ════════════════════════════════════════════════════════════
    문서 상태 · 그리기
@@ -1487,7 +1570,9 @@ function renderDoc(){
 
 /* 각주 창 내용 그리기 — 본문에는 더 이상 목록을 붙이지 않습니다 */
 function renderNotes(){
-  const n = DOC ? DOC.notes.length : 0;
+  const names = DOC ? (DOC.notes||[]) : [];
+  const words = DOC ? (DOC.wnotes||[]) : [];
+  const n = names.length + words.length;
   $('fnPanelBtn').style.display = n ? 'inline-flex' : 'none';
   $('fnBtnNum').textContent = n || '';
   $('fnFabNum').textContent = n || '';
@@ -1495,18 +1580,34 @@ function renderNotes(){
   $('fnFab').classList.toggle('show', n>0 && !$('fnPanel').classList.contains('show'));
   if(!n){ closeFnPanel(); $('fnList').innerHTML=''; return; }
 
-  $('fnList').innerHTML = DOC.notes.map((x,i)=>`
-    <li id="note-${i+1}">
-      <span class="num">${i+1}</span>
-      <span class="ko">${esc(x.ko)}</span>
-      <span class="or">${esc(x.or)}</span>
-      ${x.ty?`<span class="ty">${esc(x.ty)}</span>`:''}
-      <button class="add" title="단어장에 넣기" data-i="${i}">＋</button>
-    </li>`).join('');
+  let html='';
+  if(names.length){
+    html += '<div class="notes-sub">고유명사</div>';
+    html += names.map((x,i)=>`
+      <li id="note-${i+1}">
+        <span class="num">${i+1}</span>
+        <span class="ko">${esc(x.ko)}</span>
+        <span class="or">${esc(x.or)}</span>
+        ${x.ty?`<span class="ty">${esc(x.ty)}</span>`:''}
+        <button class="edit" title="표기 고치기" data-edit="${i}">✎</button>
+        <button class="add" title="단어장에 넣기" data-i="${i}">＋</button>
+      </li>`).join('');
+  }
+  if(words.length){
+    html += '<div class="notes-sub">낱말 뜻</div>';
+    html += words.map((x,i)=>`
+      <li id="wnote-${i+1}" class="wnote">
+        <span class="num">${esc(wordMark(i+1))}</span>
+        <span class="ko">${esc(x.term)}</span>
+        <span class="or">${esc(x.mean||'')}</span>
+        <button class="edit" title="각주에서 빼기" data-del="${i}">✕</button>
+      </li>`).join('');
+  }
+  $('fnList').innerHTML = html;
 }
 
 function openFnPanel(){
-  if(!DOC || !DOC.notes.length) return toast('각주가 없어요');
+  if(!DOC || !((DOC.notes||[]).length + (DOC.wnotes||[]).length)) return toast('각주가 없어요');
   $('fnPanel').classList.add('show');
   $('fnFab').classList.remove('show');
   document.body.classList.add('fn-open');
@@ -1526,7 +1627,16 @@ $('fnClose').addEventListener('click',closeFnPanel);
 
 /* 각주 목록에서 단어장으로 */
 $('fnList').addEventListener('click',e=>{
-  const b=e.target.closest('.add'); if(!b||!DOC) return;
+  if(!DOC) return;
+  const ed=e.target.closest('[data-edit]');
+  if(ed){ openTermEdit(+ed.dataset.edit); return; }
+  const del=e.target.closest('[data-del]');
+  if(del){
+    DOC.wnotes.splice(+del.dataset.del,1);
+    reannotate(); renderDoc(); saveArchive(true);
+    toast('각주에서 뺐어요'); return;
+  }
+  const b=e.target.closest('.add'); if(!b) return;
   const n=DOC.notes[+b.dataset.i];
   openWordSheet({term:n.or, mean:n.ko, cat:'인명·고유명사'});
 });
@@ -1568,32 +1678,48 @@ $('viewSeg').addEventListener('click',e=>{
 /* 각주 번호를 누르면 그 자리에 작게 뜹니다 (화면이 움직이지 않아요) */
 let fnPopIdx=-1;
 function hideFnPop(){ $('fnpop').classList.remove('show'); }
+function hideAllPops(){ hideFnPop(); if($('meanpop')) hideMeanPop(); }
+let fnPopKind='n';
 function showFnPop(sup){
   if(!DOC) return;
-  const i=+sup.dataset.num-1, n=DOC.notes[i];
+  const isWord = sup.dataset.wnum!=null;
+  const i = (isWord ? +sup.dataset.wnum : +sup.dataset.num) - 1;
+  const n = isWord ? (DOC.wnotes||[])[i] : DOC.notes[i];
   if(!n) return;
-  fnPopIdx=i;
-  $('fpNum').textContent=i+1;
-  $('fpKo').textContent=n.ko;
-  $('fpOr').textContent=n.or;
-  $('fpTy').textContent=n.ty||'';
-  $('fpTy').style.display=n.ty?'':'none';
+  fnPopIdx=i; fnPopKind = isWord ? 'w' : 'n';
+
+  $('fpNum').textContent = isWord ? wordMark(i+1) : (i+1);
+  $('fpKo').textContent  = isWord ? n.term : n.ko;
+  $('fpOr').textContent  = isWord ? (n.mean||'') : n.or;
+  $('fpTy').textContent  = isWord ? '' : (n.ty||'');
+  $('fpTy').style.display = (!isWord && n.ty) ? '' : 'none';
+  $('fpEdit').style.display = isWord ? 'none' : '';
+
   const r=sup.getBoundingClientRect();
   placeNode($('fnpop'), r.left+r.width/2, r.top);
 
   /* 각주 창이 열려 있으면 창 안에서만 해당 줄로 이동합니다 */
   if($('fnPanel').classList.contains('show')){
-    const li=$('note-'+(i+1)), body=document.querySelector('.fnp-body');
+    const li=$((isWord?'wnote-':'note-')+(i+1)), body=document.querySelector('.fnp-body');
     if(li && body){
       body.scrollTop = li.offsetTop - 30;
       li.classList.add('fn-hit'); setTimeout(()=>li.classList.remove('fn-hit'),1400);
     }
   }
 }
+$('fpEdit').addEventListener('click',()=>{
+  if(fnPopKind!=='n'||fnPopIdx<0) return;
+  const i=fnPopIdx; hideFnPop(); openTermEdit(i);
+});
 $('fpAdd').addEventListener('click',()=>{
   if(!DOC||fnPopIdx<0) return;
-  const n=DOC.notes[fnPopIdx];
   hideFnPop();
+  if(fnPopKind==='w'){
+    const w=(DOC.wnotes||[])[fnPopIdx];
+    if(w) openWordSheet({term:w.term, mean:w.mean||''});
+    return;
+  }
+  const n=DOC.notes[fnPopIdx];
   openWordSheet({term:n.or, mean:n.ko, cat:'인명·고유명사'});
 });
 
@@ -1643,7 +1769,7 @@ async function translate(){
   let hitLimit=false;
   const onStatus = m => { if(/한도/.test(m)) hitLimit=true; say(m); };
 
-  const done=[]; let gloss=[];
+  const done=[]; let gloss=TERMS.map(t=>({ko:t.ko,or:t.or,ty:t.ty||''}));
   try{
     const rawTitle=cleanText($('docTitle').value).trim();
     if(rawTitle){
@@ -1670,6 +1796,8 @@ async function translate(){
     async function askPiece(piece, label, live){
       let prompt='';
       if(memo.trim()) prompt+=`[작품·캐릭터 설정]\n${memo.trim()}\n\n`;
+      if(TERMS.length) prompt+=`[내가 정한 고유명사 표기 — 반드시 이대로 쓰세요]\n`+
+        TERMS.slice(0,80).map(t=>`${t.or} = ${t.ko}`).join('\n')+`\n\n`;
       if(chunks.length>1) prompt+=`[안내] 긴 작품의 한 부분입니다. 인사말 없이 이 부분만 이어서 번역하세요.\n\n`;
       if(gloss.length) prompt+=`[이미 정한 고유명사 표기 — 반드시 똑같이 쓰세요]\n`+
         gloss.slice(0,60).map(g=>`${g.ko} = ${g.or}`).join('\n')+`\n\n`;
@@ -1709,6 +1837,41 @@ async function translate(){
       }
     }
 
+    /* 번역문에 원문 글자가 남았는지 살펴보고, 그 줄만 다시 다듬습니다.
+       (스누즈가 "스ヌ즈"처럼 나오는 경우) */
+    const FOREIGN=/[\u3040-\u30FF\u4E00-\u9FFF\u3400-\u4DBF]/;
+    async function repairLeftovers(body,label){
+      const paras=body.split(/\n/);
+      const idx=[];
+      paras.forEach((t,i)=>{ if(FOREIGN.test(t)) idx.push(i); });
+      if(!idx.length) return body;
+
+      /* 너무 많으면 손대지 않습니다 (사용량 낭비 방지) */
+      const total=idx.reduce((n,i)=>n+paras[i].length,0);
+      if(idx.length>25 || total>3000) return body;
+
+      say(label+' · 남은 원문 글자를 다듬는 중');
+      const listed=idx.map((i,k)=>`${k+1}|| ${paras[i]}`).join('\n');
+      try{
+        const out=await askGemini(key,model,
+          '아래 줄들에는 번역되지 않은 원문 글자(가나·한자)가 섞여 있습니다.\n'+
+          '각 줄을 자연스러운 한국어로 완전히 옮겨 주세요.\n'+
+          '- 줄 번호와 개수를 그대로 유지하고 "번호|| 내용" 형식으로만 답하세요.\n'+
+          '- 외래어도 한글로 적습니다. 예: スヌーズ → 스누즈\n'+
+          '- 설명이나 인사말을 붙이지 마세요.\n\n'+listed,
+          null, 8192, {fast:true, temp:0.2, onStatus});
+        const map={};
+        out.split('\n').forEach(line=>{
+          const m=line.match(/^\s*(\d+)\s*\|\|\s*(.*)$/);
+          if(m && m[2].trim()) map[+m[1]]=m[2].trim();
+        });
+        let fixed=0;
+        idx.forEach((i,k)=>{ if(map[k+1] && !FOREIGN.test(map[k+1])){ paras[i]=map[k+1]; fixed++; } });
+        if(fixed) return paras.join('\n');
+      }catch(e){}
+      return body;
+    }
+
     for(let i=0;i<chunks.length;i++){
       const label = chunks.length>1 ? `옮기는 중 · ${i+1} / ${chunks.length}` : '옮기는 중이에요';
       say(label);
@@ -1724,12 +1887,13 @@ async function translate(){
         box=document.createElement('div'); box.id='streamBox'; $('output').appendChild(box);
       }
 
-      const body=await askPiece(chunks[i], label, true);
+      let body=await askPiece(chunks[i], label, true);
+      body=await repairLeftovers(body, label);
       done.push({src:chunks[i],dst:body});
 
       const pairs=buildDoc(done);
-      const ann=annotate(pairs.map(p=>p.d),gloss);
-      DOC={pairs:pairs.map((p,k)=>({s:p.s,d:ann.paras[k]})),notes:ann.notes};
+      const ann=annotate(pairs.map(p=>p.d),gloss,(DOC&&DOC.wnotes)||[]);
+      DOC={pairs:pairs.map((p,k)=>({s:p.s,d:ann.paras[k]})),notes:ann.notes,wnotes:ann.wnotes||[]};
       renderDoc();
 
       $('bar').firstElementChild.style.width=((i+1)/chunks.length*100)+'%';
@@ -1797,7 +1961,7 @@ function saveArchive(auto){
   const id=curArc || ('a'+Date.now().toString(36)+Math.random().toString(36).slice(2,5));
   const at=Date.now();
   const ok=arcPut(id,{title, titleKo:curTitleKo, memo:$('memo').value,
-    src:$('source').value, pairs:DOC.pairs, notes:DOC.notes, at});
+    src:$('source').value, pairs:DOC.pairs, notes:DOC.notes, wnotes:DOC.wnotes||[], at});
   if(!ok){ toast('저장 공간이 부족해요. 서재에서 오래된 글을 지워 주세요'); return null; }
 
   const plain=plainResult();
@@ -1817,7 +1981,7 @@ function loadArchive(id){
   $('source').value=d.src||'';
   $('memo').value=d.memo||'';
   curTitleKo=d.titleKo||'';
-  DOC={pairs:d.pairs||[], notes:d.notes||[]};
+  DOC={pairs:d.pairs||[], notes:d.notes||[], wnotes:d.wnotes||[]};
   curArc=id;
   store.set('curarc',id); store.set('title',$('docTitle').value);
   store.set('source',$('source').value); store.set('memo',$('memo').value);
@@ -1968,7 +2132,7 @@ async function translateTitle(key,model,title,memo){
 /* ════════ 전체 백업 · 복원 · 깃허브 연동 ════════ */
 function makeDump(){
   const dump={app:'글결', v:14, at:Date.now(), settings:{}, words:WORDS, cats:CATS, arcidx:ARC, arcs:{}};
-  ['key','model','chunk','speed','memo','read','mascot','view','title','titleko','curarc','ghtok','ghrepo','ghpath','url']
+  ['key','model','chunk','speed','memo','read','mascot','view','title','titleko','curarc','ghtok','ghrepo','ghpath','url','terms','models']
     .forEach(k=>dump.settings[k]=store.get(k));
   ARC.forEach(a=>{ const d=arcGet(a.id); if(d) dump.arcs[a.id]=d; });
   return dump;
@@ -2286,6 +2450,52 @@ function bindPop(btn, fn){
   });
   btn.addEventListener('click', ()=>{ if(!fired) fn(); });
 }
+let mpTermTxt='', mpMeanTxt='';
+function hideMeanPop(){ $('meanpop').classList.remove('show'); }
+
+async function lookupMeaning(word, x, y){
+  const key=$('apikey').value.trim();
+  if(!key) return toast('API 키가 필요해요');
+  mpTermTxt=word; mpMeanTxt='';
+  $('mpTerm').textContent=word;
+  $('mpBody').textContent='찾는 중...';
+  placeNode($('meanpop'), x, y);
+  try{
+    const raw=await askGemini(key,$('model').value, word, DICT_SYSTEM, 2048, {fast:true, temp:0.3});
+    const line=cleanMeaning(raw);
+    mpMeanTxt = line.length>1 ? line : '뜻을 찾지 못했어요';
+    $('mpBody').textContent=mpMeanTxt;
+  }catch(err){
+    $('mpBody').textContent=err.message;
+  }
+}
+$('mpSave').addEventListener('click',()=>{
+  hideMeanPop();
+  openWordSheet({term:mpTermTxt, mean:mpMeanTxt});
+});
+$('mpFoot').addEventListener('click',()=>{
+  if(!DOC) return toast('번역문이 있어야 각주를 달 수 있어요');
+  if(!mpTermTxt) return;
+  DOC.wnotes = DOC.wnotes || [];
+  if(DOC.wnotes.some(w=>w.term===mpTermTxt)) { hideMeanPop(); return toast('이미 각주에 있어요'); }
+  DOC.wnotes.push({term:mpTermTxt, mean:mpMeanTxt});
+  reannotate(); renderDoc(); saveArchive(true);
+  hideMeanPop();
+  toast('각주를 달았어요');
+});
+document.addEventListener('pointerdown',e=>{
+  if(!e.target.closest('#meanpop') && !e.target.closest('#selpop')) hideMeanPop();
+});
+window.addEventListener('scroll',hideMeanPop,{passive:true});
+
+bindPop($('spMean'), ()=>{
+  const t=selText.trim();
+  if(!t) return;
+  if(t.length>30) return toast('낱말이나 짧은 표현만 찾을 수 있어요');
+  const p=$('selpop').getBoundingClientRect();
+  hideSelPop();
+  lookupMeaning(t, p.left+p.width/2, p.top);
+});
 bindPop($('spSave'), ()=>{
   const t=selText; hideSelPop(); openWordSheet({term:t});
 });
@@ -2587,6 +2797,52 @@ async function refreshModels(quiet){
 }
 $('modelSync').addEventListener('click',()=>refreshModels(false));
 
+/* ════════════════════════════════════════════════════════════
+   내가 정한 고유명사 표기 (표기집)
+   ── 한 번 고쳐두면 다음 번역부터 계속 그 표기를 씁니다.
+   ════════════════════════════════════════════════════════════ */
+let TERMS=(()=>{ try{ return JSON.parse(store.get('terms','')) || []; }catch(e){ return []; } })();
+const saveTerms=()=>{ store.set('terms',JSON.stringify(TERMS)); };
+function putTerm(or,ko,ty){
+  if(!or||!ko) return;
+  const i=TERMS.findIndex(t=>t.or===or);
+  if(i>=0) TERMS[i]={or,ko,ty:ty||TERMS[i].ty||''};
+  else TERMS.push({or,ko,ty:ty||''});
+  saveTerms();
+}
+
+/* ════════ 고유명사 표기 고치기 ════════ */
+let editIdx=-1;
+function openTermEdit(i){
+  if(!DOC||!DOC.notes[i]) return;
+  const n=DOC.notes[i];
+  editIdx=i;
+  $('teOrig').textContent=n.or||'';
+  $('teKo').value=n.ko||'';
+  $('teKeep').checked=true;
+  openS('teSheet','teBackdrop');
+  setTimeout(()=>{ $('teKo').focus(); $('teKo').select(); },350);
+}
+$('teCancel').addEventListener('click',()=>closeS('teSheet','teBackdrop'));
+$('teBackdrop').addEventListener('click',()=>closeS('teSheet','teBackdrop'));
+$('teSave').addEventListener('click',()=>{
+  if(!DOC||editIdx<0) return;
+  const n=DOC.notes[editIdx];
+  const old=n.ko, next=$('teKo').value.trim();
+  if(!next) return toast('표기를 적어 주세요');
+
+  if(next!==old && old){
+    /* 본문에 있는 옛 표기를 전부 새 표기로 바꿉니다 */
+    DOC.pairs=DOC.pairs.map(x=>({s:x.s, d:x.d.split(old).join(next)}));
+  }
+  n.ko=next;
+  if($('teKeep').checked) putTerm(n.or, next, n.ty);
+
+  reannotate(); renderDoc(); saveArchive(true);
+  closeS('teSheet','teBackdrop');
+  toast($('teKeep').checked ? '고쳤어요. 다음 번역에도 이렇게 나와요' : '고쳤어요');
+});
+
 /* ════════ 설명 시트 ════════ */
 function openHelp(section){
   openS('helpSheet','helpBackdrop');
@@ -2667,6 +2923,7 @@ $('hideStart').addEventListener('click',()=>{
 
   $('viewSeg').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===viewMode));
   try{ DOC=JSON.parse(store.get('doc','')) || null; }catch(e){ DOC=null; }
+  if(DOC && !DOC.wnotes) DOC.wnotes=[];
   if(DOC && DOC.pairs && DOC.pairs.length){
     renderDoc();
     if(store.get('fnopen')==='1') openFnPanel();
