@@ -1582,6 +1582,8 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
         <div class="btn-row"><button class="btn" id="saveCfg">설정 저장</button></div>
         <label class="field">백업</label>
         <p class="hint" style="margin:0 0 9px">브라우저 데이터를 지우면 저장한 내용이 함께 사라져요. 가끔 백업해 두시면 다른 기기로 옮길 때도 편합니다.</p>
+        <label class="toggle" style="padding:2px 0 6px"><input type="checkbox" id="bkSec"><span>API 키·토큰도 함께 저장</span></label>
+        <p class="hint" style="margin:0 0 9px">켜면 아래 <b>내보내기</b>와 <b>깃허브 올리기</b>에 제미나이 키와 깃허브 토큰이 그대로 담깁니다. 백업을 남에게 보내거나 공개된 곳에 두면 그대로 새어 나가요. 꺼 두면 다른 기기에서 되돌릴 때 키만 한 번 더 적으면 됩니다.</p>
         <div class="btn-row" style="margin-top:0">
           <button class="btn ghost" id="expAll">전체 내보내기</button>
           <button class="btn ghost" id="impAll">불러오기</button>
@@ -3399,28 +3401,37 @@ async function translateTitle(key,model,title,memo){
 }
 
 /* ════════ 전체 백업 · 복원 · 깃허브 연동 ════════ */
-function makeDump(){
+/* 백업에서 빼둘 수 있는 비밀값. 빠진 자리는 되돌릴 때 이 기기 값을 그대로 둡니다. */
+const SECRET_KEYS = ['key','key2','ghtok'];
+const bkSecOn = () => store.get('bksec','0')==='1';
+
+function makeDump(withSecrets = bkSecOn()){
   const dump={app:'글결', v:14, at:Date.now(), settings:{}, words:WORDS, cats:CATS, arcidx:ARC, arcs:{}};
   ['key','key2','model','chunk','speed','memo','read','mascot','view','title','titleko','curarc','ghtok','ghrepo','ghpath','url','srcurl','terms','models','rate','folders','fdfilter','genre','wgfilter']
-    .forEach(k=>dump.settings[k]=store.get(k));
+    .forEach(k=>{ if(!withSecrets && SECRET_KEYS.includes(k)) return; dump.settings[k]=store.get(k); });
   ARC.forEach(a=>{ const d=arcGet(a.id); if(d) dump.arcs[a.id]=d; });
   return dump;
 }
 function applyDump(d){
   if(!d || !d.settings) throw new Error('백업 내용이 아니에요');
+  const hadSecrets = SECRET_KEYS.some(k=>d.settings[k]);
   Object.entries(d.settings||{}).forEach(([k,v])=>{ if(v!=null) store.set(k,v); });
   if(d.words) store.set('words',JSON.stringify(d.words));
   if(d.cats)  store.set('cats',JSON.stringify(d.cats));
   if(d.arcidx) store.set('arcidx',JSON.stringify(d.arcidx));
   Object.entries(d.arcs||{}).forEach(([id,v])=>arcPut(id,v));
+  return { hadSecrets };
 }
 
+$('bkSec').addEventListener('change',e=>store.set('bksec', e.target.checked?'1':'0'));
+
 $('expAll').addEventListener('click',()=>{
+  const withSecrets=bkSecOn();
   const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([JSON.stringify(makeDump())],{type:'application/json'}));
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(makeDump(withSecrets))],{type:'application/json'}));
   a.download=`글결_백업_${new Date().toISOString().slice(0,10)}.json`;
   a.click(); URL.revokeObjectURL(a.href);
-  toast('내보냈어요 (API 키도 들어 있으니 잘 보관하세요)');
+  toast(withSecrets ? '내보냈어요 (API 키도 들어 있으니 잘 보관하세요)' : '내보냈어요 (API 키·토큰은 빼뒀어요)');
 });
 $('impAll').addEventListener('click',()=>$('impFile').click());
 $('impFile').addEventListener('change',e=>{
@@ -3429,7 +3440,11 @@ $('impFile').addEventListener('change',e=>{
   r.onload=async ()=>{
     let d; try{ d=JSON.parse(r.result); }catch(err){ return toast('백업 파일이 아니에요'); }
     if(!await askConfirm('백업으로 되돌릴까요?','지금 이 기기의 설정·서재·단어장이 백업 내용으로 바뀝니다.','되돌리기',true)) return;
-    try{ applyDump(d); toast('복원했어요. 앱을 다시 엽니다'); setTimeout(()=>location.reload(),900); }
+    try{
+      const info=applyDump(d);
+      toast(info.hadSecrets ? '복원했어요. 앱을 다시 엽니다' : '복원했어요 (키는 이 기기 것 그대로). 앱을 다시 엽니다');
+      setTimeout(()=>location.reload(),900);
+    }
     catch(err){ toast(err.message); }
   };
   r.readAsText(f,'utf-8');
@@ -3520,8 +3535,8 @@ $('ghDown').addEventListener('click',async ()=>{
     if(!got.ok) throw new Error(ghErr(got, await got.json().catch(()=>null)));
     const j=await got.json();
     const d=JSON.parse(b64dec(j.content||''));
-    applyDump(d);
-    toast('내려받았어요. 앱을 다시 엽니다');
+    const info=applyDump(d);
+    toast(info.hadSecrets ? '내려받았어요. 앱을 다시 엽니다' : '내려받았어요 (키는 이 기기 것 그대로). 앱을 다시 엽니다');
     setTimeout(()=>location.reload(),900);
   }catch(err){ ghNote(''); toast(err.message); }
   finally{ btn.disabled=false; }
@@ -4698,6 +4713,7 @@ $('hideStart').addEventListener('click',()=>{
   $('docTitle').value=store.get('title');
   $('urlIn').value=store.get('url');
   $('srcUrl').value=store.get('srcurl');
+  $('bkSec').checked=bkSecOn();
   $('ghTok').value=store.get('ghtok');
   $('ghRepo').value=store.get('ghrepo');
   $('ghPath').value=store.get('ghpath');
