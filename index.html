@@ -112,6 +112,11 @@ header{display:flex;align-items:center;gap:12px;padding:24px 4px 14px}
   background:linear-gradient(150deg,color-mix(in srgb,var(--pop) 30%,transparent),color-mix(in srgb,var(--accent) 22%,transparent));
   box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 22%,transparent),0 8px 20px -10px color-mix(in srgb,var(--accent) 70%,transparent)
 }
+/* 직접 넣은 그림은 원래 색 그대로 보이도록 배경을 물립니다 */
+.avatar.own,.mprev.own{
+  background:color-mix(in srgb,var(--card) 92%,transparent);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--line) 85%,transparent)
+}
 .title{
   font-family:var(--cute);font-size:25px;margin:0;line-height:1.1;
   background:linear-gradient(100deg,var(--accent),color-mix(in srgb,var(--accent) 45%,var(--pop)));
@@ -119,6 +124,15 @@ header{display:flex;align-items:center;gap:12px;padding:24px 4px 14px}
 }
 .subtitle{display:block;font-size:11px;font-weight:500;color:var(--soft);letter-spacing:.03em;margin-top:4px}
 .grow{flex:1}
+.plain-btn{
+  width:40px;height:40px;flex:none;border:none;background:transparent;cursor:pointer;
+  display:grid;place-items:center;color:var(--soft);border-radius:12px;transition:transform .14s,color .16s
+}
+.plain-btn:active{transform:scale(.88);color:var(--accent)}
+.plain-btn svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.plain-btn .aa{font-family:var(--cute);font-size:16px;line-height:1}
+.plain-btn .aa i{font-style:normal;font-size:12px}
+
 .icon-btn{
   min-width:44px;height:44px;padding:0 14px;border-radius:15px;
   border:1px solid color-mix(in srgb,var(--line) 80%,transparent);
@@ -173,7 +187,9 @@ header{display:flex;align-items:center;gap:12px;padding:24px 4px 14px}
 .hint a{color:var(--accent)}
 label.field{display:block;font-size:11px;font-weight:700;color:var(--soft);letter-spacing:.06em;margin:16px 0 7px}
 label.field:first-child{margin-top:0}
-input[type=text],input[type=password],select,textarea{
+/* 안내 글씨는 살짝 작게 — 긴 문구도 잘리지 않도록 */
+input::placeholder,textarea::placeholder{font-size:13.5px;opacity:.75}
+input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]),select,textarea{
   width:100%;background:color-mix(in srgb,var(--paper) 60%,transparent);color:var(--ink);
   border:1px solid color-mix(in srgb,var(--line) 85%,transparent);border-radius:13px;
   padding:12px 13px;font-size:15px;font-family:inherit;line-height:1.55;outline:none;
@@ -256,6 +272,11 @@ button{font-family:inherit}
   text-indent:var(--read-indent);margin:0 0 var(--read-gap);word-break:break-word;white-space:pre-line
 }
 #output .para:last-child{margin-bottom:0}
+#output .doc-title,.cmp.is-title .dst{
+  font-size:calc(var(--read-size) * 1.35);font-weight:700;line-height:1.5;
+  text-indent:0;margin-bottom:calc(var(--read-gap) * 1.6);letter-spacing:-.02em
+}
+.cmp.is-title{padding-bottom:6px}
 .cmp{margin:0 0 calc(var(--read-gap) + 4px)}
 .cmp .src{
   font-size:calc(var(--read-size) * .82);line-height:1.75;color:var(--soft);
@@ -268,7 +289,49 @@ button{font-family:inherit}
   border-right:2px solid color-mix(in srgb,var(--accent) 22%,transparent);margin:0}
 .cmp.side .dst{font-size:calc(var(--read-size) * .92)}
 
+/* 설명 시트는 설정 시트 위에 뜨도록 (설정을 열어둔 채 설명을 볼 수 있게) */
+#helpBackdrop{z-index:63}
+#helpSheet{z-index:64}
+
 /* ════════ 각주 말풍선 · 각주 창 ════════ */
+.catrow{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.catrow input{flex:1;min-width:0}
+.catrow .cnt{flex:none;font-size:11.5px;color:var(--soft);min-width:34px;text-align:right}
+.catrow .x{flex:none;border:none;background:transparent;color:var(--soft);font-size:15px;
+  cursor:pointer;padding:8px 6px;border-radius:9px}
+.catrow .x:active{color:var(--warn)}
+
+.dlg-opt{
+  display:block;width:100%;text-align:left;border:none;cursor:pointer;
+  border-radius:15px;padding:13px 15px;margin-bottom:8px;
+  background:color-mix(in srgb,var(--paper) 60%,transparent);
+  box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--line) 90%,transparent);
+  transition:box-shadow .15s,transform .13s
+}
+.dlg-opt:active{transform:scale(.98)}
+.dlg-opt b{display:block;font-size:15px;color:var(--ink);margin-bottom:3px}
+.dlg-opt span{display:block;font-size:12.5px;color:var(--soft);line-height:1.6}
+.dlg-opt.danger{box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--warn) 45%,transparent)}
+.dlg-opt.danger b{color:var(--warn)}
+#dlgBackdrop{z-index:65}
+#dlgSheet{z-index:66}
+#dlgSheet .btn.danger-solid{background:var(--warn);color:#fff;box-shadow:none}
+
+#busy{
+  position:fixed;inset:0;z-index:75;display:none;place-items:center;
+  background:rgba(24,16,42,.42);
+  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)
+}
+#busy.show{display:grid}
+#busy .busy-box{
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  padding:28px 34px;border-radius:24px;text-align:center;
+  background:color-mix(in srgb,var(--card) 96%,transparent);
+  box-shadow:0 18px 50px -12px rgba(0,0,0,.45)
+}
+#busy .busy-t{font-family:var(--cute);font-size:17px;color:var(--accent)}
+#busy .busy-s{font-size:12.5px;color:var(--soft);line-height:1.6;max-width:220px}
+
 #origpop{
   position:fixed;z-index:68;display:none;flex-direction:column;gap:9px;
   padding:13px 15px;border-radius:16px;max-width:min(92vw,420px);
@@ -363,6 +426,18 @@ sup.fn.wn{color:var(--pop);font-size:.66em}
   padding:6px 8px;border-radius:10px}
 .fnp-x:active{background:var(--weak)}
 .fnp-body{overflow-y:auto;padding:0 16px calc(18px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}
+
+#resume{
+  position:fixed;left:50%;transform:translate(-50%,-14px);top:calc(12px + env(safe-area-inset-top));
+  z-index:56;display:none;align-items:center;gap:10px;padding:9px 10px 9px 16px;border-radius:999px;
+  background:color-mix(in srgb,var(--card) 96%,transparent);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  box-shadow:0 10px 28px -8px rgba(0,0,0,.35),inset 0 0 0 1px color-mix(in srgb,var(--accent) 22%,transparent);
+  opacity:0;transition:opacity .25s,transform .25s;max-width:calc(100vw - 24px)
+}
+#resume.show{display:flex;opacity:1;transform:translate(-50%,0)}
+#resume span{font-size:13px;color:var(--ink);white-space:nowrap}
+#resume .rx{border:none;background:transparent;color:var(--soft);font-size:14px;cursor:pointer;padding:4px 6px}
 
 #topBtn{
   position:fixed;left:16px;bottom:calc(20px + env(safe-area-inset-bottom));z-index:54;
@@ -498,8 +573,30 @@ sup.fn:active{opacity:.5}
 .acard .now{font-size:10px;font-weight:700;color:var(--accent);
   padding:3px 8px;border-radius:999px;background:color-mix(in srgb,var(--weak) 85%,transparent)}
 
-.urlrow{display:flex;gap:8px;align-items:center}
+/* 라벨 안 작은 아이콘 */
+.lbl-ic{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px;margin-right:4px;opacity:.8}
+.lbl-sub{font-weight:500;letter-spacing:0;opacity:.8}
+
+/* 링크 가져오기 — '도구'처럼 보이도록 상자 안에 넣습니다 */
+.fetchbox{
+  margin:0 0 12px;padding:13px 14px;border-radius:16px;
+  background:color-mix(in srgb,var(--weak) 55%,transparent);
+  box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--accent) 20%,transparent)
+}
+.fetchbox .fb-head{
+  display:flex;align-items:center;gap:7px;margin-bottom:9px;
+  font-family:var(--cute);font-size:13.5px;color:var(--accent)
+}
+.fetchbox .fb-head svg{width:16px;height:16px;stroke:currentColor;fill:none;
+  stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.fetchbox input{background:color-mix(in srgb,var(--card) 80%,transparent)}
+
+.urlrow{display:flex;gap:8px;align-items:stretch}
 .urlrow input{flex:1;min-width:0}
+.urlrow .btn,.urlrow button{flex:none;padding-left:16px;padding-right:16px;border-radius:13px}
+/* 주소 칸은 글자를 조금 작게 — 긴 주소도 잘 보이도록 */
+input[type=url]{font-size:14px;letter-spacing:-.01em}
 .wtools{display:flex;gap:8px;align-items:center;margin-bottom:12px}
 .wtools input{flex:1}
 .catbar{display:flex;gap:7px;overflow-x:auto;padding-bottom:3px;margin-bottom:14px;-webkit-overflow-scrolling:touch}
@@ -622,8 +719,10 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
     <div class="avatar"><span class="mslot" id="headSlot" data-anim="bob" data-size="32"></span></div>
     <div><h1 class="title">글결</h1><span class="subtitle">어떤 언어든 → 한국어 소설 번역</span></div>
     <div class="grow"></div>
-    <button class="icon-btn" id="helpBtn" title="설명">?</button>
-    <button class="icon-btn" id="readBtn" title="읽기 설정">가a</button>
+    <button class="plain-btn" id="cfgBtn" title="설정" aria-label="설정">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.1"/><path d="M19.1 14.2a1.5 1.5 0 0 0 .3 1.66l.05.05a1.9 1.9 0 1 1-2.69 2.69l-.05-.05a1.5 1.5 0 0 0-2.56 1.06V20a1.9 1.9 0 1 1-3.8 0v-.1a1.5 1.5 0 0 0-2.56-1.06l-.05.05a1.9 1.9 0 1 1-2.69-2.69l.05-.05A1.5 1.5 0 0 0 4.1 13.6H4a1.9 1.9 0 1 1 0-3.8h.1A1.5 1.5 0 0 0 5.16 7.24l-.05-.05a1.9 1.9 0 1 1 2.69-2.69l.05.05A1.5 1.5 0 0 0 10.4 3.6V3.5a1.9 1.9 0 1 1 3.8 0v.1a1.5 1.5 0 0 0 2.56 1.06l.05-.05a1.9 1.9 0 1 1 2.69 2.69l-.05.05a1.5 1.5 0 0 0 1.06 2.56H20a1.9 1.9 0 1 1 0 3.8h-.1a1.5 1.5 0 0 0-.8.29z"/></svg>
+    </button>
+    <button class="plain-btn" id="readBtn" title="읽기 설정" aria-label="읽기 설정"><span class="aa">가<i>a</i></span></button>
   </header>
 
   <nav class="tabs">
@@ -650,59 +749,6 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
       </div>
     </section>
 
-    <section class="card" id="cfgCard">
-      <div class="card-head" data-toggle="cfgCard">
-        <span class="badge"><svg viewBox="0 0 24 24"><path d="M4 8h10M18 8h2M4 16h4M12 16h8"/><circle cx="16" cy="8" r="2.2"/><circle cx="10" cy="16" r="2.2"/></svg></span>
-        <h2>설정</h2><span class="chip off" id="keyChip">키가 필요해요</span><span class="caret">▾</span>
-      </div>
-      <div class="card-body">
-        <label class="field" for="apikey">GEMINI API 키</label>
-        <input type="password" id="apikey" placeholder="AIza..." autocomplete="off" spellcheck="false">
-        <div class="btn-row" style="margin-top:10px">
-          <button class="btn" data-help="key">API 키가 뭔가요?</button>
-        </div>
-
-        <label class="field" for="model">모델</label>
-        <div class="urlrow">
-          <select id="model"></select>
-          <button class="btn ghost" id="modelSync">목록 새로고침</button>
-        </div>
-        <p class="hint" id="modelHint">구글은 모델을 자주 바꿔요. "쓸 수 없는 모델"이라고 나오면 <b>목록 새로고침</b>을 누르세요. 지금 키로 쓸 수 있는 것만 골라 담아옵니다.</p>
-        <label class="field" for="speed">번역 속도</label>
-        <select id="speed">
-          <option value="fast">빠르게 (권장)</option>
-          <option value="careful">꼼꼼하게 (느림)</option>
-        </select>
-        <p class="hint">빠르게는 인공지능이 곧바로 번역하고, 꼼꼼하게는 한 번 더 생각한 뒤 번역해요. 대부분은 빠르게로 충분합니다.</p>
-
-        <label class="field" for="chunk">한 번에 보낼 분량</label>
-        <select id="chunk">
-          <option value="2000">2,000자 (안전)</option>
-          <option value="3000" selected>3,000자 (기본)</option>
-          <option value="5000">5,000자 (빠름)</option>
-        </select>
-        <div class="btn-row"><button class="btn" id="saveCfg">설정 저장</button></div>
-        <label class="field">백업</label>
-        <p class="hint" style="margin:0 0 9px">브라우저 데이터를 지우면 저장한 내용이 함께 사라져요. 가끔 백업해 두시면 다른 기기로 옮길 때도 편합니다.</p>
-        <div class="btn-row" style="margin-top:0">
-          <button class="btn ghost" id="expAll">전체 내보내기</button>
-          <button class="btn ghost" id="impAll">불러오기</button>
-        </div>
-        <input type="file" id="impFile" accept=".json,application/json" hidden>
-
-        <label class="field">깃허브 연동 (폰 ↔ 컴퓨터)</label>
-        <p class="hint" style="margin:0 0 9px">비공개 저장소에 백업을 올려두고 폰과 컴퓨터에서 주고받아요.
-          <a href="#" data-help="github">설정하는 법 보기</a></p>
-        <input type="password" id="ghTok" placeholder="토큰 (ghp_... 또는 github_pat_...)" autocomplete="off" spellcheck="false">
-        <input type="text" id="ghRepo" placeholder="저장소 (예: mingyu/geulgyeol-data)" autocomplete="off" spellcheck="false" style="margin-top:8px">
-        <input type="text" id="ghPath" placeholder="파일 이름 (비우면 geulgyeol-backup.json)" autocomplete="off" spellcheck="false" style="margin-top:8px">
-        <div class="btn-row" style="margin-top:10px">
-          <button class="btn" id="ghUp">올리기</button>
-          <button class="btn ghost" id="ghDown">내려받기</button>
-          <span class="hint" id="ghState" style="margin:0"></span>
-        </div>
-      </div>
-    </section>
 
     <section class="card" id="memoCard">
       <div class="card-head" data-toggle="memoCard">
@@ -722,21 +768,36 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
         <button class="btn ghost" id="newDoc">새 글</button>
         <button class="btn ghost" id="loadFile">txt 파일</button>
       </div>
+      <!-- ① 작품 정보 — 그냥 적어두는 칸들 -->
       <label class="field" for="docTitle">제목</label>
-      <input type="text" id="docTitle" placeholder="작품 제목 (원문 그대로 적어도 됩니다)">
+      <input type="text" id="docTitle" placeholder="작품 제목">
       <p class="hint" id="titleKoLine" style="display:none"></p>
 
-      <label class="field" for="urlIn">링크로 가져오기</label>
-      <div class="urlrow">
-        <input type="url" id="urlIn" placeholder="https://..." autocomplete="off" spellcheck="false">
-        <button class="btn" id="urlGet">가져오기</button>
-      </div>
-      <p class="hint" style="margin:6px 0 0">되는 사이트가 제한적이에요. <a href="#" data-help="url">어떤 링크가 되나요?</a></p>
+      <label class="field" for="srcUrl">
+        <svg class="lbl-ic" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.1 0l3-3a5 5 0 0 0-7.1-7.1L11.3 4.6"/><path d="M14 11a5 5 0 0 0-7.1 0l-3 3a5 5 0 0 0 7.1 7.1l1.7-1.7"/></svg>
+        출처 <span class="lbl-sub">· 적어두기만 해요</span>
+      </label>
+      <input type="url" id="srcUrl" placeholder="나중에 원문을 다시 찾아올 주소 (선택)" autocomplete="off" spellcheck="false">
+      <p class="hint" style="margin:6px 0 0">번역에는 쓰이지 않아요. 서재에 함께 저장됩니다.</p>
 
+      <!-- ② 본문 — 넣는 방법 두 가지 -->
       <label class="field" for="source">본문</label>
       <input type="file" id="fileInput" accept=".txt,text/plain,.md" multiple hidden>
+
+      <div class="fetchbox">
+        <div class="fb-head">
+          <svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M7.5 10.5 12 15l4.5-4.5"/><path d="M4 17v2.5A1.5 1.5 0 0 0 5.5 21h13a1.5 1.5 0 0 0 1.5-1.5V17"/></svg>
+          링크에서 본문 가져오기
+        </div>
+        <div class="urlrow">
+          <input type="url" id="urlIn" placeholder="소설이 실린 페이지 주소" autocomplete="off" spellcheck="false">
+          <button class="btn" id="urlGet">가져오기</button>
+        </div>
+        <p class="hint" style="margin:7px 0 0">되는 사이트가 제한적이에요. <a href="#" data-help="url">어떤 링크가 되나요?</a></p>
+      </div>
+
       <p class="hint" id="srcNote" style="display:none;margin:0 0 8px;color:var(--accent)"></p>
-      <textarea id="source" placeholder="번역할 외국어 본문을 붙여넣어 주세요. 언어는 알아서 알아봐요!"></textarea>
+      <textarea id="source" placeholder="여기에 외국어 소설 본문을 붙여넣어 주세요.&#10;일본어든 영어든, 어떤 언어인지 몰라도 앱이 자동으로 알아냅니다."></textarea>
       <div class="counter"><span>글자 수 <b id="count">0</b></span><span id="chunkInfo"></span></div>
       <div class="btn-row"><button class="btn ghost" id="clearSrc">본문 비우기</button></div>
     </section>
@@ -768,7 +829,7 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
       </div>
     </section>
 
-    <footer>글결 v33<br>원문 대조 · 각주 · 단어장 · 서재</footer>
+    <footer>글결 v40<br>원문 대조 · 각주 · 단어장 · 서재</footer>
   </div>
 
   <!-- ═══════════ 서재 탭 ═══════════ -->
@@ -800,7 +861,8 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
       <div class="catbar" id="catbar"></div>
       <div class="wlist" id="wlist"></div>
       <div class="btn-row">
-        <button class="btn ghost" id="wExport">txt로 내보내기</button>
+        <button class="btn ghost" id="wExport">txt</button>
+        <button class="btn ghost" id="wExportCsv">엑셀</button>
         <div class="grow"></div>
         <button class="btn ghost" id="wCatEdit">분류 관리</button>
       </div>
@@ -849,6 +911,11 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
 </div>
 
 <!-- 각주 창 -->
+<div id="resume">
+  <span>지난번에 읽던 곳이 있어요</span>
+  <button class="btn" id="resumeGo">이어읽기</button>
+  <button class="rx" id="resumeX" aria-label="닫기">✕</button>
+</div>
 <button id="topBtn" title="맨 위로" aria-label="맨 위로">↑</button>
 <button id="fnFab">각주 <b id="fnFabNum"></b></button>
 <div id="fnPanel">
@@ -885,6 +952,8 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
   <div class="slider"><label for="sLead">줄 간격</label><input type="range" id="sLead" min="1.5" max="2.6" step="0.05"><output id="oLead"></output></div>
   <div class="slider"><label for="sGap">문단 사이</label><input type="range" id="sGap" min="0.3" max="2.2" step="0.1"><output id="oGap"></output></div>
   <label class="toggle"><input type="checkbox" id="cIndent"><span>문단 첫 줄 들여쓰기</span></label>
+  <label class="toggle"><input type="checkbox" id="cTap"><span>단어를 한 번 탭하면 바로 선택</span></label>
+  <p class="hint" style="margin:0 0 4px">켜면 길게 누르지 않아도 돼요. 폰의 복사·검색 메뉴가 뜨지 않습니다.</p>
   <h3>미리보기</h3>
   <div class="preview">
     <p>그날 밤, 창밖에는 조용히 눈이 내리고 있었다.</p>
@@ -1100,6 +1169,113 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
   </div>
 </div>
 
+<!-- 설정 시트 -->
+<div class="backdrop" id="cfgBackdrop"></div>
+<div class="sheet" id="cfgSheet" role="dialog" aria-label="설정">
+  <div class="handle"></div>
+  <div style="display:flex;align-items:center;gap:9px;margin-bottom:4px">
+    <h3 style="margin:0">설정</h3>
+    <span class="chip off" id="keyChip">키가 필요해요</span>
+  </div>
+        <label class="field" for="apikey">GEMINI API 키</label>
+        <input type="password" id="apikey" placeholder="AIza..." autocomplete="off" spellcheck="false">
+        <div class="btn-row" style="margin-top:10px">
+          <button class="btn" data-help="key">API 키가 뭔가요?</button>
+        </div>
+
+        <label class="field" for="apikey2">예비 키 <span class="lbl-sub">· 선택</span></label>
+        <input type="password" id="apikey2" placeholder="다른 계정에서 받은 키" autocomplete="off" spellcheck="false">
+        <p class="hint">첫 번째 키가 한도에 걸리면 <b>자동으로 이 키로 바꿔서 이어갑니다.</b> 다른 구글 계정으로 받은 키를 넣어 두세요.</p>
+
+        <label class="field" for="model">모델</label>
+        <div class="urlrow">
+          <select id="model"></select>
+          <button class="btn ghost" id="modelSync">목록 새로고침</button>
+        </div>
+        <p class="hint" id="modelHint">구글은 모델을 자주 바꿔요. "쓸 수 없는 모델"이라고 나오면 <b>목록 새로고침</b>을 누르세요. 지금 키로 쓸 수 있는 것만 골라 담아옵니다.</p>
+        <label class="field" for="speed">번역 속도</label>
+        <select id="speed">
+          <option value="fast">빠르게 (권장)</option>
+          <option value="careful">꼼꼼하게 (느림)</option>
+        </select>
+        <p class="hint">빠르게는 인공지능이 곧바로 번역하고, 꼼꼼하게는 한 번 더 생각한 뒤 번역해요. 대부분은 빠르게로 충분합니다.</p>
+
+        <label class="field" for="chunk">한 번에 보낼 분량</label>
+        <select id="chunk">
+          <option value="2000">2,000자 (안전)</option>
+          <option value="3000" selected>3,000자 (기본)</option>
+          <option value="5000">5,000자 (빠름)</option>
+        </select>
+        <div class="btn-row"><button class="btn" id="saveCfg">설정 저장</button></div>
+        <label class="field">백업</label>
+        <p class="hint" style="margin:0 0 9px">브라우저 데이터를 지우면 저장한 내용이 함께 사라져요. 가끔 백업해 두시면 다른 기기로 옮길 때도 편합니다.</p>
+        <div class="btn-row" style="margin-top:0">
+          <button class="btn ghost" id="expAll">전체 내보내기</button>
+          <button class="btn ghost" id="impAll">불러오기</button>
+        </div>
+        <input type="file" id="impFile" accept=".json,application/json" hidden>
+
+        <label class="field">깃허브 연동 (폰 ↔ 컴퓨터)</label>
+        <p class="hint" style="margin:0 0 9px">비공개 저장소에 백업을 올려두고 폰과 컴퓨터에서 주고받아요.
+          <a href="#" data-help="github">설정하는 법 보기</a></p>
+        <input type="password" id="ghTok" placeholder="토큰" autocomplete="off" spellcheck="false">
+        <input type="text" id="ghRepo" placeholder="저장소" autocomplete="off" spellcheck="false" style="margin-top:8px">
+        <input type="text" id="ghPath" placeholder="파일 이름 (비워도 됨)" autocomplete="off" spellcheck="false" style="margin-top:8px">
+        <p class="hint" style="margin:6px 0 0">토큰은 <b>github_pat_…</b> · 저장소는 <b>계정명/저장소명</b> 형태로 적어 주세요.</p>
+        <div class="btn-row" style="margin-top:10px">
+          <button class="btn" id="ghUp">올리기</button>
+          <button class="btn ghost" id="ghDown">내려받기</button>
+          <span class="hint" id="ghState" style="margin:0"></span>
+        </div>
+  <div class="btn-row" style="margin-top:22px">
+    <button class="btn ghost" data-help="intro">사용 설명 보기</button>
+    <div class="grow"></div>
+    <button class="btn" id="cfgClose">완료</button>
+  </div>
+</div>
+<!-- 분류 관리 -->
+<div class="backdrop" id="catBackdrop"></div>
+<div class="sheet" id="catSheet" role="dialog" aria-label="분류 관리">
+  <div class="handle"></div>
+  <h3>분류 관리</h3>
+  <p class="hint" style="margin:0 0 12px">이름을 눌러 바로 고칠 수 있어요. 분류를 지워도 단어는 사라지지 않고 첫 번째 분류로 옮겨집니다.</p>
+  <div id="catRows"></div>
+  <label class="field" for="catNew">새 분류 만들기</label>
+  <div class="urlrow">
+    <input type="text" id="catNew" placeholder="예: 프로세카 · 관용구 · 의성어">
+    <button class="btn" id="catAdd">추가</button>
+  </div>
+  <div class="btn-row" style="margin-top:20px">
+    <div class="grow"></div><button class="btn" id="catClose">완료</button>
+  </div>
+</div>
+
+<!-- 공용 대화 상자 -->
+<div class="backdrop" id="dlgBackdrop"></div>
+<div class="sheet" id="dlgSheet" role="dialog" aria-modal="true">
+  <div class="handle"></div>
+  <h3 id="dlgTitle">확인</h3>
+  <p id="dlgBody" style="font-size:14px;line-height:1.75;margin:0 0 4px;white-space:pre-line"></p>
+  <div id="dlgInputWrap" style="display:none">
+    <label class="field" id="dlgLabel" for="dlgInput">입력</label>
+    <input type="text" id="dlgInput">
+  </div>
+  <div id="dlgChoices"></div>
+  <div class="btn-row" id="dlgButtons" style="margin-top:20px">
+    <button class="btn ghost" id="dlgNo">취소</button>
+    <div class="grow"></div>
+    <button class="btn" id="dlgYes">확인</button>
+  </div>
+</div>
+
+<div id="busy">
+  <div class="busy-box">
+    <span class="mslot" data-anim="think" data-size="44"></span>
+    <div class="busy-t" id="busyT">잠시만요</div>
+    <div class="busy-s" id="busyS"></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1168,6 +1344,8 @@ const mascotMarkup = (anim,size) => customMascot
 function paintMascots(){
   document.querySelectorAll('.mslot').forEach(s =>
     s.innerHTML = mascotMarkup(s.dataset.anim||'bob', s.dataset.size||32));
+  /* 내 그림을 쓰는 동안엔 뒤 배경을 연하게 (색이 섞여 보이지 않게) */
+  document.querySelectorAll('.avatar,.mprev').forEach(el=>el.classList.toggle('own', !!customMascot));
 }
 function celebrate(){
   const el = $('headSlot').firstElementChild; if (!el) return;
@@ -1245,7 +1423,7 @@ function loadFont(id){
   const l=document.createElement('link'); l.rel='stylesheet'; l.href=f.url;
   document.head.appendChild(l); loadedF.add(id);
 }
-const DEFAULTS={theme:'dawn',font:'pretendard',size:17,lead:2.0,gap:1.1,indent:0};
+const DEFAULTS={theme:'dawn',font:'pretendard',size:17,lead:2.0,gap:1.1,indent:0,tap:0};
 let R={...DEFAULTS};
 function applyRead(){
   document.documentElement.dataset.theme=R.theme;
@@ -1262,6 +1440,7 @@ function applyRead(){
   $('sLead').value=R.lead; $('oLead').textContent=Number(R.lead).toFixed(2);
   $('sGap').value=R.gap;   $('oGap').textContent=Number(R.gap).toFixed(1)+'em';
   $('cIndent').checked=!!R.indent;
+  $('cTap').checked=!!R.tap;
   document.querySelectorAll('#covers .cover').forEach(b=>b.setAttribute('aria-pressed',b.dataset.id===R.theme));
   document.querySelectorAll('#fonts .font-opt').forEach(b=>b.setAttribute('aria-pressed',b.dataset.id===R.font));
   store.set('read',JSON.stringify(R));
@@ -1288,6 +1467,7 @@ $('sSize').addEventListener('input',e=>{R.size=+e.target.value;applyRead();});
 $('sLead').addEventListener('input',e=>{R.lead=+e.target.value;applyRead();});
 $('sGap').addEventListener('input',e=>{R.gap=+e.target.value;applyRead();});
 $('cIndent').addEventListener('change',e=>{R.indent=e.target.checked?1:0;applyRead();});
+$('cTap').addEventListener('change',e=>{R.tap=e.target.checked?1:0;applyRead();});
 $('resetRead').addEventListener('click',()=>{R={...DEFAULTS};applyRead();toast('처음 모습으로 돌아왔어요');});
 
 function openS(sh,bd){$(sh).classList.add('show');$(bd).classList.add('show');}
@@ -1403,7 +1583,19 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
   };
 
   const base=`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}`;
-  const headers={'Content-Type':'application/json','x-goog-api-key':key};
+  let useKey=key, triedAlt=false;
+  const headers=()=>({'Content-Type':'application/json','x-goog-api-key':useKey});
+
+  /* 한도에 걸리거나 거부당하면 예비 키로 한 번 갈아탑니다 */
+  function tryAltKey(){
+    if(triedAlt) return false;
+    const a=$('apikey2').value.trim(), b=$('apikey').value.trim();
+    const alt = (useKey===b && a) ? a : ((useKey===a && b) ? b : '');
+    if(!alt) return false;
+    useKey=alt; triedAlt=true;
+    say('예비 키로 바꿔 다시 시도하는 중');
+    return true;
+  }
 
   /* 기다릴 땐 몇 초 남았는지 보여줍니다 (조용히 멈춘 것처럼 보이지 않게) */
   async function waitVisibly(sec, why){
@@ -1424,12 +1616,14 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
     if(opts.onChunk){
       try{
         const res=await fetch(base+':streamGenerateContent?alt=sse',
-          {method:'POST',headers,body:JSON.stringify(makeBody())});
+          {method:'POST',headers:headers(),body:JSON.stringify(makeBody())});
         if(res.status===400){
           const t=await res.text();
           if(retry400()) continue;
           throw new Error(errMsg(400, safeJson(t)));
         }
+        if(res.status===429 && tryAltKey()) continue;
+        if(res.status===403 && tryAltKey()) continue;
         if((res.status===429||res.status>=500) && a<5){
           await waitVisibly(res.status===429?20:6, res.status===429?'사용량 한도에 걸렸어요':'서버가 바빠요');
           continue;
@@ -1473,9 +1667,11 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
     /* ── 일반 방식 ── */
     let res;
     try{
-      res=await fetch(base+':generateContent',{method:'POST',headers,body:JSON.stringify(makeBody())});
+      res=await fetch(base+':generateContent',{method:'POST',headers:headers(),body:JSON.stringify(makeBody())});
     }catch(e){ throw new Error('인터넷 연결에 실패했어요. 웹 주소(https)로 열었는지 확인해 주세요.'); }
 
+    if(res.status===429 && tryAltKey()) continue;
+    if(res.status===403 && tryAltKey()) continue;
     if((res.status===429||res.status>=500)&&a<5){
       await waitVisibly(res.status===429?20:6, res.status===429?'사용량 한도에 걸렸어요':'서버가 바빠요');
       continue;
@@ -1585,7 +1781,7 @@ function reannotate(){
   if(!DOC) return;
   const raw=DOC.pairs.map(x=>stripMarks(x.d));
   const a=annotate(raw, DOC.notes||[], DOC.wnotes||[]);
-  DOC.pairs=DOC.pairs.map((x,i)=>({s:x.s,d:a.paras[i]}));
+  DOC.pairs=DOC.pairs.map((x,i)=>({s:x.s,d:a.paras[i],t:x.t||0}));
   DOC.notes=a.notes; DOC.wnotes=a.wnotes;
 }
 function paraNode(line,cls){
@@ -1682,11 +1878,11 @@ function renderDoc(){
 
   DOC.pairs.forEach((p,pi)=>{
     if(viewMode==='only'){
-      if(p.d){ const el=paraNode(p.d,'para'); el.dataset.i=pi; out.appendChild(el); }
+      if(p.d){ const el=paraNode(p.d, p.t?'para doc-title':'para'); el.dataset.i=pi; out.appendChild(el); }
       return;
     }
     const box=document.createElement('div');
-    box.className='cmp'+(viewMode==='side'?' side':'');
+    box.className='cmp'+(viewMode==='side'?' side':'')+(p.t?' is-title':'');
     box.dataset.i=pi;
     if(p.s){ const s=document.createElement('p'); s.className='src'; s.textContent=p.s; box.appendChild(s); }
     if(p.d) box.appendChild(paraNode(p.d,'dst'));
@@ -1876,7 +2072,7 @@ async function translate(){
   const rawSrc=$('source').value;
   const memo=cleanText($('memo').value), src=cleanText(rawSrc).trim();
   const noThink = $('speed').value==='fast';
-  if(!key){ $('cfgCard').classList.add('open'); $('apikey').focus(); return toast('API 키를 먼저 넣어 주세요'); }
+  if(!key){ openCfg(); $('apikey').focus(); return toast('API 키를 먼저 넣어 주세요'); }
   if(!src){ $('source').focus(); return toast('번역할 원문이 없어요'); }
 
   /* 보이지 않는 문자가 있었다면 알려줍니다 (같은 문제가 또 나지 않도록) */
@@ -2070,8 +2266,10 @@ async function translate(){
       done.push({src:chunks[i],dst:body});
 
       const pairs=buildDoc(done);
+      /* 제목도 본문과 같은 흐름에 넣어 각주가 붙게 합니다 */
+      if(curTitleKo || rawTitle) pairs.unshift({s:rawTitle||'', d:curTitleKo||rawTitle||'', t:1});
       const ann=annotate(pairs.map(p=>p.d),gloss,(DOC&&DOC.wnotes)||[]);
-      DOC={pairs:pairs.map((p,k)=>({s:p.s,d:ann.paras[k]})),notes:ann.notes,wnotes:ann.wnotes||[]};
+      DOC={pairs:pairs.map((p,k)=>({s:p.s,d:ann.paras[k],t:p.t||0})),notes:ann.notes,wnotes:ann.wnotes||[]};
       renderDoc();
 
       $('bar').firstElementChild.style.width=((i+1)/chunks.length*100)+'%';
@@ -2081,6 +2279,27 @@ async function translate(){
     learnRate(model, src.length, secs);
     updateCount();
     celebrate(); sparkle($('result-card'));
+
+    /* 이미 서재에 있는 글을 다시 번역한 경우 — 어떻게 담을지 물어봅니다 */
+    const prev = curArc ? arcGet(curArc) : null;
+    if(prev && prev.pairs && prev.pairs.length){
+      const pick = await askChoice('서재에 어떻게 담을까요?',
+        `"${prev.titleKo||prev.title||'무제'}"에 이미 저장된 번역이 있어요.`,
+        [
+          {key:'over', label:'덮어쓰기', desc:'예전 번역을 지우고 이번 것으로 바꿉니다.'},
+          {key:'add',  label:'뒤에 이어붙이기', desc:'예전 번역 아래에 이번 것을 덧붙입니다. 다음 화를 이어 번역할 때 좋아요.'},
+          {key:'new',  label:'새 글로 따로 저장', desc:'서재에 별개의 글로 하나 더 만듭니다.'}
+        ]);
+      if(pick==='add'){
+        DOC.pairs = (prev.pairs||[]).concat(DOC.pairs);
+        (prev.notes||[]).forEach(n=>{ if(!DOC.notes.some(x=>x.or===n.or)) DOC.notes.push(n); });
+        (prev.wnotes||[]).forEach(n=>{ if(!(DOC.wnotes||[]).some(x=>x.term===n.term)) (DOC.wnotes=DOC.wnotes||[]).push(n); });
+        reannotate(); renderDoc();
+      } else if(pick==='new'){
+        curArc=''; store.set('curarc','');
+      }
+      /* 취소해도 그대로 덮어씁니다 (번역 결과를 잃지 않도록) */
+    }
     saveArchive(true);
     if(blockedCount){
       const w=document.createElement('div'); w.className='err';
@@ -2106,8 +2325,7 @@ async function translate(){
         if(opts.length<2) return toast('설정에서 [목록 새로고침]을 먼저 눌러 주세요');
         const next=opts[(opts.indexOf(sel.value)+1)%opts.length];
         sel.value=next; store.set('model',next); updateCount();
-        $('cfgCard').classList.add('open');
-        $('cfgCard').scrollIntoView({behavior:'smooth',block:'start'});
+        openCfg();
         toast(next+' 로 바꿨어요. 다시 번역해 보세요');
       });
       box.appendChild(document.createElement('br'));
@@ -2119,7 +2337,7 @@ async function translate(){
       const ok=await refreshModels(true);
       if(ok){
         box.textContent += '\n\n쓸 수 있는 모델 목록을 새로 받아왔어요. 설정에서 확인하고 다시 번역해 주세요.';
-        $('cfgCard').classList.add('open');
+        openCfg();
       }
     }
   }finally{
@@ -2158,7 +2376,7 @@ function saveArchive(auto){
   const title=$('docTitle').value.trim();
   const id=curArc || ('a'+Date.now().toString(36)+Math.random().toString(36).slice(2,5));
   const at=Date.now();
-  const ok=arcPut(id,{title, titleKo:curTitleKo, memo:$('memo').value,
+  const ok=arcPut(id,{title, titleKo:curTitleKo, memo:$('memo').value, srcUrl:$('srcUrl').value.trim(),
     src:$('source').value, pairs:DOC.pairs, notes:DOC.notes, wnotes:DOC.wnotes||[], at});
   if(!ok){ toast('저장 공간이 부족해요. 서재에서 오래된 글을 지워 주세요'); return null; }
 
@@ -2176,6 +2394,7 @@ function loadArchive(id){
   const d=arcGet(id);
   if(!d) return toast('내용을 불러오지 못했어요');
   $('docTitle').value=d.title||'';
+  $('srcUrl').value=d.srcUrl||'';
   $('source').value=d.src||'';
   $('memo').value=d.memo||'';
   curTitleKo=d.titleKo||'';
@@ -2187,13 +2406,17 @@ function loadArchive(id){
   updateCount(); updateTitleKo(); updateMemoChip();
   renderDoc(); renderArc();
   gotoTab('tr');
+  setTimeout(()=>offerResume(id), 400);
   toast('불러왔어요');
 }
 
-function newDoc(){
-  if($('source').value.trim() && !confirm('지금 글을 접고 새로 시작할까요?\n(서재에 저장한 내용은 그대로 남습니다)')) return;
+async function newDoc(){
+  if($('source').value.trim() &&
+     !await askConfirm('새 글로 시작할까요?','지금 화면의 제목·본문·번역이 비워집니다.\n서재에 저장한 내용은 그대로 남아요.','새로 시작')) return;
   curArc=''; curTitleKo='';
-  $('docTitle').value=''; $('source').value='';
+  $('docTitle').value=''; $('source').value=''; $('urlIn').value=''; $('srcUrl').value='';
+  store.set('url',''); store.set('srcurl','');
+  srcNote('');
   DOC=null;
   store.set('curarc',''); store.set('titleko',''); store.set('title','');
   store.set('source',''); store.set('doc','');
@@ -2232,8 +2455,7 @@ function renderArc(){
         </div>
         ${arTidy?'':`<button class="del" data-act="del" data-id="${a.id}" title="지우기">✕</button>`}
       </div>
-      <p class="aprev">${esc(a.preview||'')}</p>
-      <div class="ameta">${new Date(a.at).toLocaleDateString('ko-KR')} · ${(a.chars||0).toLocaleString()}자 · ${kb<1024?kb.toFixed(0)+'KB':(kb/1024).toFixed(1)+'MB'}</div>
+      <div class="ameta">${new Date(a.at).toLocaleDateString('ko-KR')} · ${(a.chars||0).toLocaleString()}자</div>
       ${arTidy?'':`<div class="btn-row">
         <button class="btn" data-act="open" data-id="${a.id}">열기</button>
         <button class="btn ghost" data-act="rename" data-id="${a.id}">제목 바꾸기</button>
@@ -2258,9 +2480,9 @@ $('arAll').addEventListener('change',e=>{
   if(e.target.checked) ARC.forEach(a=>arSel.add(a.id));
   renderArc();
 });
-$('arDelSel').addEventListener('click',()=>{
+$('arDelSel').addEventListener('click',async ()=>{
   if(!arSel.size) return toast('고른 글이 없어요');
-  if(!confirm(`${arSel.size}편을 서재에서 지울까요? 되돌릴 수 없어요.`)) return;
+  if(!await askConfirm('고른 글을 지울까요?',`${arSel.size}편을 서재에서 지웁니다.\n되돌릴 수 없어요.`,'지우기',true)) return;
   [...arSel].forEach(id=>{
     try{ localStorage.removeItem('gg_arc_'+id); }catch(e){}
     if(curArc===id){ curArc=''; store.set('curarc',''); }
@@ -2271,7 +2493,7 @@ $('arDelSel').addEventListener('click',()=>{
   toast(`${n}편을 지웠어요`);
 });
 
-$('arList').addEventListener('click',e=>{
+$('arList').addEventListener('click',async e=>{
   const b=e.target.closest('[data-act]'); if(!b) return;
   const id=b.dataset.id, a=ARC.find(x=>x.id===id); if(!a) return;
   if(b.dataset.act==='pick'){
@@ -2282,15 +2504,20 @@ $('arList').addEventListener('click',e=>{
   }
   if(b.dataset.act==='open') return loadArchive(id);
   if(b.dataset.act==='del'){
-    if(confirm(`"${a.titleKo||a.title||'무제'}"을(를) 서재에서 지울까요?`)){ arcDel(id); toast('지웠어요'); }
+    const ok=await askConfirm('이 글을 지울까요?',
+      `"${a.titleKo||a.title||'무제'}"\n${(a.chars||0).toLocaleString()}자 · 되돌릴 수 없어요.`,
+      '지우기', true);
+    if(ok){ arcDel(id); toast('지웠어요'); }
     return;
   }
   if(b.dataset.act==='rename'){
-    const n=prompt('새 제목', a.titleKo || a.title || '');
+    const n=await askInput('제목 바꾸기','새 제목', a.titleKo || a.title || '', '바꾸기');
     if(n===null) return;
-    a.titleKo=n.trim();
-    const d=arcGet(id); if(d){ d.titleKo=a.titleKo; arcPut(id,d); }
-    if(id===curArc){ curTitleKo=a.titleKo; store.set('titleko',curTitleKo); updateTitleKo(); }
+    const v=n.trim();
+    if(!v) return toast('제목을 적어 주세요');
+    a.titleKo=v;
+    const d=arcGet(id); if(d){ d.titleKo=v; arcPut(id,d); }
+    if(id===curArc){ curTitleKo=v; store.set('titleko',curTitleKo); updateTitleKo(); }
     saveArcIdx(); renderArc(); toast('제목을 바꿨어요');
   }
 });
@@ -2330,7 +2557,7 @@ async function translateTitle(key,model,title,memo){
 /* ════════ 전체 백업 · 복원 · 깃허브 연동 ════════ */
 function makeDump(){
   const dump={app:'글결', v:14, at:Date.now(), settings:{}, words:WORDS, cats:CATS, arcidx:ARC, arcs:{}};
-  ['key','model','chunk','speed','memo','read','mascot','view','title','titleko','curarc','ghtok','ghrepo','ghpath','url','terms','models','rate']
+  ['key','key2','model','chunk','speed','memo','read','mascot','view','title','titleko','curarc','ghtok','ghrepo','ghpath','url','srcurl','terms','models','rate']
     .forEach(k=>dump.settings[k]=store.get(k));
   ARC.forEach(a=>{ const d=arcGet(a.id); if(d) dump.arcs[a.id]=d; });
   return dump;
@@ -2355,9 +2582,9 @@ $('impAll').addEventListener('click',()=>$('impFile').click());
 $('impFile').addEventListener('change',e=>{
   const f=e.target.files[0]; e.target.value=''; if(!f) return;
   const r=new FileReader();
-  r.onload=()=>{
+  r.onload=async ()=>{
     let d; try{ d=JSON.parse(r.result); }catch(err){ return toast('백업 파일이 아니에요'); }
-    if(!confirm('지금 이 기기의 설정·서재·단어장을 백업 내용으로 덮어씁니다. 계속할까요?')) return;
+    if(!await askConfirm('백업으로 되돌릴까요?','지금 이 기기의 설정·서재·단어장이 백업 내용으로 바뀝니다.','되돌리기',true)) return;
     try{ applyDump(d); toast('복원했어요. 앱을 다시 엽니다'); setTimeout(()=>location.reload(),900); }
     catch(err){ toast(err.message); }
   };
@@ -2442,7 +2669,7 @@ $('ghUp').addEventListener('click',async ()=>{
 $('ghDown').addEventListener('click',async ()=>{
   const {tok,repo}=ghCfg();
   if(!tok||!repo) return toast('토큰과 저장소를 먼저 적어 주세요');
-  if(!confirm('깃허브에 있는 내용으로 이 기기의 설정·서재·단어장을 덮어씁니다. 계속할까요?')) return;
+  if(!await askConfirm('깃허브에서 내려받을까요?','이 기기의 설정·서재·단어장이 깃허브에 올려둔 내용으로 바뀝니다.','내려받기',true)) return;
   const btn=$('ghDown'); btn.disabled=true; ghNote('내려받는 중...');
   try{
     const got=await ghFetch(ghUrl());
@@ -2497,9 +2724,11 @@ $('catbar').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b) return;
   catFilter=b.dataset.c; renderWords();
 });
-$('wlist').addEventListener('click',e=>{
+$('wlist').addEventListener('click',async e=>{
   const d=e.target.closest('.del'); if(!d) return;
-  WORDS=WORDS.filter(w=>w.id!==d.dataset.id);
+  const w=WORDS.find(x=>x.id===d.dataset.id); if(!w) return;
+  if(!await askConfirm('단어를 지울까요?',`"${w.term}"\n되돌릴 수 없어요.`,'지우기',true)) return;
+  WORDS=WORDS.filter(x=>x.id!==d.dataset.id);
   saveWords(); renderWords(); toast('지웠어요');
 });
 $('wSearch').addEventListener('input',e=>{ wQuery=e.target.value; renderWords(); });
@@ -2516,13 +2745,75 @@ $('wExport').addEventListener('click',()=>{
   a.download=`단어장_${new Date().toISOString().slice(0,10)}.txt`;
   a.click(); URL.revokeObjectURL(a.href);
 });
+$('wExportCsv').addEventListener('click',()=>{
+  if(!WORDS.length) return toast('내보낼 단어가 없어요');
+  const q = v => '"' + String(v==null?'':v).replace(/"/g,'""') + '"';
+  const rows = [['단어','뜻','분류','메모','저장한 날']];
+  WORDS.slice().reverse().forEach(w=>rows.push([
+    w.term, w.mean||'', w.cat||'', w.note||'',
+    new Date(w.at).toLocaleDateString('ko-KR')
+  ]));
+  /* 맨 앞의 BOM 덕분에 엑셀에서 한글이 깨지지 않습니다 */
+  const csv='\uFEFF'+rows.map(r=>r.map(q).join(',')).join('\r\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download=`단어장_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click(); URL.revokeObjectURL(a.href);
+  toast('엑셀로 내보냈어요');
+});
+
+/* ── 분류 관리 창 ── */
+function renderCatRows(){
+  $('catRows').innerHTML = CATS.map((c,i)=>{
+    const n=WORDS.filter(w=>w.cat===c).length;
+    return `<div class="catrow">
+      <input type="text" data-i="${i}" value="${esc(c)}">
+      <span class="cnt">${n?n+'개':''}</span>
+      <button class="x" data-del="${i}" title="지우기">✕</button>
+    </div>`;
+  }).join('') || '<p class="hint">분류가 없어요. 아래에서 만들어 주세요.</p>';
+}
+$('catRows').addEventListener('change',e=>{
+  const inp=e.target.closest('input[data-i]'); if(!inp) return;
+  const i=+inp.dataset.i, next=inp.value.trim(), old=CATS[i];
+  if(!next){ inp.value=old; return toast('이름을 비울 수 없어요'); }
+  if(next===old) return;
+  if(CATS.includes(next)){ inp.value=old; return toast('같은 이름이 이미 있어요'); }
+  CATS[i]=next;
+  WORDS.forEach(w=>{ if(w.cat===old) w.cat=next; });   /* 붙어 있던 단어도 함께 옮깁니다 */
+  saveCats(); saveWords(); renderCatRows(); renderWords();
+  toast('이름을 바꿨어요');
+});
+$('catRows').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-del]'); if(!b) return;
+  const i=+b.dataset.del, name=CATS[i];
+  if(CATS.length<2) return toast('분류가 하나뿐이라 지울 수 없어요');
+  const n=WORDS.filter(w=>w.cat===name).length;
+  const ok=await askConfirm('분류를 지울까요?',
+    `"${name}"` + (n?`\n이 분류에 든 단어 ${n}개는 "${CATS.find((c,k)=>k!==i)}"(으)로 옮겨집니다.`:''),
+    '지우기', true);
+  if(!ok) return;
+  CATS.splice(i,1);
+  const fallback=CATS[0];
+  WORDS.forEach(w=>{ if(w.cat===name) w.cat=fallback; });
+  if(catFilter===name) catFilter='전체';
+  saveCats(); saveWords(); renderCatRows(); renderWords();
+  toast('지웠어요');
+});
+function addCat(){
+  const v=$('catNew').value.trim();
+  if(!v) return;
+  if(CATS.includes(v)){ $('catNew').value=''; return toast('이미 있는 분류예요'); }
+  CATS.push(v); saveCats(); $('catNew').value='';
+  renderCatRows(); renderWords(); toast('만들었어요');
+}
+$('catAdd').addEventListener('click',addCat);
+$('catNew').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); addCat(); } });
+$('catClose').addEventListener('click',()=>closeS('catSheet','catBackdrop'));
+$('catBackdrop').addEventListener('click',()=>closeS('catSheet','catBackdrop'));
 $('wCatEdit').addEventListener('click',()=>{
-  const cur=CATS.join(', ');
-  const next=prompt('분류를 쉼표로 구분해 적어 주세요.\n(단어에 이미 붙은 분류를 지워도 단어는 남습니다)',cur);
-  if(next===null) return;
-  const arr=next.split(',').map(s=>s.trim()).filter(Boolean);
-  if(!arr.length) return toast('분류가 비어 있어요');
-  CATS=[...new Set(arr)]; saveCats(); renderWords(); toast('분류를 바꿨어요');
+  renderCatRows();
+  openS('catSheet','catBackdrop');
 });
 
 /* 단어 저장 시트 */
@@ -2535,11 +2826,15 @@ function renderCatPick(){
 $('wCatPick').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b) return;
   if(b.dataset.c==='__new'){
-    const n=prompt('새 분류 이름');
-    if(!n||!n.trim()) return;
-    if(!CATS.includes(n.trim())){ CATS.push(n.trim()); saveCats(); }
-    wPickCat=n.trim();
-  } else wPickCat=b.dataset.c;
+    askInput('새 분류 만들기','분류 이름','','만들기').then(n=>{
+      if(!n||!n.trim()) return;
+      const v=n.trim();
+      if(!CATS.includes(v)){ CATS.push(v); saveCats(); }
+      wPickCat=v; renderCatPick(); renderWords();
+    });
+    return;
+  }
+  wPickCat=b.dataset.c;
   renderCatPick();
 });
 function openWordSheet({term='',mean='',cat='',note=''}){
@@ -2554,16 +2849,31 @@ $('wBackdrop').addEventListener('click',()=>closeS('wSheet','wBackdrop'));
 $('wSave').addEventListener('click',()=>{
   const term=$('wTerm').value.trim();
   if(!term) return toast('단어를 적어 주세요');
+  /* 변수와 화면이 어긋나는 일이 없도록, 실제로 눌려 있는 버튼에서 읽습니다 */
+  const onBtn=$('wCatPick').querySelector('button.on');
+  const cat = onBtn ? onBtn.dataset.c : (CATS.includes(wPickCat)?wPickCat:CATS[0]);
   WORDS.push({id:String(Date.now())+Math.random().toString(36).slice(2,6),
-    term, mean:$('wMean').value.trim(), cat:wPickCat, note:$('wNote').value.trim(), at:Date.now()});
+    term, mean:$('wMean').value.trim(), cat, note:$('wNote').value.trim(), at:Date.now()});
   saveWords(); renderWords(); closeS('wSheet','wBackdrop'); toast('단어장에 넣었어요!');
 });
 /* 형식 지시는 시스템 쪽에만 두고, 사용자 메시지에는 단어만 보냅니다.
    그래야 모델이 지시문을 답변 내용으로 착각하지 않습니다. */
 const DICT_SYSTEM = `당신은 한국어 사전입니다. 사용자가 보낸 낱말이나 표현의 뜻을 한국어로 한 줄만 답합니다.
 일본어·중국어처럼 읽는 법이 필요한 말이면 읽는 법을 맨 앞에 쓰고, 이어서 품사, 그다음 뜻을 씁니다.
-각 항목은 가운뎃점(·)으로 나눕니다. 읽는 법이 필요 없는 언어라면 그 부분은 씁니다.
-인사말·해설·예문·따옴표·기호를 덧붙이지 않고, 오직 그 한 줄만 출력합니다.`;
+각 항목은 가운뎃점(·)으로 나눕니다. 읽는 법이 필요 없는 언어라면 그 부분은 뺍니다.
+인사말·해설·예문·따옴표·기호를 덧붙이지 않고, 오직 그 한 줄만 출력합니다.
+
+그리고 줄 맨 끝에 반드시 [분류] 형태로 갈래를 하나 덧붙입니다.
+갈래는 다음 중 하나만 고릅니다: 명사, 동사, 형용사, 표현, 인명·고유명사
+예) りかい · 명사 · 이해, 납득 [명사]
+예) ほいほい · 부사 · 선뜻, 냉큼 [표현]`;
+
+/* 답 끝의 [분류]를 떼어내 자동으로 골라줍니다 */
+function splitMeaning(line){
+  const m=String(line||'').match(/^(.*?)\s*\[([^\]]+)\]\s*$/);
+  if(!m) return {mean:String(line||'').trim(), cat:''};
+  return {mean:m[1].trim(), cat:m[2].trim()};
+}
 
 $('wAuto').addEventListener('click',async ()=>{
   const key=$('apikey').value.trim(), term=$('wTerm').value.trim();
@@ -2573,9 +2883,10 @@ $('wAuto').addEventListener('click',async ()=>{
   btn.disabled=true; btn.textContent='찾는 중...';
   try{
     const raw=await askGemini(key,$('model').value, term, DICT_SYSTEM, 2048, {fast:true, temp:0.3});
-    const line=cleanMeaning(raw);
-    if(line.length<2) throw new Error('뜻을 찾지 못했어요. 다시 눌러 보세요');
-    $('wMean').value=line;
+    const {mean,cat}=splitMeaning(cleanMeaning(raw));
+    if(mean.length<2) throw new Error('뜻을 찾지 못했어요. 다시 눌러 보세요');
+    $('wMean').value=mean;
+    if(cat && CATS.includes(cat)){ wPickCat=cat; renderCatPick(); }
   }catch(err){ toast(err.message); }
   finally{ btn.disabled=false; btn.textContent='✨ AI로 뜻 채우기'; }
 });
@@ -2662,7 +2973,7 @@ function bindPop(btn, fn){
   });
   btn.addEventListener('click', ()=>{ if(!fired) fn(); });
 }
-let mpTermTxt='', mpMeanTxt='';
+let mpTermTxt='', mpMeanTxt='', mpCat='';
 function hideMeanPop(){ $('meanpop').classList.remove('show'); }
 
 async function lookupMeaning(word, x, y){
@@ -2674,8 +2985,9 @@ async function lookupMeaning(word, x, y){
   placeNode($('meanpop'), x, y);
   try{
     const raw=await askGemini(key,$('model').value, word, DICT_SYSTEM, 2048, {fast:true, temp:0.3});
-    const line=cleanMeaning(raw);
-    mpMeanTxt = line.length>1 ? line : '뜻을 찾지 못했어요';
+    const {mean,cat}=splitMeaning(cleanMeaning(raw));
+    mpMeanTxt = mean.length>1 ? mean : '뜻을 찾지 못했어요';
+    mpCat = cat||'';
     $('mpBody').textContent=mpMeanTxt;
   }catch(err){
     $('mpBody').textContent=err.message;
@@ -2683,7 +2995,7 @@ async function lookupMeaning(word, x, y){
 }
 $('mpSave').addEventListener('click',()=>{
   hideMeanPop();
-  openWordSheet({term:mpTermTxt, mean:mpMeanTxt});
+  openWordSheet({term:mpTermTxt, mean:mpMeanTxt, cat:mpCat});
 });
 $('mpFoot').addEventListener('click',()=>{
   if(!DOC) return toast('번역문이 있어야 각주를 달 수 있어요');
@@ -2894,13 +3206,16 @@ $('apikey').addEventListener('input',()=>{
   $('keyChip').textContent=on?'연결됐어요':'키가 필요해요';
   $('keyChip').className=on?'chip':'chip off';
   store.set('key',$('apikey').value.trim());   /* 입력하는 즉시 저장 */
+});
+$('apikey2').addEventListener('input',()=>{
+  store.set('key2',$('apikey2').value.trim());
   refreshStart();
 });
 $('saveCfg').addEventListener('click',()=>{
   store.set('key',$('apikey').value.trim());
   store.set('model',$('model').value);
   store.set('chunk',$('chunk').value);
-  $('cfgCard').classList.remove('open'); toast('저장했어요');
+  closeS('cfgSheet','cfgBackdrop'); toast('저장했어요');
 });
 /* ════════════════════════════════════════════════════════════
    txt 파일 불러오기 · 링크로 가져오기
@@ -2973,12 +3288,11 @@ const URL_SYSTEM = `당신은 웹페이지에서 소설 본문만 뽑아내는 �
 async function fetchFromUrl(){
   const key=$('apikey').value.trim();
   const url=$('urlIn').value.trim();
-  if(!key){ $('cfgCard').classList.add('open'); return toast('API 키를 먼저 넣어 주세요'); }
+  if(!key){ openCfg(); return toast('API 키를 먼저 넣어 주세요'); }
   if(!/^https?:\/\/\S+$/i.test(url)) return toast('주소를 https:// 부터 정확히 넣어 주세요');
 
   const btn=$('urlGet'); btn.disabled=true;
-  $('status').classList.add('show');
-  $('statusText').textContent='링크를 읽는 중';
+  busy(true,'링크를 읽는 중', '페이지를 열어 본문을 찾고 있어요');
   srcNote('');
   try{
     const t=await askGemini(key,$('model').value,
@@ -3009,17 +3323,18 @@ async function fetchFromUrl(){
     srcNote('가져오지 못했어요 — '+esc(err.message), true);
   }finally{
     btn.disabled=false;
-    $('status').classList.remove('show');
+    busy(false);
   }
 }
 $('urlGet').addEventListener('click',fetchFromUrl);
 $('urlIn').addEventListener('input',()=>store.set('url',$('urlIn').value));
+$('srcUrl').addEventListener('input',()=>store.set('srcurl',$('srcUrl').value));
 $('urlIn').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); fetchFromUrl(); } });
 
 /* 본문을 직접 고치기 시작하면 안내를 치웁니다 */
 $('source').addEventListener('input',()=>{ $('srcNote').style.display='none'; });
-$('clearSrc').addEventListener('click',()=>{
-  if(!$('source').value||confirm('원문을 지울까요?')){
+$('clearSrc').addEventListener('click',async ()=>{
+  if(!$('source').value || await askConfirm('본문을 비울까요?','적어둔 원문이 지워집니다.','비우기',true)){
     $('source').value=''; updateCount(); store.set('source','');
   }
 });
@@ -3092,7 +3407,7 @@ function renderModelSelect(keep){
 }
 
 async function refreshModels(quiet){
-  const key = $('apikey').value.trim();
+  const key = $('apikey').value.trim() || $('apikey2').value.trim();
   if(!key){ if(!quiet) toast('먼저 API 키를 넣어 주세요'); return false; }
   const btn = $('modelSync');
   btn.disabled = true; const old = btn.textContent; btn.textContent = '받는 중...';
@@ -3180,6 +3495,128 @@ $('teSave').addEventListener('click',()=>{
   toast($('teKeep').checked ? '고쳤어요. 다음 번역에도 이렇게 나와요' : '고쳤어요');
 });
 
+/* ════════════════════════════════════════════════════════════
+   공용 대화 상자 — 브라우저 기본 창 대신 씁니다
+   askConfirm / askInput / askChoice 모두 Promise 를 돌려줍니다.
+   ════════════════════════════════════════════════════════════ */
+let dlgResolve=null;
+function dlgClose(v){
+  closeS('dlgSheet','dlgBackdrop');
+  if(dlgResolve){ const r=dlgResolve; dlgResolve=null; r(v); }
+}
+$('dlgNo').addEventListener('click',()=>dlgClose(null));
+$('dlgBackdrop').addEventListener('click',()=>dlgClose(null));
+$('dlgChoices').addEventListener('click',e=>{
+  const b=e.target.closest('.dlg-opt'); if(b) dlgClose(b.dataset.k);
+});
+
+function dlgOpen({title,body,input,label,value,choices,ok,danger,cancel}){
+  $('dlgTitle').textContent=title||'확인';
+  $('dlgBody').textContent=body||'';
+  $('dlgBody').style.display=body?'':'none';
+
+  $('dlgInputWrap').style.display=input?'':'none';
+  if(input){ $('dlgLabel').textContent=label||'입력'; $('dlgInput').value=value||''; }
+
+  $('dlgChoices').innerHTML=(choices||[]).map(c=>
+    `<button class="dlg-opt${c.danger?' danger':''}" data-k="${esc(c.key)}">
+       <b>${esc(c.label)}</b>${c.desc?`<span>${esc(c.desc)}</span>`:''}</button>`).join('');
+
+  const hasBtns = !choices;
+  $('dlgButtons').style.display = hasBtns ? 'flex' : 'none';
+  if(hasBtns){
+    $('dlgYes').textContent = ok || '확인';
+    $('dlgYes').className = 'btn' + (danger ? ' danger-solid' : '');
+    $('dlgNo').textContent = cancel || '취소';
+  }
+  openS('dlgSheet','dlgBackdrop');
+  if(input) setTimeout(()=>{ $('dlgInput').focus(); $('dlgInput').select(); },350);
+
+  return new Promise(res=>{ dlgResolve=res; });
+}
+$('dlgYes').addEventListener('click',()=>{
+  if($('dlgInputWrap').style.display!=='none') dlgClose($('dlgInput').value);
+  else dlgClose(true);
+});
+$('dlgInput').addEventListener('keydown',e=>{
+  if(e.key==='Enter'){ e.preventDefault(); dlgClose($('dlgInput').value); }
+});
+
+const askConfirm = (title,body,ok,danger) =>
+  dlgOpen({title,body,ok:ok||'확인',danger}).then(v=>v===true);
+const askInput = (title,label,value,ok) =>
+  dlgOpen({title,input:true,label,value,ok:ok||'저장'}).then(v=>typeof v==='string'?v:null);
+const askChoice = (title,body,choices) =>
+  dlgOpen({title,body,choices});
+
+/* ════════ 가운데 알림 ════════ */
+function busy(on, title, sub){
+  const el=$('busy');
+  if(on){
+    $('busyT').textContent=title||'잠시만요';
+    $('busyS').textContent=sub||'';
+    el.classList.add('show');
+    paintMascots();
+  } else el.classList.remove('show');
+}
+
+/* ════════════════════════════════════════════════════════════
+   단어를 한 번 탭하면 바로 고르기
+   ── 길게 누르지 않으니 폰 기본 메뉴(복사·검색)가 뜨지 않습니다.
+   ════════════════════════════════════════════════════════════ */
+const WORD_BREAK=/[\s.,!?…·:;'"“”‘’()\[\]{}「」『』〈〉《》、。！？~\-—–\/\\]/;
+function pickWordAt(x,y){
+  let pos=null;
+  if(document.caretPositionFromPoint){
+    const c=document.caretPositionFromPoint(x,y);
+    if(c) pos={node:c.offsetNode, off:c.offset};
+  } else if(document.caretRangeFromPoint){
+    const r=document.caretRangeFromPoint(x,y);
+    if(r) pos={node:r.startContainer, off:r.startOffset};
+  }
+  if(!pos || !pos.node || pos.node.nodeType!==3) return false;
+  const t=pos.node.nodeValue||'';
+  let a=pos.off, b=pos.off;
+  if(a>=t.length) a=b=t.length-1;
+  if(a<0 || WORD_BREAK.test(t[a]||'')) return false;
+  while(a>0 && !WORD_BREAK.test(t[a-1])) a--;
+  while(b<t.length && !WORD_BREAK.test(t[b])) b++;
+  if(b-a<1 || b-a>30) return false;
+  const rng=document.createRange();
+  rng.setStart(pos.node,a); rng.setEnd(pos.node,b);
+  const sel=window.getSelection();
+  sel.removeAllRanges(); sel.addRange(rng);
+  return true;
+}
+$('output').addEventListener('click',e=>{
+  if(!R.tap) return;
+  if(e.target.closest('sup.fn')) return;
+  const sel=window.getSelection();
+  if(sel && !sel.isCollapsed && sel.toString().trim()) return;   /* 이미 고른 게 있으면 그대로 */
+  if(pickWordAt(e.clientX,e.clientY)) queueSelPop(30);
+});
+
+/* ════════════════════════════════════════════════════════════
+   이어읽기 — 서재 글마다 읽던 위치를 기억합니다
+   ════════════════════════════════════════════════════════════ */
+let posTimer=null;
+window.addEventListener('scroll',()=>{
+  if(!curArc || $('tab-tr').hidden || !DOC) return;
+  clearTimeout(posTimer);
+  posTimer=setTimeout(()=>{ store.set('pos_'+curArc, String(Math.round(window.scrollY))); }, 500);
+},{passive:true});
+
+function offerResume(id){
+  const y=parseInt(store.get('pos_'+id,'0'),10)||0;
+  if(y<400) return;
+  const bar=$('resume');
+  bar.classList.add('show');
+  $('resumeGo').onclick=()=>{ window.scrollTo({top:y,behavior:'smooth'}); bar.classList.remove('show'); };
+  $('resumeX').onclick=()=>bar.classList.remove('show');
+  clearTimeout(bar._t);
+  bar._t=setTimeout(()=>bar.classList.remove('show'), 12000);
+}
+
 /* ════════ 맨 위로 ════════ */
 (function(){
   const btn=$('topBtn');
@@ -3214,7 +3651,10 @@ function openHelp(section){
   }
   sheet.scrollTop=0;
 }
-$('helpBtn').addEventListener('click',()=>openHelp());
+function openCfg(){ openS('cfgSheet','cfgBackdrop'); }
+$('cfgBtn').addEventListener('click',openCfg);
+$('cfgClose').addEventListener('click',()=>closeS('cfgSheet','cfgBackdrop'));
+$('cfgBackdrop').addEventListener('click',()=>closeS('cfgSheet','cfgBackdrop'));
 $('helpClose').addEventListener('click',()=>closeS('helpSheet','helpBackdrop'));
 $('helpBackdrop').addEventListener('click',()=>closeS('helpSheet','helpBackdrop'));
 
@@ -3233,8 +3673,7 @@ function refreshStart(){
   if(!hide) $('startCard').classList.add('open');
 }
 $('goKey').addEventListener('click',()=>{
-  $('cfgCard').classList.add('open');
-  $('cfgCard').scrollIntoView({behavior:'smooth',block:'start'});
+  openCfg();
   setTimeout(()=>$('apikey').focus(),400);
 });
 $('hideStart').addEventListener('click',()=>{
@@ -3251,10 +3690,12 @@ $('hideStart').addEventListener('click',()=>{
   applyRead(); paintMascots();
 
   $('apikey').value=store.get('key');
+  $('apikey2').value=store.get('key2');
   $('memo').value=store.get('memo');
   $('source').value=store.get('source');
   $('docTitle').value=store.get('title');
   $('urlIn').value=store.get('url');
+  $('srcUrl').value=store.get('srcurl');
   $('ghTok').value=store.get('ghtok');
   $('ghRepo').value=store.get('ghrepo');
   $('ghPath').value=store.get('ghpath');
@@ -3291,7 +3732,7 @@ $('hideStart').addEventListener('click',()=>{
   saveWords(); renderWords();
   saveArcIdx(); renderArc();
   refreshStart();
-  if(!$('apikey').value) $('cfgCard').classList.add('open');
+  if(!$('apikey').value) setTimeout(openCfg, 600);
 })();
 </script>
 </body>
