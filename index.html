@@ -283,6 +283,15 @@ button{font-family:inherit}
 #status.show{display:flex}
 #statusText{font-family:var(--cute);font-size:15px;color:var(--accent)}
 .stime{margin-left:auto;font-size:12px;color:var(--soft);font-variant-numeric:tabular-nums}
+#stopBtn{
+  flex:none;border:none;cursor:pointer;padding:6px 12px;border-radius:999px;
+  font-family:var(--cute);font-size:12.5px;color:var(--warn);
+  background:color-mix(in srgb,var(--warn) 12%,transparent);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--warn) 35%,transparent);
+  transition:transform .14s
+}
+#stopBtn:active{transform:scale(.93)}
+#stopBtn:disabled{opacity:.5;cursor:default}
 #streamBox{
   font-family:var(--read-font);font-size:var(--read-size);line-height:var(--read-leading);
   white-space:pre-wrap;word-break:break-word;opacity:.72;margin-top:var(--read-gap)
@@ -1021,7 +1030,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
 
     <button class="btn-main" id="run">번역하기</button>
 
-    <div id="status"><span class="mslot" data-anim="think" data-size="32"></span><span id="statusText">읽는 중이에요</span><span id="statusTime" class="stime"></span></div>
+    <div id="status"><span class="mslot" data-anim="think" data-size="32"></span><span id="statusText">읽는 중이에요</span><span id="statusTime" class="stime"></span><button id="stopBtn" type="button">멈추기</button></div>
     <div class="bar" id="bar"><i></i></div>
 
     <section class="card" id="result-card">
@@ -1681,6 +1690,17 @@ function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');
   clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),1900);}
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
+/* 파일로 내려주기 — 링크를 문서에 잠깐 붙였다 뗍니다.
+   붙이지 않거나 주소를 바로 반납하면 일부 브라우저에서 저장이 취소돼요. */
+function downloadBlob(blob, name){
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=name; a.rel='noopener'; a.style.display='none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>{ a.remove(); URL.revokeObjectURL(url); }, 1500);
+}
+
 function sparkle(el){
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const r = el.getBoundingClientRect();
@@ -2210,12 +2230,13 @@ function splitText(text,limit){
 }
 
 /* 응답에서 본문과 고유명사 목록을 갈라냅니다 */
+const GLOSS_MARK='<<<고유명사>>>';
 function parseReply(raw){
   let body=raw, gloss=[];
-  const gi=raw.indexOf('<<<고유명사>>>');
+  const gi=raw.indexOf(GLOSS_MARK);
   if(gi>=0){
     body=raw.slice(0,gi);
-    raw.slice(gi+9).split('\n').forEach(line=>{
+    raw.slice(gi+GLOSS_MARK.length).split('\n').forEach(line=>{
       const t=line.trim();
       if(!t||t==='없음'||t.startsWith('<<<')) return;
       const p=t.split('|').map(x=>x.trim());
@@ -2234,6 +2255,8 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
   let noThink = opts.noThink!=null ? !!opts.noThink : !!opts.fast;
   let safeLv = 'BLOCK_NONE';   /* 소설 번역은 오작동이 잦아 가장 느슨하게 두고 시작합니다 */
   const say = opts.onStatus || (()=>{});
+  const sig = opts.signal || null;
+  const stopIfAborted = () => { if(sig && sig.aborted) throw abortError(); };
 
   const makeBody=()=>{
     const parts=[{text:prompt}];
@@ -2286,7 +2309,12 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
 
   /* 기다릴 땐 몇 초 남았는지 보여줍니다 (조용히 멈춘 것처럼 보이지 않게) */
   async function waitVisibly(sec, why){
-    for(let s=sec; s>0; s--){ say(`${why} · ${s}초 뒤 다시 시도`); await new Promise(r=>setTimeout(r,1000)); }
+    for(let s=sec; s>0; s--){
+      stopIfAborted();
+      say(`${why} · ${s}초 뒤 다시 시도`);
+      await new Promise(r=>setTimeout(r,1000));
+    }
+    stopIfAborted();
   }
 
   /* 400(요청 거부)이 오면 의심스러운 설정을 하나씩 빼고 다시 시도합니다.
@@ -2299,11 +2327,12 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
   }
 
   for(let a=0;a<12;a++){
+    stopIfAborted();
     /* ── 스트리밍: 글자가 만들어지는 대로 바로 보여줍니다 ── */
     if(opts.onChunk){
       try{
         const res=await fetch(base()+':streamGenerateContent?alt=sse',
-          {method:'POST',headers:headers(),body:JSON.stringify(makeBody())});
+          {method:'POST',headers:headers(),body:JSON.stringify(makeBody()),signal:sig||undefined});
         if(res.status===400){
           const t=await res.text();
           if(retry400()) continue;
@@ -2345,6 +2374,7 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
         if(blocked) throw blockedError(`안전 필터에 막혔어요 (${blocked}).`);
         throw new Error('__nostream__');
       }catch(e){
+        if(e.name==='AbortError') throw e;
         if(e.message==='__nostream__'){ opts=Object.assign({},opts,{onChunk:null}); continue; }
         if(e instanceof TypeError) throw new Error('인터넷 연결에 실패했어요. 웹 주소(https)로 열었는지 확인해 주세요.');
         throw e;
@@ -2354,8 +2384,12 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
     /* ── 일반 방식 ── */
     let res;
     try{
-      res=await fetch(base()+':generateContent',{method:'POST',headers:headers(),body:JSON.stringify(makeBody())});
-    }catch(e){ throw new Error('인터넷 연결에 실패했어요. 웹 주소(https)로 열었는지 확인해 주세요.'); }
+      res=await fetch(base()+':generateContent',
+        {method:'POST',headers:headers(),body:JSON.stringify(makeBody()),signal:sig||undefined});
+    }catch(e){
+      if(e.name==='AbortError') throw e;
+      throw new Error('인터넷 연결에 실패했어요. 웹 주소(https)로 열었는지 확인해 주세요.');
+    }
 
     if(res.status===429 && (tryNextModel() || tryAltKey())) continue;
     if(res.status===403 && tryAltKey()) continue;
@@ -2389,6 +2423,9 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
 }
 
 function blockedError(msg){ const e=new Error(msg); e.blocked=true; return e; }
+/* 사용자가 [멈추기]를 눌렀을 때 — 오류가 아니라 "그만두기"로 다룹니다 */
+function abortError(){ const e=new Error('멈췄어요'); e.name='AbortError'; return e; }
+const isAbort = e => !!e && e.name==='AbortError';
 function safeJson(t){ try{ return JSON.parse(t); }catch(e){ return null; } }
 function errMsg(status,data){
   const msg=data?.error?.message||`HTTP ${status}`;
@@ -2504,6 +2541,9 @@ const stripMarks = s => s.replace(/\u0001\d+\u0002|\u0003\d+\u0004/g,'');
    ════════════════════════════════════════════════════════════ */
 let DOC = null;   // {pairs:[{s,d}], notes:[{ko,or,ty}]}
 let viewMode = store.get('view','only');
+/* 서재 글을 "읽기"로 열어둔 동안 작업하던 번역을 넣어둡니다.
+   이게 차 있는 동안에는 gg_doc 를 건드리지 않습니다 — 덮어쓰면 작업분이 사라져요. */
+let readSnap=null;
 
 /* ════════════════════════════════════════════════════════════
    원문 문단 ↔ 번역 문단 짝짓기
@@ -2594,7 +2634,8 @@ function renderDoc(){
   if(viewMode==='side') out.classList.add('has-side');
 
   renderNotes();
-  store.set('doc', JSON.stringify(DOC));
+  /* 읽기로 열어둔 서재 글은 저장하지 않습니다 (작업 중이던 번역을 지키려고) */
+  if(!readSnap) store.set('doc', JSON.stringify(DOC));
   store.set('view', viewMode);
 }
 
@@ -2714,7 +2755,6 @@ $('viewSeg').addEventListener('click',e=>{
 /* 각주 번호를 누르면 그 자리에 작게 뜹니다 (화면이 움직이지 않아요) */
 let fnPopIdx=-1;
 function hideFnPop(){ $('fnpop').classList.remove('show'); }
-function hideAllPops(){ hideFnPop(); if($('meanpop')) hideMeanPop(); }
 let fnPopKind='n';
 function showFnPop(sup){
   if(!DOC) return;
@@ -2772,7 +2812,16 @@ window.addEventListener('scroll',hideFnPop,{passive:true});
 /* ════════════════════════════════════════════════════════════
    번역 실행
    ════════════════════════════════════════════════════════════ */
-let running=false, tickTimer=null;
+let running=false, tickTimer=null, transCtl=null;
+/* [멈추기] — 진행 중인 요청을 끊습니다. 여기까지 옮긴 부분은 그대로 남습니다. */
+function stopTranslate(){
+  if(!running || !transCtl) return;
+  $('stopBtn').disabled=true;
+  $('statusText').textContent='멈추는 중이에요';
+  transCtl.abort();
+}
+$('stopBtn').addEventListener('click',stopTranslate);
+
 async function translate(){
   if(running) return;
   const key=$('apikey').value.trim();
@@ -2791,7 +2840,11 @@ async function translate(){
   const chunks=splitText(src,limit).filter(c=>c && c.trim());
   if(!chunks.length){ $('source').focus(); return toast('번역할 내용이 없어요'); }
   document.body.classList.remove('reading');
+  readSnap=null;              /* 새로 번역을 시작하면 더는 "읽는 중"이 아닙니다 */
   running=true; $('run').disabled=true;
+  transCtl=new AbortController();
+  const signal=transCtl.signal;
+  $('stopBtn').disabled=false;
   $('status').classList.add('show');
   $('bar').classList.toggle('show',chunks.length>1);
   $('bar').firstElementChild.style.width='0%';
@@ -2812,7 +2865,7 @@ async function translate(){
     const rawTitle=cleanText($('docTitle').value).trim();
     if(rawTitle){
       say('제목을 보는 중');
-      curTitleKo=await translateTitle(key,model,rawTitle,memo);
+      curTitleKo=await translateTitle(key,model,rawTitle,memo,signal);
       store.set('titleko',curTitleKo); updateTitleKo();
     } else { curTitleKo=''; store.set('titleko',''); updateTitleKo(); }
 
@@ -2845,7 +2898,7 @@ async function translate(){
       const box=live ? $('streamBox') : null;
       if(box) box.textContent='';
 
-      const opt={noThink, onStatus};
+      const opt={noThink, onStatus, signal};
       if(box) opt.onChunk=(full)=>{
         const cut=full.indexOf('<<<고유명사>>>');
         box.textContent=(cut>=0?full.slice(0,cut):full).replace(/<<<번역>>>/g,'').trimStart();
@@ -2857,7 +2910,7 @@ async function translate(){
         g.forEach(x=>{ if(!gloss.some(y=>y.ko===x.ko)) gloss.push(x); });
         return body;
       }catch(err){
-        if(!err.blocked) throw err;
+        if(isAbort(err) || !err.blocked) throw err;
 
         /* 더 쪼갤 수 없을 만큼 짧으면 그 자리만 표시하고 넘어갑니다 */
         const parts=piece.length<400 ? [] : halve(piece);
@@ -2897,10 +2950,10 @@ async function translate(){
             '아래 문장은 번역되지 않고 원문 그대로 남아 있습니다. 자연스러운 한국어로 번역해 주세요.\n'+
             '- 원문을 그대로 옮겨 적지 말고, 반드시 한국어로 바꾸세요.\n'+
             '- 설명·인사말 없이 번역문만 한 줄로 출력하세요.\n\n'+text,
-            null, 4096, {fast:true, temp:0.3, onStatus});
+            null, 4096, {fast:true, temp:0.3, onStatus, signal});
           const got=(out||'').split('\n').map(x=>x.trim()).filter(Boolean)[0]||'';
           if(got && foreignRatio(got)<0.15) return got;
-        }catch(e){ break; }
+        }catch(e){ if(isAbort(e)) throw e; break; }
       }
       return '';
     }
@@ -2937,7 +2990,7 @@ async function translate(){
             '- 줄 번호와 개수를 그대로 유지하고 "번호|| 내용" 형식으로만 답하세요.\n'+
             '- 외래어도 한글로 적습니다. 예: スヌーズ → 스누즈, ッ → 앞말에 붙여 표현\n'+
             '- 설명이나 인사말을 붙이지 마세요.\n\n'+listed,
-            null, 8192, {fast:true, temp:0.2, onStatus});
+            null, 8192, {fast:true, temp:0.2, onStatus, signal});
           const map={};
           out.split('\n').forEach(line=>{
             const m=line.match(/^\s*(\d+)\s*\|\|\s*(.*)$/);
@@ -2946,7 +2999,7 @@ async function translate(){
           light.forEach((i,k)=>{
             if(map[k+1] && foreignRatio(map[k+1])<foreignRatio(paras[i])){ paras[i]=map[k+1]; changed=true; }
           });
-        }catch(e){}
+        }catch(e){ if(isAbort(e)) throw e; }
       }
       return changed ? paras.join('\n') : body;
     }
@@ -2984,7 +3037,10 @@ async function translate(){
       renderDoc();
 
       $('bar').firstElementChild.style.width=((i+1)/chunks.length*100)+'%';
-      if(i<chunks.length-1) await new Promise(r=>setTimeout(r, hitLimit?6000:1000));
+      if(i<chunks.length-1){
+        await new Promise(r=>setTimeout(r, hitLimit?6000:1000));
+        if(signal.aborted) throw abortError();
+      }
     }
     const secs=Math.round((Date.now()-t0)/1000);
     learnRate(model, src.length, secs);
@@ -3033,11 +3089,20 @@ async function translate(){
     }
   }catch(err){
     ['streamBox','streamNote'].forEach(k=>{const n=$(k); if(n) n.remove();});
+
+    /* [멈추기]를 누른 경우 — 오류가 아니라 그만둔 것이니, 여기까지 옮긴 부분을 살립니다 */
+    if(isAbort(err)){
+      if(DOC && DOC.pairs && DOC.pairs.length){ renderDoc(); saveArchive(true); }
+      else showEmpty();
+      toast(done.length ? `멈췄어요 · ${done.length}개 부분까지 옮겼어요` : '멈췄어요');
+      return;                       /* finally 는 그대로 실행됩니다 */
+    }
+
     const box=document.createElement('div'); box.className='err';
     box.textContent=(done.length?`${done.length}개 부분까지는 옮겼어요.\n\n`:'')+err.message;
     $('output').appendChild(box);
     /* 하루 한도면 그 자리에서 모델을 바꿀 수 있게 해줍니다 */
-    if(/오늘 이 모델로 쓸 수 있는 양/.test(err.message)){
+    if(/쓸 수 있는 모델을 모두 다 썼어요/.test(err.message)){
       const b=document.createElement('button');
       b.className='btn'; b.style.marginTop='12px';
       b.textContent='다른 모델로 바꾸기';
@@ -3065,6 +3130,7 @@ async function translate(){
     ['streamBox','streamNote'].forEach(k=>{const n=$(k); if(n) n.remove();});
     clearInterval(tickTimer); $('statusTime').textContent='';
     running=false; $('run').disabled=false;
+    transCtl=null; $('stopBtn').disabled=false;
     $('status').classList.remove('show'); $('bar').classList.remove('show');
   }
 }
@@ -3085,8 +3151,13 @@ function arcPut(id,data){
   try{ localStorage.setItem('gg_arc_'+id, JSON.stringify(data)); return true; }
   catch(e){ return false; }
 }
-function arcDel(id){
+/* 글 하나에 딸린 저장물을 모두 치웁니다 (본문 + 읽던 위치) */
+function arcWipe(id){
   try{ localStorage.removeItem('gg_arc_'+id); }catch(e){}
+  try{ localStorage.removeItem('gg_pos_'+id); }catch(e){}
+}
+function arcDel(id){
+  arcWipe(id);
   ARC=ARC.filter(a=>a.id!==id);
   if(curArc===id){ curArc=''; store.set('curarc',''); }
   saveArcIdx(); renderArc();
@@ -3112,12 +3183,13 @@ function saveArchive(auto){
 }
 
 /* ── 읽기: 작업 중이던 번역 화면을 건드리지 않습니다 ──
-   읽기를 끝내면 원래 보던 내용으로 되돌아갑니다. */
-let readSnap=null;
-
+   읽기를 끝내면 원래 보던 내용으로 되돌아갑니다. (readSnap 은 위쪽에 선언돼 있어요) */
 function readArchive(id){
   const d=arcGet(id);
   if(!d) return toast('내용을 불러오지 못했어요');
+  /* 읽을 내용이 없으면 여기서 멈춥니다.
+     아래에서 readSnap 을 채워 놓고 읽기 모드에 못 들어가면, 그 뒤로 저장이 막혀요. */
+  if(!(d.pairs||[]).length) return toast('읽을 번역이 없어요');
   const rec=ARC.find(x=>x.id===id)||{};
   if(!readSnap){
     readSnap={ doc: DOC ? JSON.parse(JSON.stringify(DOC)) : null,
@@ -3195,7 +3267,9 @@ function renderFolderbar(){
 }
 $('folderbar').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b) return;
-  fdFilter=b.dataset.f; store.set('fdfilter',fdFilter); renderArc();
+  fdFilter=b.dataset.f; store.set('fdfilter',fdFilter);
+  arSel.clear();   /* 안 보이는 글이 골라진 채로 남지 않도록 */
+  renderArc();
 });
 
 async function pickFolder(id){
@@ -3269,14 +3343,24 @@ function arcSize(id){
   try{ return ((localStorage.getItem('gg_arc_'+id)||'').length*2)/1024; }catch(e){ return 0; }
 }
 
-function renderArc(){
-  $('arCount').textContent=ARC.length||'';
+/* 지금 화면에 보이는 글만 골라냅니다 — 전체 선택도 이 목록만 대상으로 합니다 */
+function visibleArc(){
   const q=arQuery.trim().toLowerCase();
-  const list=ARC.filter(a=>{
+  return ARC.filter(a=>{
     if(fdFilter==='폴더 없음' && a.folder) return false;
     if(fdFilter!=='전체' && fdFilter!=='폴더 없음' && a.folder!==fdFilter) return false;
     return !q || ((a.title||'')+' '+(a.titleKo||'')+' '+(a.preview||'')).toLowerCase().includes(q);
   });
+}
+function syncArAll(list){
+  const vis=list||visibleArc();
+  $('arSelCount').textContent=`${arSel.size}편`;
+  $('arAll').checked = vis.length>0 && vis.every(a=>arSel.has(a.id));
+}
+
+function renderArc(){
+  $('arCount').textContent=ARC.length||'';
+  const list=visibleArc();
   renderFolderbar();
   $('arSelbar').classList.toggle('show', arTidy && ARC.length>0);
   $('arTidy').textContent = arTidy ? '정리 끝' : '정리';
@@ -3309,8 +3393,7 @@ function renderArc(){
   : `<div class="empty"><p>${ARC.length?'찾는 글이 없어요':'아직 담아둔 글이 없어요'}</p>
      <span class="sub">번역이 끝나면 자동으로 여기에 담깁니다</span></div>`;
 
-  $('arSelCount').textContent=`${arSel.size}편`;
-  $('arAll').checked = ARC.length>0 && arSel.size===ARC.length;
+  syncArAll(list);
   showSpace();
 }
 
@@ -3321,14 +3404,14 @@ $('arTidy').addEventListener('click',()=>{
 });
 $('arAll').addEventListener('change',e=>{
   arSel.clear();
-  if(e.target.checked) ARC.forEach(a=>arSel.add(a.id));
+  if(e.target.checked) visibleArc().forEach(a=>arSel.add(a.id));
   renderArc();
 });
 $('arDelSel').addEventListener('click',async ()=>{
   if(!arSel.size) return toast('고른 글이 없어요');
   if(!await askConfirm('고른 글을 지울까요?',`${arSel.size}편을 서재에서 지웁니다.\n되돌릴 수 없어요.`,'지우기',true)) return;
   [...arSel].forEach(id=>{
-    try{ localStorage.removeItem('gg_arc_'+id); }catch(e){}
+    arcWipe(id);
     if(curArc===id){ curArc=''; store.set('curarc',''); }
   });
   ARC=ARC.filter(a=>!arSel.has(a.id));
@@ -3342,8 +3425,7 @@ $('arList').addEventListener('click',async e=>{
   const id=b.dataset.id, a=ARC.find(x=>x.id===id); if(!a) return;
   if(b.dataset.act==='pick'){
     b.checked ? arSel.add(id) : arSel.delete(id);
-    $('arSelCount').textContent=`${arSel.size}편`;
-    $('arAll').checked = ARC.length>0 && arSel.size===ARC.length;
+    syncArAll();
     return;
   }
   if(b.dataset.act==='read') return readArchive(id);
@@ -3367,7 +3449,11 @@ $('arList').addEventListener('click',async e=>{
     saveArcIdx(); renderArc(); toast('제목을 바꿨어요');
   }
 });
-$('arSearch').addEventListener('input',e=>{ arQuery=e.target.value; renderArc(); });
+$('arSearch').addEventListener('input',e=>{
+  arQuery=e.target.value;
+  arSel.clear();   /* 검색을 바꾸면 골라둔 것도 비웁니다 (안 보이는 글이 지워지지 않도록) */
+  renderArc();
+});
 
 /* 저장 공간이 얼마나 찼는지 알려줍니다 */
 function showSpace(){
@@ -3387,7 +3473,7 @@ function updateTitleKo(){
     line.style.display='';
   } else line.style.display='none';
 }
-async function translateTitle(key,model,title,memo){
+async function translateTitle(key,model,title,memo,signal){
   if(!title) return '';
   /* 이미 한국어로만 되어 있으면 그대로 둡니다 */
   if(!/[^\s가-힣0-9.,!?~·:;()\[\]{}<>'"\-–—]/.test(title)) return title;
@@ -3395,9 +3481,9 @@ async function translateTitle(key,model,title,memo){
     const t=await askGemini(key,model,
       (memo?`[작품 설정]\n${memo}\n\n`:'')+
       `다음은 소설의 제목입니다. 자연스러운 한국어 제목으로 옮기세요. 설명 없이 제목 한 줄만 출력하세요.\n\n${title}`,
-      null, 1024, {fast:true, temp:0.4});
+      null, 1024, {fast:true, temp:0.4, signal});
     return cleanMeaning(t) || title;
-  }catch(e){ return title; }
+  }catch(e){ if(isAbort(e)) throw e; return title; }
 }
 
 /* ════════ 전체 백업 · 복원 · 깃허브 연동 ════════ */
@@ -3427,10 +3513,8 @@ $('bkSec').addEventListener('change',e=>store.set('bksec', e.target.checked?'1':
 
 $('expAll').addEventListener('click',()=>{
   const withSecrets=bkSecOn();
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([JSON.stringify(makeDump(withSecrets))],{type:'application/json'}));
-  a.download=`글결_백업_${new Date().toISOString().slice(0,10)}.json`;
-  a.click(); URL.revokeObjectURL(a.href);
+  downloadBlob(new Blob([JSON.stringify(makeDump(withSecrets))],{type:'application/json'}),
+    `글결_백업_${new Date().toISOString().slice(0,10)}.json`);
   toast(withSecrets ? '내보냈어요 (API 키도 들어 있으니 잘 보관하세요)' : '내보냈어요 (API 키·토큰은 빼뒀어요)');
 });
 $('impAll').addEventListener('click',()=>$('impFile').click());
@@ -3625,10 +3709,8 @@ $('wExport').addEventListener('click',()=>{
     if(!ws.length) return '';
     return `■ ${c}\n`+ws.map(w=>`${w.term}\t${w.mean}${w.note?'\t('+w.note+')':''}`).join('\n');
   }).filter(Boolean).join('\n\n');
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain;charset=utf-8'}));
-  a.download=`단어장_${new Date().toISOString().slice(0,10)}.txt`;
-  a.click(); URL.revokeObjectURL(a.href);
+  downloadBlob(new Blob([txt],{type:'text/plain;charset=utf-8'}),
+    `단어장_${new Date().toISOString().slice(0,10)}.txt`);
 });
 $('wExportCsv').addEventListener('click',()=>{
   if(!WORDS.length) return toast('내보낼 단어가 없어요');
@@ -3640,10 +3722,8 @@ $('wExportCsv').addEventListener('click',()=>{
   ]));
   /* 맨 앞의 BOM 덕분에 엑셀에서 한글이 깨지지 않습니다 */
   const csv='\uFEFF'+rows.map(r=>r.map(q).join(',')).join('\r\n');
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
-  a.download=`단어장_${new Date().toISOString().slice(0,10)}.csv`;
-  a.click(); URL.revokeObjectURL(a.href);
+  downloadBlob(new Blob([csv],{type:'text/csv;charset=utf-8'}),
+    `단어장_${new Date().toISOString().slice(0,10)}.csv`);
   toast('엑셀로 내보냈어요');
 });
 
@@ -4085,7 +4165,21 @@ function updateCount(){
   const est=fmtDur(estimateSec(n,c,$('model').value));
   $('chunkInfo').textContent = c>1 ? `${c}번에 나눠서 · 약 ${est}` : `약 ${est}`;
 }
-$('source').addEventListener('input',()=>{updateCount();store.set('source',$('source').value);});
+/* 긴 글에서는 글자 하나마다 조각 수를 다시 세고 본문을 통째로 저장하면 버벅입니다.
+   글자 수만 바로 갱신하고, 무거운 일은 잠깐 뒤로 미룹니다. */
+let srcTimer=null;
+function flushSource(){
+  clearTimeout(srcTimer); srcTimer=null;
+  updateCount(); store.set('source',$('source').value);
+}
+$('source').addEventListener('input',()=>{
+  $('srcNote').style.display='none';          /* 직접 고치기 시작하면 안내를 치웁니다 */
+  $('count').textContent=$('source').value.length.toLocaleString();
+  clearTimeout(srcTimer);
+  srcTimer=setTimeout(flushSource,300);
+});
+$('source').addEventListener('blur',()=>{ if(srcTimer) flushSource(); });
+document.addEventListener('visibilitychange',()=>{ if(document.hidden && srcTimer) flushSource(); });
 $('docTitle').addEventListener('input',()=>{
   store.set('title',$('docTitle').value);
   updateTitleKo();
@@ -4198,7 +4292,7 @@ async function fetchFromUrl(){
       `아래 주소의 페이지에서 소설 본문을 그대로 옮겨 적어 주세요.\n\n${url}`,
       URL_SYSTEM, 32768,
       {noThink:false, temp:0.1, tools:[{url_context:{}}],
-       onStatus:m=>{$('statusText').textContent=m;}});
+       onStatus:m=>{$('busyS').textContent=m;}});
 
     const body=t.replace(/^```[\w]*\n?|```$/g,'').trim();
     if(!body || /^NO_ACCESS/i.test(body)){
@@ -4230,8 +4324,6 @@ $('urlIn').addEventListener('input',()=>store.set('url',$('urlIn').value));
 $('srcUrl').addEventListener('input',()=>store.set('srcurl',$('srcUrl').value));
 $('urlIn').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); fetchFromUrl(); } });
 
-/* 본문을 직접 고치기 시작하면 안내를 치웁니다 */
-$('source').addEventListener('input',()=>{ $('srcNote').style.display='none'; });
 $('clearSrc').addEventListener('click',async ()=>{
   if(!$('source').value || await askConfirm('본문을 비울까요?','적어둔 원문이 지워집니다.','비우기',true)){
     $('source').value=''; updateCount(); store.set('source','');
@@ -4253,12 +4345,13 @@ $('downloadBtn').addEventListener('click',()=>{
   if(!t.trim()) return toast('저장할 번역문이 없어요');
   if(DOC && DOC.notes.length)
     t+='\n\n── 고유명사 ──\n'+DOC.notes.map((n,i)=>`${i+1}. ${n.ko} — ${n.or}${n.ty?' ('+n.ty+')':''}`).join('\n');
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([t],{type:'text/plain;charset=utf-8'}));
-  a.download=`번역_${new Date().toISOString().slice(0,10)}.txt`;
-  a.click(); URL.revokeObjectURL(a.href);
+  downloadBlob(new Blob([t],{type:'text/plain;charset=utf-8'}),
+    `번역_${new Date().toISOString().slice(0,10)}.txt`);
 });
-window.addEventListener('beforeunload',e=>{ if(running){e.preventDefault();e.returnValue='';} });
+window.addEventListener('beforeunload',e=>{
+  if(srcTimer) flushSource();                 /* 아직 저장 안 된 원문을 마저 저장 */
+  if(running){e.preventDefault();e.returnValue='';}
+});
 
 /* ════════════════════════════════════════════════════════════
    모델 목록
@@ -4383,8 +4476,8 @@ $('teSave').addEventListener('click',()=>{
   if(!next) return toast('표기를 적어 주세요');
 
   if(next!==old && old){
-    /* 본문에 있는 옛 표기를 전부 새 표기로 바꿉니다 */
-    DOC.pairs=DOC.pairs.map(x=>({s:x.s, d:x.d.split(old).join(next)}));
+    /* 본문에 있는 옛 표기를 전부 새 표기로 바꿉니다 (제목 표시 t 는 그대로 둡니다) */
+    DOC.pairs=DOC.pairs.map(x=>({s:x.s, d:x.d.split(old).join(next), t:x.t||0}));
   }
   n.ko=next;
   if($('teKeep').checked) putTerm(n.or, next, n.ty);
@@ -4703,7 +4796,8 @@ $('hideStart').addEventListener('click',()=>{
   /* 예전에 쓰던 분들도 한 번은 켜진 상태로 만나보도록 (그 뒤엔 고른 대로) */
   if(store.get('tapdefault')!=='1'){ R.tap=1; store.set('tapdefault','1'); }
   if(!FONTS[R.font]) R.font=DEFAULTS.font;
-  if(!THEMES.some(t=>t.id===R.theme)) R.theme=DEFAULTS.theme;
+  /* 'custom'(내 테마)은 THEMES 목록에 없으니 따로 인정해 줍니다 */
+  if(R.theme!=='custom' && !THEMES.some(t=>t.id===R.theme)) R.theme=DEFAULTS.theme;
   applyRead(); paintMascots();
 
   $('apikey').value=store.get('key');

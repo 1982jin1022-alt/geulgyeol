@@ -2,10 +2,21 @@
    ── 원칙: 항상 인터넷에서 먼저 받아옵니다(그래야 새 버전이 바로 반영돼요).
       인터넷이 안 되면 그때만 저장해 둔 것을 꺼내 씁니다.               */
 
-const CACHE = 'geulgyeol-v1';
+const CACHE = 'geulgyeol-v2';
 
-self.addEventListener('install', () => {
+// 설치할 때 앱 껍데기를 미리 담아둡니다.
+// 이게 없으면 설치 직후 바로 인터넷이 끊겼을 때 앱이 아예 안 열려요.
+const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png'];
+
+self.addEventListener('install', (e) => {
   self.skipWaiting();          // 새 워커를 기다리지 않고 바로 교체
+  e.waitUntil((async () => {
+    const cache = await caches.open(CACHE);
+    // 하나가 실패해도 나머지는 담기도록 따로따로 넣습니다
+    await Promise.all(SHELL.map(u =>
+      cache.add(new Request(u, { cache: 'reload' })).catch(() => {})
+    ));
+  })());
 });
 
 self.addEventListener('activate', (e) => {
