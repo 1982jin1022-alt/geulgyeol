@@ -615,6 +615,21 @@ sup.fn:active{opacity:.5}
 /* ════════ 서재 ════════ */
 /* ════════ 도움말 아코디언 ════════ */
 .help{margin-top:12px;display:flex;flex-direction:column;gap:7px}
+/* 도움말 큰 갈래 */
+.hcat{
+  border-radius:16px;margin-bottom:9px;overflow:hidden;background:transparent!important;
+  box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--accent) 22%,transparent)!important
+}
+.hcat>summary{
+  list-style:none;cursor:pointer;padding:14px 15px;
+  font-family:var(--cute);font-size:15px;color:var(--accent);
+  display:flex;align-items:center;gap:8px
+}
+.hcat>summary::-webkit-details-marker{display:none}
+.hcat>summary::after{content:'▾';margin-left:auto;font-size:11px;opacity:.7;transition:transform .2s}
+.hcat[open]>summary::after{transform:rotate(180deg)}
+.hin{padding:0 11px 11px;display:flex;flex-direction:column;gap:7px}
+
 .help details{
   border-radius:14px;overflow:hidden;
   background:color-mix(in srgb,var(--weak) 55%,transparent);
@@ -713,6 +728,19 @@ input[type=url]{font-size:14px;letter-spacing:-.01em}
 }
 .wcard .top{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
 .wcard .term{font-size:17px;font-weight:700;letter-spacing:-.01em}
+.catbar.wgb{margin-bottom:8px}
+.catbar.wgb button{
+  background:transparent;
+  box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--line) 90%,transparent)
+}
+.catbar.wgb button.on{
+  background:transparent;color:var(--accent);
+  box-shadow:inset 0 0 0 2px var(--accent)
+}
+.wcard .gen{
+  font-size:10.5px;font-weight:700;color:var(--soft);padding:3px 8px;border-radius:999px;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--line) 90%,transparent)
+}
 .wcard .cat{font-size:10.5px;font-weight:700;color:var(--accent);padding:3px 8px;border-radius:999px;
   background:color-mix(in srgb,var(--weak) 85%,transparent)}
 .wcard .del{margin-left:auto;border:none;background:transparent;color:var(--soft);
@@ -854,7 +882,35 @@ input[type=url]{font-size:14px;letter-spacing:-.01em}
   font-family:var(--cute);font-size:15px;padding:11px 22px;border-radius:999px;
   opacity:0;pointer-events:none;transition:.28s;z-index:99;box-shadow:0 10px 30px -8px rgba(0,0,0,.4)}
 .toast.show{opacity:1;transform:translate(-50%,0)}
-footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;line-height:1.9;opacity:.7}
+footer{
+  text-align:center;font-size:11px;color:var(--soft);
+  padding:30px 0 10px;line-height:1.9;opacity:.85;
+  display:flex;flex-direction:column;align-items:center;gap:3px
+}
+footer .ver{opacity:.6}
+footer .made{
+  font-family:var(--cute);font-size:13px;color:var(--accent);opacity:.9;
+  display:inline-flex;align-items:center;gap:5px;margin-top:2px
+}
+footer .made::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--pop)}
+footer .ask{opacity:.65}
+footer .contact{
+  display:flex;align-items:center;justify-content:center;gap:7px;flex-wrap:wrap;margin-top:7px
+}
+footer .contact a,footer .contact .tw{
+  font-size:11.5px;font-weight:700;line-height:1;text-decoration:none;cursor:pointer;
+  padding:7px 12px;border-radius:999px;border:none;font-family:inherit;
+  transition:transform .14s
+}
+footer .contact a{
+  color:#fff;background:var(--accent);
+  box-shadow:0 4px 12px -5px color-mix(in srgb,var(--accent) 90%,transparent)
+}
+footer .contact .tw{
+  color:var(--soft);background:transparent;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--line) 90%,transparent)
+}
+footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -991,7 +1047,15 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
       </div>
     </section>
 
-    <footer>글결 v53<br>원문 대조 · 각주 · 단어장 · 서재</footer>
+    <footer>
+      <span class="ver">글결 v58</span>
+      <span class="made">만든 이 · 야자</span>
+      <span class="ask">문의나 건의는 편하게 알려주세요</span>
+      <span class="contact">
+        <a href="https://open.kakao.com/o/sIzw8Nzb" target="_blank" rel="noopener">카카오톡 오픈채팅</a>
+        <button class="tw" id="twHandle" title="눌러서 복사">트위터 @MYNAMEISYAJA</button>
+      </span>
+    </footer>
   </div>
 
   <!-- ═══════════ 서재 탭 ═══════════ -->
@@ -1012,7 +1076,14 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
       <div class="btn-row"><div class="grow"></div><button class="btn ghost" id="folderEdit">폴더 관리</button></div>
       <p class="hint" id="arSpace" style="margin-top:10px"></p>
     </section>
-    <footer>번역이 끝나면 자동으로 여기에 담겨요</footer>
+    <footer>
+      번역이 끝나면 자동으로 여기에 담겨요
+      <span class="made">만든 이 · 야자</span>
+      <span class="contact">
+        <a href="https://open.kakao.com/o/sIzw8Nzb" target="_blank" rel="noopener">카카오톡 오픈채팅</a>
+        <button class="tw" id="twHandle2" title="눌러서 복사">트위터 @MYNAMEISYAJA</button>
+      </span>
+    </footer>
   </div>
 
   <!-- ═══════════ 단어장 탭 ═══════════ -->
@@ -1022,6 +1093,7 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
         <input type="text" id="wSearch" placeholder="단어나 뜻으로 찾기">
         <button class="btn" id="wAdd">＋ 추가</button>
       </div>
+      <div class="catbar wgb" id="wGenrebar"></div>
       <div class="catbar" id="catbar"></div>
       <div class="wlist" id="wlist"></div>
       <div class="btn-row">
@@ -1031,7 +1103,14 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
         <button class="btn ghost" id="wCatEdit">분류 관리</button>
       </div>
     </section>
-    <footer>본문에서 단어를 길게 눌러 선택하면 바로 저장할 수 있어요</footer>
+    <footer>
+      본문에서 낱말을 눌러 고르면 바로 담을 수 있어요
+      <span class="made">만든 이 · 야자</span>
+      <span class="contact">
+        <a href="https://open.kakao.com/o/sIzw8Nzb" target="_blank" rel="noopener">카카오톡 오픈채팅</a>
+        <button class="tw" id="twHandle3" title="눌러서 복사">트위터 @MYNAMEISYAJA</button>
+      </span>
+    </footer>
   </div>
 </div>
 
@@ -1158,6 +1237,8 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
   <div class="btn-row" style="margin-top:8px">
     <button class="btn" id="wAuto">✨ AI로 뜻 채우기</button>
   </div>
+  <label class="field">갈래</label>
+  <div class="catpick" id="wGenrePick"></div>
   <label class="field">분류</label>
   <div class="catpick" id="wCatPick"></div>
   <label class="field" for="wNote">메모 (선택)</label>
@@ -1188,143 +1269,249 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
 <div class="sheet" id="helpSheet" role="dialog" aria-label="설명">
   <div class="handle"></div>
   <h3>글결 사용 설명</h3>
-  <div class="help">
+  <div class="help" id="helpBody">
 
-    <details data-h="intro">
-      <summary>이 앱이 뭐예요?</summary>
-      <div class="in">
-        <p>외국어로 된 소설을 <b>한국어로 바꿔주는 앱</b>이에요. 일본어든 영어든, 무슨 언어인지 몰라도 그냥 붙여넣으면 알아서 알아보고 번역해 줍니다.</p>
-        <p>번역한 글은 <b>서재</b>에 쌓이고, 모르는 단어는 <b>단어장</b>에 모아둘 수 있어요.</p>
+    <details class="hcat" open>
+      <summary>처음 시작하기</summary>
+      <div class="hin">
+
+        <details data-h="intro"><summary>이 앱이 뭐예요?</summary><div class="in">
+          <p>외국어로 된 글을 <b>한국어로 바꿔주는 앱</b>이에요. 소설·팬픽은 물론 게임 공략, 커뮤니티 썰, 논문 초록까지 갈래를 골라 옮길 수 있어요.</p>
+          <p>옮긴 글은 <b>서재</b>에 쌓이고, 모르는 낱말은 <b>단어장</b>에 모아둘 수 있습니다.</p>
+        </div></details>
+
+        <details data-h="key"><summary>API 키가 뭐예요?</summary><div class="in">
+          <p>번역을 실제로 해주는 건 구글의 인공지능이에요. 이 앱은 <b>부탁을 전달하는 심부름꾼</b>일 뿐입니다.</p>
+          <div class="box">도서관 회원증 같은 거예요. 이 키가 있어야 번역을 부탁할 수 있고, 한 번 받아두면 계속 씁니다.</div>
+          <p><b>AIza</b>로 시작하는 길쭉한 영어·숫자 뭉치예요.</p>
+        </div></details>
+
+        <details data-h="getkey"><summary>키를 어떻게 받아요? (3분)</summary><div class="in">
+          <ol>
+            <li><a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> 를 누르세요.</li>
+            <li>구글 계정으로 로그인해요.</li>
+            <li><b>Create API key</b> 를 누르세요.</li>
+            <li><b>AIza…</b>로 시작하는 글자를 <b>복사</b>하세요.</li>
+            <li>앱의 <b>⚙ 설정</b>을 열어 그 칸에 붙여넣으면 끝이에요.</li>
+          </ol>
+          <p>넣는 순간 저절로 저장돼요.</p>
+        </div></details>
+
+        <details data-h="money"><summary>돈이 드나요?</summary><div class="in">
+          <p><b>무료예요.</b> 카드를 등록하지 않아도 되고, 자동으로 돈이 빠져나가지도 않아요.</p>
+          <p>대신 하루에 쓸 수 있는 양이 정해져 있어요. 다 쓰면 안내가 뜹니다.</p>
+        </div></details>
+
+        <details data-h="safe"><summary>키를 넣어도 안전한가요?</summary><div class="in">
+          <p>네. 키는 <b>지금 쓰는 이 기기 안에만</b> 저장돼요. 다른 누구에게도 전송되지 않습니다.</p>
+          <p>다만 <b>남에게 키를 알려주지는 마세요.</b> 남이 내 몫을 대신 써버릴 수 있어요.</p>
+        </div></details>
+
       </div>
     </details>
 
-    <details data-h="key">
-      <summary>API 키가 뭐예요?</summary>
-      <div class="in">
-        <p>번역을 실제로 해주는 건 구글의 인공지능이에요. 이 앱은 "이거 번역해 줘"라고 <b>부탁을 전달하는 심부름꾼</b>일 뿐입니다.</p>
-        <p>구글 입장에서는 누가 부탁하는 건지 알아야겠죠. 그래서 <b>내 이름표</b>를 하나 받아와야 해요. 그게 API 키입니다.</p>
-        <div class="box">도서관 회원증 같은 거예요. 회원증이 있어야 책을 빌리듯, 이 키가 있어야 번역을 부탁할 수 있어요. 한 번 받아두면 계속 씁니다.</div>
-        <p><b>AIza</b>로 시작하는 길쭉한 영어·숫자 뭉치예요.</p>
+    <details class="hcat">
+      <summary>번역하기</summary>
+      <div class="hin">
+
+        <details data-h="use"><summary>기본 사용법</summary><div class="in">
+          <ol>
+            <li><b>글 갈래</b>를 고릅니다.</li>
+            <li><b>제목</b>을 적어요. (안 적어도 괜찮아요)</li>
+            <li><b>본문</b>에 외국어 글을 붙여넣어요.</li>
+            <li><b>번역하기</b>를 누르고 기다려요.</li>
+          </ol>
+          <p>글이 아주 길어도 괜찮아요. 앱이 알아서 여러 조각으로 나눠 옮긴 뒤 이어붙입니다.</p>
+        </div></details>
+
+        <details data-h="genre"><summary>글 갈래 — 이게 왜 중요한가요?</summary><div class="in">
+          <p>갈래마다 <b>번역 규칙이 통째로 바뀝니다.</b> 소설 규칙을 공략에 쓰면 숫자가 바뀌거나 아이템 이름이 뭉개져요.</p>
+          <p><b>소설·팬픽</b> — 자연스럽게 의역하고, 인물별 말투와 호칭을 살립니다.</p>
+          <p><b>게임 공략</b> — 숫자를 그대로 두고, 아이템·스킬·몬스터 이름을 모두 각주로 모읍니다. 소제목과 목록도 살려요.</p>
+          <p><b>썰·커뮤니티</b> — 구어체로 감정과 호흡을 살립니다. OP·TL;DR 같은 약어도 풀어줘요.</p>
+          <p><b>일반 글</b> — 정확함을 우선합니다. 논문 초록이나 뉴스 기사에 맞아요.</p>
+          <p>고른 갈래는 서재에 함께 저장돼서, 나중에 그 글을 불러오면 갈래도 같이 돌아옵니다.</p>
+        </div></details>
+
+        <details data-h="memo"><summary>작품·게임 메모는 뭘 적나요?</summary><div class="in">
+          <p>번역할 때마다 함께 전달되는 <b>안내문</b>이에요. 갈래에 따라 적을 내용이 달라집니다.</p>
+          <p><b>소설</b>이면 인물 성격과 말투를, <b>게임 공략</b>이면 표기 기준(한국 서버 명칭을 쓸지 원문 발음을 쓸지)을 적어두세요.</p>
+          <p>비워 두어도 번역은 됩니다. 다만 적어두면 여러 화를 옮길 때 <b>말투와 용어가 흔들리지 않아요.</b></p>
+        </div></details>
+
+        <details data-h="url"><summary>링크로 가져오기</summary><div class="in">
+          <p>글이 올라온 페이지 주소를 넣으면 인공지능이 그 페이지를 읽어 본문을 채워줍니다. 이때 번역은 하지 않아요.</p>
+          <div class="box"><b>안 되는 곳이 더 많아요.</b> 되면 편하고, 안 되면 본문을 복사해 붙여넣는 게 확실합니다.</div>
+          <p><b>안 되는 곳</b> — 로그인이 필요한 곳, 앱으로만 보는 곳, 연령 확인이 필요한 곳</p>
+          <p>가져왔더라도 <b>글자 수를 꼭 확인하세요.</b> 인공지능이 긴 글을 중간에 줄이는 일이 있어요.</p>
+        </div></details>
+
+        <details data-h="txt"><summary>txt 파일 · 출처 링크</summary><div class="in">
+          <p><b>txt 파일</b> 버튼으로 글자 파일을 불러올 수 있어요. 폰에서 긴 글이 복사되지 않을 때 유용합니다.</p>
+          <p><b>출처</b> 칸은 번역에 쓰이지 않아요. 적어두면 서재에 함께 저장돼서 나중에 원문을 다시 찾기 쉽습니다.</p>
+        </div></details>
+
+        <details data-h="stream"><summary>번역문이 한 줄씩 나타나요. 고장인가요?</summary><div class="in">
+          <p><b>정상이에요.</b> 인공지능은 앞에서부터 한 글자씩 써 내려가고, 이 앱은 다 쓸 때까지 기다리지 않고 <b>써지는 대로 바로 보여줍니다.</b></p>
+          <div class="box">깜빡이는 막대(▍)가 있는 동안은 아직 쓰는 중이에요. 다 쓰면 막대가 사라지고 각주가 붙은 화면으로 바뀝니다.</div>
+        </div></details>
+
+        <details data-h="speed"><summary>속도 · 모델 · 분량 설정</summary><div class="in">
+          <p><b>번역 속도</b> — 빠르게는 곧바로 옮기고, 꼼꼼하게는 한 번 더 생각한 뒤 옮깁니다. 대부분 빠르게로 충분해요.</p>
+          <p><b>모델</b> — 구글이 자주 바꿔서, "쓸 수 없는 모델"이 뜨면 <b>목록 새로고침</b>을 누르세요. 지금 키로 쓸 수 있는 것만 담아옵니다.</p>
+          <p><b>한 번에 보낼 분량</b> — 한도는 글자 수가 아니라 <b>요청 횟수</b>로 세요. 5,000자로 올리면 요청이 거의 절반으로 줄어듭니다.</p>
+          <p>본문 아래 <b>예상 시간</b>은 실제로 걸린 시간을 기억해 두고 계산해요. 쓸수록 정확해집니다.</p>
+        </div></details>
+
       </div>
     </details>
 
-    <details data-h="getkey">
-      <summary>키를 어떻게 받아요? (3분)</summary>
-      <div class="in">
-        <ol>
-          <li><a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> 를 누르세요.</li>
-          <li>구글 계정으로 로그인해요. 평소 쓰는 지메일 계정이면 됩니다.</li>
-          <li><b>Create API key</b> 버튼을 누르세요.</li>
-          <li><b>AIza…</b>로 시작하는 글자를 <b>복사</b>하세요.</li>
-          <li>앱의 <b>설정</b>을 열어 그 칸에 <b>붙여넣기</b> 하면 끝이에요.</li>
-        </ol>
-        <p>넣는 순간 저절로 저장돼요. 다음에 앱을 켜면 이미 들어가 있습니다.</p>
+    <details class="hcat">
+      <summary>읽기</summary>
+      <div class="hin">
+
+        <details data-h="compare"><summary>원문 대조 — 세 가지 보기</summary><div class="in">
+          <p>번역 결과 위의 단추로 바꿉니다.</p>
+          <p><b>번역만</b> — 평소 읽기. <b>번갈아</b> — 문단마다 원문(작고 흐리게) 다음에 번역. <b>나란히</b> — 좌우 두 단.</p>
+          <p>번역문에서 낱말을 고르고 <b>원문</b>을 누르면, 그 자리에 해당하는 <b>원문 조각만</b> 작게 떠요.</p>
+        </div></details>
+
+        <details data-h="footnote"><summary>각주 — 숫자와 자음</summary><div class="in">
+          <p>각주는 두 종류예요.</p>
+          <p><b>숫자(1,2,3)</b> — 고유명사입니다. 인물·지명·아이템·스킬 이름의 원문 표기예요. 번역할 때 저절로 붙습니다.</p>
+          <p><b>자음(ㄱ,ㄴ,ㄷ)</b> — 낱말 뜻풀이입니다. 내가 직접 단 것만 나와요.</p>
+          <p>번호를 누르면 <b>그 자리에 작게</b> 뜹니다. 화면이 움직이지 않아요.</p>
+          <div class="box">공략을 읽을 땐 <b>각주 창을 열어두세요.</b> 화면 아래에 용어 목록이 깔린 채로 본문을 훑을 수 있어요. 오른쪽 아래 동그란 <b>각주</b> 단추로 엽니다.</div>
+        </div></details>
+
+        <details data-h="select"><summary>낱말을 골랐을 때 나오는 단추들</summary><div class="in">
+          <p>고른 자리에 따라 단추가 달라져요.</p>
+          <p><b>원문에서 골랐을 때</b> — 뜻 보기 · 단어장 · 번역</p>
+          <p><b>번역문에서 골랐을 때</b> — 원문 · 뜻 보기 · 번역</p>
+          <p><b>뜻 보기</b>를 누르면 읽는 법·품사·뜻이 뜨고, 거기서 <b>각주로 달기</b>나 <b>단어장에</b> 넣을 수 있어요.</p>
+          <p>읽기 설정의 <b>단어를 한 번 탭하면 바로 선택</b>을 켜두면 길게 누르지 않아도 됩니다. 폰의 복사·검색 메뉴도 안 떠요.</p>
+        </div></details>
+
+        <details data-h="reader"><summary>읽기 모드 · 이어읽기</summary><div class="in">
+          <p>서재에서 <b>읽기</b>를 누르면 설정·본문 칸이 사라지고 <b>글만 남습니다.</b> 블로그 글처럼요.</p>
+          <p>위쪽 얇은 막대의 <b>←</b> 로 서재로 돌아가고, 폰의 뒤로 단추도 같은 역할을 해요.</p>
+          <p>읽던 위치는 글마다 기억됩니다. 다시 열면 <b>이어읽기</b> 안내가 잠깐 떠요.</p>
+          <p>왼쪽 아래 <b>↑ ↓</b> 로 맨 위·맨 아래로 한 번에 갈 수 있습니다.</p>
+        </div></details>
+
+        <details data-h="theme"><summary>테마 · 글꼴 · 내 테마 만들기</summary><div class="in">
+          <p>오른쪽 위 <b>가a</b> 로 엽니다. 테마·글꼴·마스코트·여백이 각각 접혀 있어요.</p>
+          <p>테마는 <b>밝은 색</b>과 <b>어두운 색</b>으로 나뉩니다. OLED 폰이라면 <b>먹</b>이 눈이 제일 편하고 배터리도 덜 써요.</p>
+          <p><b>내 테마 만들기</b>에서 색을 고르면 배경·글자·선까지 알아서 계산합니다. 글자가 안 보이지 않도록 밝기를 자동으로 다듬어서, 고른 색과 조금 달라 보일 수 있어요.</p>
+          <p>글꼴은 <b>고딕</b>이 폰에서 덜 피로합니다. 명조는 글자를 20px 이상으로 키웠을 때 편해요.</p>
+        </div></details>
+
       </div>
     </details>
 
-    <details data-h="money">
-      <summary>돈이 드나요?</summary>
-      <div class="in">
-        <p><b>무료예요.</b> 카드를 등록하지 않아도 되고, 자동으로 돈이 빠져나가지도 않아요.</p>
-        <p>대신 <b>하루에 쓸 수 있는 양</b>이 정해져 있어요. 다 쓰면 "한도에 걸렸어요"라고 뜹니다. 잠시 쉬었다 하거나 다음 날 하시면 돼요.</p>
+    <details class="hcat">
+      <summary>모아두기</summary>
+      <div class="hin">
+
+        <details data-h="library"><summary>서재 — 번역한 글 보관</summary><div class="in">
+          <p>번역이 끝나면 <b>자동으로 서재에 담깁니다.</b> 따로 누르실 필요 없어요.</p>
+          <p>글마다 단추가 넷입니다.</p>
+          <p><b>읽기</b> — 읽기 모드로 봅니다. 번역 화면은 건드리지 않아요.<br>
+             <b>불러오기</b> — 번역 화면으로 가져옵니다. 고치거나 다시 옮길 때 써요.<br>
+             <b>제목</b> · <b>폴더</b> — 이름과 자리를 바꿉니다.</p>
+          <p>이미 있는 글을 다시 번역하면 <b>덮어쓸지, 뒤에 이어붙일지, 새 글로 저장할지</b> 물어봅니다. 다음 화를 이어 옮길 땐 이어붙이기를 쓰세요.</p>
+          <p><b>정리</b>를 누르면 여러 편을 골라 한꺼번에 지울 수 있어요.</p>
+        </div></details>
+
+        <details data-h="folder"><summary>폴더로 나누기</summary><div class="in">
+          <p>서재 위쪽 띠로 폴더를 걸러 봅니다. 글마다 <b>폴더</b> 단추로 옮기고, 거기서 새 폴더도 만들 수 있어요.</p>
+          <p><b>폴더 관리</b>에서 이름을 바꾸거나 지웁니다. 폴더를 지워도 <b>글은 사라지지 않고</b> 폴더 없음으로 옮겨져요.</p>
+        </div></details>
+
+        <details data-h="words"><summary>단어장 — 두 겹으로 나뉨</summary><div class="in">
+          <p>낱말을 고르고 <b>단어장</b>을 누르거나, 뜻 보기 말풍선에서 담습니다.</p>
+          <p><b>✨ AI로 뜻 채우기</b>를 누르면 읽는 법·품사·뜻이 자동으로 채워지고 <b>분류도 함께 골라집니다.</b> 요청 수는 늘지 않아요.</p>
+          <p>목록은 두 겹으로 걸러 봅니다.</p>
+          <p><b>갈래</b>(위·테두리형) — 소설 단어인지 게임 용어인지<br>
+             <b>분류</b>(아래) — 명사·동사·표현 등</p>
+          <p>갈래를 좁히면 아래 분류의 개수도 그 안에서만 다시 셉니다. 저장할 때 <b>지금 번역 중인 갈래가 저절로</b> 붙어요.</p>
+          <p><b>분류 관리</b>에서 이름을 직접 고치고 새로 만들 수 있어요. 분류를 지워도 단어는 첫 분류로 옮겨질 뿐 사라지지 않습니다.</p>
+          <p><b>엑셀</b>·<b>txt</b>로 내보낼 수 있고, 갈래도 함께 담깁니다.</p>
+        </div></details>
+
+        <details data-h="terms"><summary>표기집 — 고유명사를 계속 같게</summary><div class="in">
+          <p>각주의 고유명사 옆 <b>✎</b> 를 누르면 한국어 표기를 고칠 수 있어요. 고치면 <b>본문에 흩어진 표기가 전부 한 번에</b> 바뀝니다.</p>
+          <p>이때 <b>앞으로 번역할 때도 이 표기 쓰기</b>를 켜두면 표기집에 저장돼요. 그러면 다음 화, 다음 작품에서도 계속 그 표기로 나옵니다.</p>
+          <div class="box">여러 화를 옮길 때 이름이 흔들리는 걸 막는 가장 확실한 방법이에요. 파판14 공략처럼 용어가 많은 글에서 특히 유용합니다.</div>
+        </div></details>
+
       </div>
     </details>
 
-    <details data-h="safe">
-      <summary>키를 넣어도 안전한가요?</summary>
-      <div class="in">
-        <p>네. 키는 <b>지금 쓰는 이 기기 안에만</b> 저장돼요. 다른 누구에게도 전송되지 않습니다.</p>
-        <p>다만 <b>남에게 키를 알려주지는 마세요.</b> 회원증을 빌려주는 것과 같아서, 남이 내 몫을 대신 써버릴 수 있어요. 실수로 알려줬다면 위 사이트에서 그 키를 지우고 새로 만들면 됩니다.</p>
+    <details class="hcat">
+      <summary>기기와 백업</summary>
+      <div class="hin">
+
+        <details data-h="install"><summary>폰에 앱처럼 설치하기</summary><div class="in">
+          <p><b>안드로이드</b> — 크롬으로 앱 주소를 열고 ⋮ → <b>홈 화면에 추가</b> (또는 앱 설치)</p>
+          <p><b>아이폰</b> — 사파리로 열고 아래 공유 단추 → <b>홈 화면에 추가</b></p>
+          <p>설치하면 주소창 없이 전체 화면으로 열리고, 인터넷이 없어도 <b>서재에 저장된 글은 읽을 수 있어요.</b></p>
+          <p>폰과 컴퓨터는 저장 공간이 따로예요. <b>API 키를 각각 한 번씩</b> 넣어주셔야 합니다.</p>
+        </div></details>
+
+        <details data-h="backup"><summary>백업 — 꼭 해두세요</summary><div class="in">
+          <p>설정의 <b>전체 내보내기</b>로 설정·서재·단어장·표기집이 담긴 파일 하나를 받습니다. <b>불러오기</b>로 되돌릴 수 있어요.</p>
+          <div class="box">브라우저 저장소는 영구적이지 않아요. 캐시를 지우거나 폰을 바꾸면 사라집니다. 가끔 백업해 두세요.</div>
+          <p>백업 파일에는 <b>API 키도 들어 있으니</b> 남에게 주지 마세요.</p>
+        </div></details>
+
+        <details data-h="github"><summary>깃허브로 폰과 컴퓨터 잇기</summary><div class="in">
+          <ol>
+            <li>깃허브에서 <b>비공개(Private) 저장소</b>를 하나 만드세요.</li>
+            <li><b>Settings → Developer settings → Personal access tokens → Fine-grained tokens</b></li>
+            <li><b>Generate new token</b> → Repository access에서 그 저장소 <b>하나만</b> 고릅니다.</li>
+            <li>Permissions에서 <b>Contents</b>를 <b>Read and write</b>로 바꿉니다.</li>
+            <li>만들어진 토큰을 설정의 깃허브 칸에 붙여넣으세요.</li>
+          </ol>
+          <div class="box">꼭 저장소 <b>하나에만</b> 권한을 주세요. 그리고 앱을 올려둔 <b>공개 저장소에는 백업을 넣지 마세요.</b> API 키가 인터넷에 공개됩니다.</div>
+          <p>컴퓨터에서 <b>올리기</b>, 폰에서 <b>내려받기</b> 하면 통째로 옮겨갑니다.</p>
+        </div></details>
+
       </div>
     </details>
 
-    <details data-h="use">
-      <summary>어떻게 쓰는 건가요?</summary>
-      <div class="in">
-        <ol>
-          <li><b>제목</b> 칸에 작품 이름을 적어요. (안 적어도 괜찮아요)</li>
-          <li><b>본문</b> 칸에 외국어 소설을 붙여넣어요.</li>
-          <li><b>번역하기</b>를 누르고 기다려요.</li>
-        </ol>
-        <p>글이 아주 길어도 괜찮아요. 앱이 알아서 여러 조각으로 나눠 번역한 뒤 이어붙입니다.</p>
-        <p>글자 크기·색·글꼴은 오른쪽 위 <b>가a</b> 버튼에서 바꿀 수 있어요.</p>
-      </div>
-    </details>
+    <details class="hcat">
+      <summary>문제가 생겼을 때</summary>
+      <div class="hin">
 
-    <details data-h="stream">
-      <summary>번역문이 한 줄씩 나타나요. 고장인가요?</summary>
-      <div class="in">
-        <p><b>정상이에요.</b> 인공지능은 글을 한꺼번에 완성하지 않고 <b>앞에서부터 한 글자씩 써 내려갑니다.</b> 사람이 글을 쓰는 것과 비슷해요.</p>
-        <p>이 앱은 다 쓸 때까지 기다리지 않고 <b>써지는 대로 바로 보여줍니다.</b> 그래서 문장이 조금씩 늘어나고, 끝에 깜빡이는 막대(▍)가 따라다녀요.</p>
-        <div class="box">막대가 깜빡이는 동안은 <b>아직 쓰는 중</b>이에요. 다 쓰면 막대가 사라지고, 각주 번호가 붙은 정식 화면으로 바뀝니다.</div>
-        <p>중간에 글이 어색해 보여도 걱정 마세요. 문장이 끝까지 안 써진 상태라 그렇게 보이는 것뿐이에요.</p>
-        <p>화면 오른쪽에 <b>흐른 시간</b>이 나옵니다. 너무 오래 걸리면 설정에서 <b>번역 속도</b>를 빠르게로 두거나, 모델을 <b>flash-lite</b>로 바꿔 보세요.</p>
-      </div>
-    </details>
+        <details data-h="quota"><summary>"한도에 걸렸어요"가 떠요</summary><div class="in">
+          <div class="box"><b>대부분은 그냥 두시면 됩니다.</b> 한도에 걸리면 앱이 알아서 <b>다른 모델로 갈아타고 이어갑니다.</b></div>
+          <p>한도는 <b>모델마다 따로</b> 걸려 있어요. A 모델을 다 썼어도 B 모델 몫은 남아 있어서, 바꾸기만 하면 이어집니다.</p>
+          <p>"쓸 수 있는 모델을 모두 다 썼어요"가 뜨면 이렇게 하세요.</p>
+          <ol>
+            <li>설정에서 <b>목록 새로고침</b></li>
+            <li>설정에 <b>예비 키</b> 넣어두기 — 다른 구글 계정 키요. 모델을 다 쓰면 자동으로 넘어갑니다.</li>
+            <li>기다리기 — <b>한국 시간 오후 4시쯤</b> 초기화 (겨울에는 오후 5시)</li>
+          </ol>
+          <p>1~2분 만에 풀리는 건 하루 한도가 아니라 "잠깐 너무 많이 요청했어요"예요.</p>
+        </div></details>
 
-    <details data-h="url">
-      <summary>링크로 가져오기 · 어떤 링크가 되나요?</summary>
-      <div class="in">
-        <p>소설이 올라온 페이지 주소를 넣으면, <b>인공지능이 그 페이지를 읽어 본문을 채워줍니다.</b> 이때도 번역은 하지 않아요. 원문을 가져오기만 합니다.</p>
-        <div class="box"><b>솔직히 말씀드리면 안 되는 곳이 더 많아요.</b> 되면 편하고, 안 되면 본문을 복사해 붙여넣는 게 확실합니다.</div>
-        <p><b>대체로 되는 곳</b> — 로그인 없이 바로 글이 보이는 블로그, 공개 게시판, 위키 같은 곳</p>
-        <p><b>대체로 안 되는 곳</b></p>
-        <ol>
-          <li>로그인해야 보이는 곳 (픽시브, 비공개 작품 등)</li>
-          <li>앱으로만 볼 수 있는 곳</li>
-          <li>연령 확인이 필요한 곳</li>
-          <li>주소를 눌러야 본문이 나타나는 곳</li>
-        </ol>
-        <p>가져오기가 실패하면 <b>이 링크는 읽지 못했어요</b>라고 알려드려요. 그때는 본문을 직접 복사해서 붙여넣어 주세요.</p>
-        <p><b>가져왔더라도 꼭 확인하세요.</b> 인공지능이 긴 글을 중간에 줄이거나 뒷부분을 빠뜨리는 일이 있어요. 글자 수를 보고 원래 분량과 비슷한지 확인한 뒤 번역하시는 걸 권합니다.</p>
-      </div>
-    </details>
+        <details data-h="blocked"><summary>"안전 필터에 막혔어요"</summary><div class="in">
+          <p>구글이 특정 내용을 걸러내는 장치예요. 평범한 장면에서도 오작동할 때가 있습니다.</p>
+          <p>앱은 막힌 조각을 <b>반으로 쪼개 다시 시도</b>합니다. 대개 문제되는 문단 하나만 남고 나머지는 살아나요.</p>
+          <p>끝까지 안 되면 본문에 <b>⟪이 부분은 안전 필터에 막혀 번역하지 못했어요⟫</b> 표시가 남습니다.</p>
+          <p>그 부분만 따로 복사해 새 글로 옮기면 통과하는 경우도 있어요.</p>
+        </div></details>
 
-    <details data-h="github">
-      <summary>깃허브로 폰과 컴퓨터 잇기</summary>
-      <div class="in">
-        <ol>
-          <li>깃허브에서 <b>비공개(Private) 저장소</b>를 하나 만드세요. (예: <b>geulgyeol-data</b>)</li>
-          <li><b>Settings → Developer settings → Personal access tokens → Fine-grained tokens</b> 로 갑니다.</li>
-          <li><b>Generate new token</b> → Repository access에서 방금 만든 저장소 <b>하나만</b> 고릅니다.</li>
-          <li>Permissions에서 <b>Contents</b>를 <b>Read and write</b>로 바꿉니다.</li>
-          <li>만들어진 토큰을 복사해 설정의 깃허브 칸에 붙여넣으세요.</li>
-        </ol>
-        <div class="box">꼭 저장소 <b>하나에만</b> 권한을 주세요. 그래야 토큰을 잃어버려도 피해가 없어요.</div>
-        <p>컴퓨터에서 <b>올리기</b>, 폰에서 <b>내려받기</b> 하면 서재·단어장·설정이 통째로 옮겨갑니다.</p>
-      </div>
-    </details>
+        <details data-h="err"><summary>그 밖의 오류</summary><div class="in">
+          <p><b>"API 키가 올바르지 않아요"</b> — 복사할 때 앞뒤 빈칸이 딸려왔을 수 있어요.</p>
+          <p><b>"인터넷 연결에 실패했어요"</b> — 광고 차단 프로그램이 막고 있을 수 있어요.</p>
+          <p><b>"모델을 쓸 수 없어요"</b> — 구글이 그 모델을 없앤 거예요. <b>목록 새로고침</b>을 누르세요.</p>
+          <p><b>"이 키로는 접근할 수 없어요"</b> — 키에 사용 제한이 걸렸거나, 학교·미성년 계정일 수 있어요.</p>
+          <p><b>번역문에 원문 글자가 섞여요</b> — 앱이 알아서 다시 다듬지만, 계속 그러면 모델을 바꿔 보세요.</p>
+          <p><b>문단이 밀려 보여요</b> — 원문과 번역의 짝은 길이로 맞춥니다. 어긋나면 알려주세요.</p>
+        </div></details>
 
-    <details data-h="quota">
-      <summary>"한도에 걸렸어요"가 떠요</summary>
-      <div class="in">
-        <p>번역은 구글 인공지능이 해주는데, 무료로 쓸 수 있는 양이 정해져 있어요.</p>
-        <div class="box"><b>대부분은 그냥 두시면 됩니다.</b> 한도에 걸리면 앱이 알아서 <b>다른 모델로 갈아타고 번역을 이어갑니다.</b> 화면에 "한도에 걸려 ○○로 바꿔 이어가는 중"이라고 나오면 그 과정이에요.</p>
-        <p><b>왜 모델을 바꾸면 되나요?</b></p>
-        <p>한도는 <b>모델마다 따로</b> 걸려 있어요. A 모델을 다 썼어도 B 모델의 몫은 그대로 남아 있습니다. 그래서 바꾸기만 하면 그 자리에서 이어집니다.</p>
-        <p>앱은 <b>한도가 넉넉하고 빠른 모델부터</b> 차례로 골라요. 바뀐 모델은 설정에도 반영돼서 다음 번역부터 바로 쓰입니다.</p>
-        <p><b>그래도 안 될 때</b></p>
-        <p>"쓸 수 있는 모델을 모두 다 썼어요"가 뜨면 목록에 있는 모델을 전부 써버린 거예요. 이때는 이렇게 하세요.</p>
-        <ol>
-          <li>설정에서 <b>목록 새로고침</b> — 쓸 수 있는 모델이 더 있을 수 있어요.</li>
-          <li>설정에 <b>예비 키</b>를 넣어 두기 — 다른 구글 계정에서 받은 키요. 모델을 다 쓰면 자동으로 그 키로 넘어갑니다.</li>
-          <li>기다리기 — <b>한국 시간 오후 4시쯤</b> 초기화됩니다. (겨울에는 오후 5시)</li>
-        </ol>
-        <p><b>아껴 쓰는 법</b></p>
-        <p>한도는 글자 수가 아니라 <b>요청 횟수</b>로 셉니다. 설정에서 <b>한 번에 보낼 분량</b>을 5,000자로 올리면 요청이 거의 절반으로 줄어요.</p>
-        <p>서재에 저장한 글을 다시 볼 때는 <b>열기</b>를 쓰세요. 번역하기를 또 누르면 한도를 다시 씁니다.</p>
-        <p>1~2분 만에 풀리는 건 하루 한도가 아니라 "잠깐 너무 많이 요청했어요"인 경우예요. 그건 기다리면 저절로 풀립니다.</p>
-      </div>
-    </details>
-
-    <details data-h="err">
-      <summary>오류가 떠요</summary>
-      <div class="in">
-        <p><b>"API 키가 올바르지 않아요"</b> — 복사할 때 앞뒤 빈칸이 딸려왔을 수 있어요. 지우고 다시 붙여넣어 보세요.</p>
-        <p><b>"인터넷 연결에 실패했어요"</b> — 광고 차단 프로그램이 막고 있을 수 있어요. 잠시 꺼보세요.</p>
-        <p><b>"모델을 쓸 수 없어요"</b> — 구글이 그 모델을 없앤 거예요. 설정에서 <b>목록 새로고침</b>을 누르면 지금 쓸 수 있는 것만 다시 담아옵니다.</p>
-        <p><b>"한도에 걸렸어요"</b> — 위의 <b>"한도에 걸렸어요"가 떠요</b> 항목을 봐주세요. 모델을 바꾸면 바로 이어서 쓸 수 있어요.</p>
-        <p><b>"이 링크는 읽지 못했어요"</b> — 위 <b>링크로 가져오기</b> 항목을 봐주세요.</p>
       </div>
     </details>
 
@@ -2493,7 +2680,7 @@ $('fnAll').addEventListener('click',()=>{
   DOC.notes.forEach(n=>{
     if(WORDS.some(w=>w.term===n.or)) return;
     WORDS.push({id:String(Date.now())+Math.random().toString(36).slice(2,6),
-      term:n.or, mean:n.ko, cat:'인명·고유명사', note:n.ty||'', at:Date.now()});
+      term:n.or, mean:n.ko, cat:'인명·고유명사', g:GENRE, note:n.ty||'', at:Date.now()});
     added++;
   });
   saveWords(); renderWords();
@@ -3214,7 +3401,7 @@ async function translateTitle(key,model,title,memo){
 /* ════════ 전체 백업 · 복원 · 깃허브 연동 ════════ */
 function makeDump(){
   const dump={app:'글결', v:14, at:Date.now(), settings:{}, words:WORDS, cats:CATS, arcidx:ARC, arcs:{}};
-  ['key','key2','model','chunk','speed','memo','read','mascot','view','title','titleko','curarc','ghtok','ghrepo','ghpath','url','srcurl','terms','models','rate','folders','fdfilter','genre']
+  ['key','key2','model','chunk','speed','memo','read','mascot','view','title','titleko','curarc','ghtok','ghrepo','ghpath','url','srcurl','terms','models','rate','folders','fdfilter','genre','wgfilter']
     .forEach(k=>dump.settings[k]=store.get(k));
   ARC.forEach(a=>{ const d=arcGet(a.id); if(d) dump.arcs[a.id]=d; });
   return dump;
@@ -3343,21 +3530,46 @@ const DEF_CATS=['명사','동사','형용사','표현','인명·고유명사'];
 let CATS = (()=>{ try{ return JSON.parse(store.get('cats','')) || DEF_CATS; }catch(e){ return DEF_CATS; } })();
 let WORDS= (()=>{ try{ return JSON.parse(store.get('words','')) || []; }catch(e){ return []; } })();
 let catFilter='전체', wQuery='';
+let wgFilter=store.get('wgfilter','전체');
+const genreName = g => (GENRES[g] && GENRES[g].name) || (g||'');
+
+/* 갈래 띠 — 단어를 소설·공략 등으로 먼저 나눠 봅니다 */
+function renderWGenrebar(){
+  const used=[...new Set(WORDS.map(w=>w.g||''))];
+  const items=[{k:'전체',label:'전체',n:WORDS.length}];
+  Object.keys(GENRES).forEach(g=>{
+    const n=WORDS.filter(w=>w.g===g).length;
+    if(n||g===wgFilter) items.push({k:g,label:GENRES[g].name,n});
+  });
+  const none=WORDS.filter(w=>!w.g).length;
+  if(none) items.push({k:'__none',label:'갈래 없음',n:none});
+  $('wGenrebar').innerHTML=items.map(it=>
+    `<button data-g="${esc(it.k)}" class="${it.k===wgFilter?'on':''}">${esc(it.label)}${it.n?' '+it.n:''}</button>`).join('');
+}
+$('wGenrebar').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  wgFilter=b.dataset.g; store.set('wgfilter',wgFilter); renderWords();
+});
 
 const saveWords=()=>{ store.set('words',JSON.stringify(WORDS)); $('wdCount').textContent=WORDS.length?WORDS.length:''; };
 const saveCats =()=> store.set('cats',JSON.stringify(CATS));
 
 function renderCatbar(){
+  const inG = w => wgFilter==='전체' ? true
+              : (wgFilter==='__none' ? !w.g : w.g===wgFilter);
+  const pool = WORDS.filter(inG);
   const all=['전체',...CATS];
   $('catbar').innerHTML=all.map(c=>{
-    const n = c==='전체' ? WORDS.length : WORDS.filter(w=>w.cat===c).length;
+    const n = c==='전체' ? pool.length : pool.filter(w=>w.cat===c).length;
     return `<button data-c="${esc(c)}" class="${c===catFilter?'on':''}">${esc(c)}${n?` ${n}`:''}</button>`;
   }).join('');
 }
 function renderWords(){
-  renderCatbar();
+  renderWGenrebar(); renderCatbar();
   const q=wQuery.trim().toLowerCase();
   const list=WORDS.filter(w=>{
+    if(wgFilter==='__none' && w.g) return false;
+    if(wgFilter!=='전체' && wgFilter!=='__none' && w.g!==wgFilter) return false;
     if(catFilter!=='전체' && w.cat!==catFilter) return false;
     if(!q) return true;
     return (w.term+' '+w.mean+' '+(w.note||'')).toLowerCase().includes(q);
@@ -3367,6 +3579,7 @@ function renderWords(){
     <div class="wcard" data-id="${w.id}">
       <div class="top">
         <span class="term">${esc(w.term)}</span>
+        ${w.g?`<span class="gen">${esc(genreName(w.g))}</span>`:''}
         <span class="cat">${esc(w.cat)}</span>
         <button class="del" data-id="${w.id}" title="지우기">✕</button>
       </div>
@@ -3405,9 +3618,9 @@ $('wExport').addEventListener('click',()=>{
 $('wExportCsv').addEventListener('click',()=>{
   if(!WORDS.length) return toast('내보낼 단어가 없어요');
   const q = v => '"' + String(v==null?'':v).replace(/"/g,'""') + '"';
-  const rows = [['단어','뜻','분류','메모','저장한 날']];
+  const rows = [['단어','뜻','갈래','분류','메모','저장한 날']];
   WORDS.slice().reverse().forEach(w=>rows.push([
-    w.term, w.mean||'', w.cat||'', w.note||'',
+    w.term, w.mean||'', genreName(w.g), w.cat||'', w.note||'',
     new Date(w.at).toLocaleDateString('ko-KR')
   ]));
   /* 맨 앞의 BOM 덕분에 엑셀에서 한글이 깨지지 않습니다 */
@@ -3494,9 +3707,21 @@ $('wCatPick').addEventListener('click',e=>{
   wPickCat=b.dataset.c;
   renderCatPick();
 });
-function openWordSheet({term='',mean='',cat='',note=''}){
+let wPickGenre=GENRE;
+function renderGenrePick(){
+  $('wGenrePick').innerHTML=Object.entries(GENRES).map(([k,g])=>
+    `<button data-g="${k}" class="${k===wPickGenre?'on':''}">${esc(g.name)}</button>`).join('');
+}
+$('wGenrePick').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  wPickGenre=b.dataset.g; renderGenrePick();
+});
+
+function openWordSheet({term='',mean='',cat='',note='',g=''}){
   $('wTerm').value=term; $('wMean').value=mean; $('wNote').value=note;
   wPickCat = cat && CATS.includes(cat) ? cat : CATS[0];
+  wPickGenre = (g && GENRES[g]) ? g : GENRE;   /* 지금 번역 중인 갈래로 미리 골라둡니다 */
+  renderGenrePick();
   renderCatPick();
   openS('wSheet','wBackdrop');
   if(!term) setTimeout(()=>$('wTerm').focus(),350);
@@ -3509,8 +3734,10 @@ $('wSave').addEventListener('click',()=>{
   /* 변수와 화면이 어긋나는 일이 없도록, 실제로 눌려 있는 버튼에서 읽습니다 */
   const onBtn=$('wCatPick').querySelector('button.on');
   const cat = onBtn ? onBtn.dataset.c : (CATS.includes(wPickCat)?wPickCat:CATS[0]);
+  const gOn=$('wGenrePick').querySelector('button.on');
+  const g = gOn ? gOn.dataset.g : wPickGenre;
   WORDS.push({id:String(Date.now())+Math.random().toString(36).slice(2,6),
-    term, mean:$('wMean').value.trim(), cat, note:$('wNote').value.trim(), at:Date.now()});
+    term, mean:$('wMean').value.trim(), cat, g, note:$('wNote').value.trim(), at:Date.now()});
   saveWords(); renderWords(); closeS('wSheet','wBackdrop'); toast('단어장에 넣었어요!');
 });
 /* 형식 지시는 시스템 쪽에만 두고, 사용자 메시지에는 단어만 보냅니다.
@@ -4336,6 +4563,19 @@ function offerResume(id){
   bar._t=setTimeout(()=>bar.classList.remove('show'), 12000);
 }
 
+/* ════════ 트위터 아이디 복사 ════════ */
+['twHandle','twHandle2','twHandle3'].forEach(k=>{
+  const b=$(k); if(!b) return;
+  b.addEventListener('click',async ()=>{
+    try{ await navigator.clipboard.writeText('@MYNAMEISYAJA'); }
+    catch(e){
+      const ta=document.createElement('textarea'); ta.value='@MYNAMEISYAJA';
+      document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+    }
+    toast('트위터 아이디를 복사했어요');
+  });
+});
+
 /* ════════ 맨 위로 ════════ */
 (function(){
   const up=$('topBtn'), down=$('botBtn');
@@ -4373,7 +4613,13 @@ function openHelp(section){
     const d=sheet.querySelector('details[data-h="'+section+'"]');
     if(d){
       d.open=true;
-      setTimeout(()=>{ sheet.scrollTop=Math.max(0, d.offsetTop-70); },60);
+      /* 이 항목을 감싸고 있는 큰 갈래도 함께 펼칩니다 */
+      let up=d.parentElement;
+      while(up && up!==sheet){ if(up.tagName==='DETAILS') up.open=true; up=up.parentElement; }
+      setTimeout(()=>{
+        const r=d.getBoundingClientRect(), sr=sheet.getBoundingClientRect();
+        sheet.scrollTop += (r.top - sr.top) - 60;
+      },80);
       return;
     }
   }
