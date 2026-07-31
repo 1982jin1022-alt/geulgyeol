@@ -427,6 +427,10 @@ sup.fn.wn{color:var(--pop);font-size:.66em}
 .fnp-x:active{background:var(--weak)}
 .fnp-body{overflow-y:auto;padding:0 16px calc(18px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}
 
+/* ════════════════════════════════════════════════════════════
+   홈 화면 아이콘 만들기
+   ── 사진을 규격(192·512)에 맞춰 잘라 파일로 내려줍니다.
+   ════════════════════════════════════════════════════════════ */
 /* ════════ 읽기 모드 — 블로그 글처럼 본문만 ════════ */
 #readerBar{
   display:none;position:sticky;top:0;z-index:40;
@@ -866,7 +870,7 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
       </div>
     </section>
 
-    <footer>글결 v41<br>원문 대조 · 각주 · 단어장 · 서재</footer>
+    <footer>글결 v45<br>원문 대조 · 각주 · 단어장 · 서재</footer>
   </div>
 
   <!-- ═══════════ 서재 탭 ═══════════ -->
@@ -1156,17 +1160,22 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
     <details data-h="quota">
       <summary>"한도에 걸렸어요"가 떠요</summary>
       <div class="in">
-        <p>번역은 구글 인공지능이 해주는데, 무료로 쓸 수 있는 양이 정해져 있어요. 그 양을 다 쓰면 이 안내가 뜹니다.</p>
-        <div class="box">한도는 <b>모델마다 따로</b> 걸려 있어요. 그래서 <b>모델을 바꾸면 그 자리에서 이어서 쓸 수 있습니다.</b> 이게 가장 빠른 해결책이에요.</div>
-        <p><b>1. 모델 바꾸기 (제일 빠름)</b></p>
-        <p>오류 상자에 나오는 <b>다른 모델로 바꾸기</b> 버튼을 누르거나, 설정에서 직접 고르세요. 이름에 <b>flash-lite</b>가 들어간 것이 한도가 가장 넉넉합니다.</p>
-        <p><b>2. 잠시 기다리기</b></p>
-        <p>1~2분 만에 풀리면 "잠깐 너무 많이 요청했어요"였던 거예요. 계속 안 되면 하루치를 다 쓴 것이고, <b>한국 시간 오후 4시쯤</b> 초기화됩니다. (겨울에는 오후 5시)</p>
-        <p><b>3. 아껴 쓰기</b></p>
+        <p>번역은 구글 인공지능이 해주는데, 무료로 쓸 수 있는 양이 정해져 있어요.</p>
+        <div class="box"><b>대부분은 그냥 두시면 됩니다.</b> 한도에 걸리면 앱이 알아서 <b>다른 모델로 갈아타고 번역을 이어갑니다.</b> 화면에 "한도에 걸려 ○○로 바꿔 이어가는 중"이라고 나오면 그 과정이에요.</p>
+        <p><b>왜 모델을 바꾸면 되나요?</b></p>
+        <p>한도는 <b>모델마다 따로</b> 걸려 있어요. A 모델을 다 썼어도 B 모델의 몫은 그대로 남아 있습니다. 그래서 바꾸기만 하면 그 자리에서 이어집니다.</p>
+        <p>앱은 <b>한도가 넉넉하고 빠른 모델부터</b> 차례로 골라요. 바뀐 모델은 설정에도 반영돼서 다음 번역부터 바로 쓰입니다.</p>
+        <p><b>그래도 안 될 때</b></p>
+        <p>"쓸 수 있는 모델을 모두 다 썼어요"가 뜨면 목록에 있는 모델을 전부 써버린 거예요. 이때는 이렇게 하세요.</p>
+        <ol>
+          <li>설정에서 <b>목록 새로고침</b> — 쓸 수 있는 모델이 더 있을 수 있어요.</li>
+          <li>설정에 <b>예비 키</b>를 넣어 두기 — 다른 구글 계정에서 받은 키요. 모델을 다 쓰면 자동으로 그 키로 넘어갑니다.</li>
+          <li>기다리기 — <b>한국 시간 오후 4시쯤</b> 초기화됩니다. (겨울에는 오후 5시)</li>
+        </ol>
+        <p><b>아껴 쓰는 법</b></p>
         <p>한도는 글자 수가 아니라 <b>요청 횟수</b>로 셉니다. 설정에서 <b>한 번에 보낼 분량</b>을 5,000자로 올리면 요청이 거의 절반으로 줄어요.</p>
         <p>서재에 저장한 글을 다시 볼 때는 <b>열기</b>를 쓰세요. 번역하기를 또 누르면 한도를 다시 씁니다.</p>
-        <p><b>4. 다른 계정</b></p>
-        <p>한도는 계정 단위라, 같은 계정에서 키만 새로 만들어도 늘지 않아요. 정말 급하면 <b>다른 구글 계정</b>으로 키를 받으면 됩니다.</p>
+        <p>1~2분 만에 풀리는 건 하루 한도가 아니라 "잠깐 너무 많이 요청했어요"인 경우예요. 그건 기다리면 저절로 풀립니다.</p>
       </div>
     </details>
 
@@ -1224,7 +1233,7 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
 
         <label class="field" for="apikey2">예비 키 <span class="lbl-sub">· 선택</span></label>
         <input type="password" id="apikey2" placeholder="다른 계정에서 받은 키" autocomplete="off" spellcheck="false">
-        <p class="hint">첫 번째 키가 한도에 걸리면 <b>자동으로 이 키로 바꿔서 이어갑니다.</b> 다른 구글 계정으로 받은 키를 넣어 두세요.</p>
+        <p class="hint">한도에 걸리면 앱이 <b>먼저 다른 모델로 바꿔서</b> 이어갑니다. 모델을 전부 써버렸을 때만 이 예비 키로 넘어가요. 다른 구글 계정에서 받은 키를 넣어 두세요.</p>
 
         <label class="field" for="model">모델</label>
         <div class="urlrow">
@@ -1370,7 +1379,12 @@ function gotoTab(name){
   document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on', x.dataset.tab===name));
   TABS.forEach(t=>$('tab-'+t).hidden = (t!==name));
   hideSelPop(); hideFnPop();
-  if(name!=='tr') closeFnPanel();
+  if(name!=='tr'){
+    $('fnPanel').classList.remove('show');
+    document.body.classList.remove('fn-open');
+    store.set('fnopen','');
+  }
+  $('fnFab').classList.toggle('show', name==='tr' && fnAvailable());
   window.scrollTo({top:0});
   const tb=$('topBtn'); if(tb) tb.classList.remove('show');
 }
@@ -1480,7 +1494,7 @@ function loadFont(id){
   const l=document.createElement('link'); l.rel='stylesheet'; l.href=f.url;
   document.head.appendChild(l); loadedF.add(id);
 }
-const DEFAULTS={theme:'dawn',font:'pretendard',size:17,lead:2.0,gap:1.1,indent:0,tap:0};
+const DEFAULTS={theme:'dawn',font:'pretendard',size:17,lead:2.0,gap:1.1,indent:0,tap:1};
 let R={...DEFAULTS};
 function applyRead(){
   document.documentElement.dataset.theme=R.theme;
@@ -1639,17 +1653,33 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
     return b;
   };
 
-  const base=`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}`;
-  let useKey=key, triedAlt=false;
+  let curModel=model, useKey=key, triedAlt=false;
+  const tried=new Set([model]);
+  const base=()=>`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(curModel)}`;
   const headers=()=>({'Content-Type':'application/json','x-goog-api-key':useKey});
 
-  /* 한도에 걸리거나 거부당하면 예비 키로 한 번 갈아탑니다 */
+  /* ① 한도에 걸리면 먼저 "다른 모델"로 갈아탑니다.
+        한도는 모델마다 따로 걸려 있어서, 대개 이것만으로 그냥 이어집니다. */
+  function tryNextModel(){
+    if(opts.keepModel) return false;
+    const pool=(MODELS.length?MODELS:FALLBACK_MODELS).filter(m=>!tried.has(m));
+    if(!pool.length) return false;
+    pool.sort((a,b)=>modelScore(b)-modelScore(a));
+    curModel=pool[0]; tried.add(curModel);
+    /* 바뀐 모델을 설정에도 반영해 다음 조각부터 바로 쓰게 합니다 */
+    try{ $('model').value=curModel; store.set('model',curModel); }catch(e){}
+    say(`한도에 걸려 ${curModel} 로 바꿔 이어가는 중`);
+    return true;
+  }
+
+  /* ② 쓸 모델을 다 써버렸을 때만 예비 키로 넘어갑니다 */
   function tryAltKey(){
     if(triedAlt) return false;
     const a=$('apikey2').value.trim(), b=$('apikey').value.trim();
     const alt = (useKey===b && a) ? a : ((useKey===a && b) ? b : '');
     if(!alt) return false;
     useKey=alt; triedAlt=true;
+    tried.clear(); tried.add(curModel);   /* 새 키에서는 모델을 다시 시도해 볼 수 있습니다 */
     say('예비 키로 바꿔 다시 시도하는 중');
     return true;
   }
@@ -1668,18 +1698,18 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
     return false;
   }
 
-  for(let a=0;a<6;a++){
+  for(let a=0;a<12;a++){
     /* ── 스트리밍: 글자가 만들어지는 대로 바로 보여줍니다 ── */
     if(opts.onChunk){
       try{
-        const res=await fetch(base+':streamGenerateContent?alt=sse',
+        const res=await fetch(base()+':streamGenerateContent?alt=sse',
           {method:'POST',headers:headers(),body:JSON.stringify(makeBody())});
         if(res.status===400){
           const t=await res.text();
           if(retry400()) continue;
           throw new Error(errMsg(400, safeJson(t)));
         }
-        if(res.status===429 && tryAltKey()) continue;
+        if(res.status===429 && (tryNextModel() || tryAltKey())) continue;
         if(res.status===403 && tryAltKey()) continue;
         if((res.status===429||res.status>=500) && a<5){
           await waitVisibly(res.status===429?20:6, res.status===429?'사용량 한도에 걸렸어요':'서버가 바빠요');
@@ -1724,10 +1754,10 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
     /* ── 일반 방식 ── */
     let res;
     try{
-      res=await fetch(base+':generateContent',{method:'POST',headers:headers(),body:JSON.stringify(makeBody())});
+      res=await fetch(base()+':generateContent',{method:'POST',headers:headers(),body:JSON.stringify(makeBody())});
     }catch(e){ throw new Error('인터넷 연결에 실패했어요. 웹 주소(https)로 열었는지 확인해 주세요.'); }
 
-    if(res.status===429 && tryAltKey()) continue;
+    if(res.status===429 && (tryNextModel() || tryAltKey())) continue;
     if(res.status===403 && tryAltKey()) continue;
     if((res.status===429||res.status>=500)&&a<5){
       await waitVisibly(res.status===429?20:6, res.status===429?'사용량 한도에 걸렸어요':'서버가 바빠요');
@@ -1776,14 +1806,12 @@ function errMsg(status,data){
   if(status===429){
     /* 하루 한도와 분당 한도는 대처법이 달라서 구분해 줍니다 */
     if(/per\s*day|PerDay|daily/i.test(msg))
-      return '오늘 이 모델로 쓸 수 있는 양을 다 썼어요.\n\n'+
-        '▸ 지금 바로 이어서 하려면\n'+
-        '   설정에서 모델을 다른 것으로 바꾸세요. 한도는 모델마다 따로 걸려 있어서,\n'+
-        '   바꾸면 그 모델의 몫을 새로 쓸 수 있어요. flash-lite 계열이 한도가 넉넉합니다.\n\n'+
-        '▸ 기다리려면\n'+
-        '   한국 시간 오후 4시쯤 초기화됩니다. (겨울에는 오후 5시)\n\n'+
-        '▸ 모델을 다 써버렸다면\n'+
-        '   다른 구글 계정으로 키를 새로 받으면 한도도 새로 받습니다.';
+      return '쓸 수 있는 모델을 모두 다 썼어요.\n\n'+
+        '한도에 걸리면 앱이 알아서 다른 모델로 바꿔 이어갑니다.\n'+
+        '이 안내가 떴다는 건 목록에 있는 모델을 전부 써버렸다는 뜻이에요.\n\n'+
+        '▸ 설정에서 [목록 새로고침]을 눌러 보세요. 쓸 수 있는 모델이 더 있을 수 있어요.\n'+
+        '▸ 예비 키를 넣어 두면 다른 계정 몫으로 이어서 쓸 수 있어요.\n'+
+        '▸ 기다리면 한국 시간 오후 4시쯤 초기화됩니다. (겨울에는 오후 5시)';
     return '잠깐 너무 많이 요청했어요. 1~2분 뒤에 다시 해주세요.\n\n'+
       '자주 걸리면 설정에서 "한 번에 보낼 분량"을 5,000자로 올려 보세요. 요청 횟수가 줄어듭니다.';
   }
@@ -1962,7 +1990,7 @@ function renderNotes(){
   $('fnBtnNum').textContent = n || '';
   $('fnFabNum').textContent = n || '';
   $('fnCount').textContent = n ? `${n}개` : '';
-  $('fnFab').classList.toggle('show', n>0 && !$('fnPanel').classList.contains('show'));
+  $('fnFab').classList.toggle('show', fnAvailable() && !$('fnPanel').classList.contains('show'));
   if(!n){ closeFnPanel(); $('fnList').innerHTML=''; return; }
 
   let html='';
@@ -1998,10 +2026,16 @@ function openFnPanel(){
   document.body.classList.add('fn-open');
   store.set('fnopen','1');
 }
+/* 각주는 번역 탭에서 글을 보고 있을 때만 의미가 있습니다 */
+function fnAvailable(){
+  if(!DOC) return false;
+  if($('tab-tr') && $('tab-tr').hidden) return false;
+  return ((DOC.notes||[]).length + (DOC.wnotes||[]).length) > 0;
+}
 function closeFnPanel(){
   $('fnPanel').classList.remove('show');
   document.body.classList.remove('fn-open');
-  $('fnFab').classList.toggle('show', !!(DOC && DOC.notes.length));
+  $('fnFab').classList.toggle('show', fnAvailable());
   store.set('fnopen','');
 }
 $('fnPanelBtn').addEventListener('click',()=>{
@@ -2124,7 +2158,8 @@ window.addEventListener('scroll',hideFnPop,{passive:true});
 let running=false, tickTimer=null;
 async function translate(){
   if(running) return;
-  const key=$('apikey').value.trim(), model=$('model').value;
+  const key=$('apikey').value.trim();
+  let model=$('model').value;
   const limit=+$('chunk').value;
   const rawSrc=$('source').value;
   const memo=cleanText($('memo').value), src=cleanText(rawSrc).trim();
@@ -2300,6 +2335,7 @@ async function translate(){
     }
 
     for(let i=0;i<chunks.length;i++){
+      model=$('model').value;      /* 도중에 모델이 바뀌었으면 이어받습니다 */
       const base = chunks.length>1 ? `옮기는 중 · ${i+1} / ${chunks.length}` : '옮기는 중이에요';
       /* 남은 시간: 첫 조각은 예상값으로, 이후엔 실제로 걸린 속도로 */
       const rest = i===0
@@ -3715,6 +3751,32 @@ function busy(on, title, sub){
    ── 길게 누르지 않으니 폰 기본 메뉴(복사·검색)가 뜨지 않습니다.
    ════════════════════════════════════════════════════════════ */
 const WORD_BREAK=/[\s.,!?…·:;'"“”‘’()\[\]{}「」『』〈〉《》、。！？~\-—–\/\\]/;
+
+/* 일본어·중국어는 띄어쓰기가 없어서, 공백으로만 자르면 문장이 통째로 잡힙니다.
+   그래서 브라우저가 가진 언어별 낱말 규칙(Intl.Segmenter)을 먼저 씁니다. */
+let SEGMENTER=null;
+try{ if(window.Intl && Intl.Segmenter) SEGMENTER=new Intl.Segmenter(undefined,{granularity:'word'}); }catch(e){}
+
+function wordRangeAt(text, off){
+  if(SEGMENTER){
+    try{
+      for(const seg of SEGMENTER.segment(text)){
+        const a=seg.index, b=a+seg.segment.length;
+        if(off>=a && off<b){
+          if(!seg.isWordLike) return null;      /* 공백·구두점을 짚은 경우 */
+          return [a,b];
+        }
+      }
+    }catch(e){}
+  }
+  /* 예비 방법 — 공백·구두점 기준 */
+  let a=off, b=off;
+  if(WORD_BREAK.test(text[a]||'')) return null;
+  while(a>0 && !WORD_BREAK.test(text[a-1])) a--;
+  while(b<text.length && !WORD_BREAK.test(text[b])) b++;
+  return [a,b];
+}
+
 function pickWordAt(x,y){
   let pos=null;
   if(document.caretPositionFromPoint){
@@ -3725,13 +3787,20 @@ function pickWordAt(x,y){
     if(r) pos={node:r.startContainer, off:r.startOffset};
   }
   if(!pos || !pos.node || pos.node.nodeType!==3) return false;
+
   const t=pos.node.nodeValue||'';
-  let a=pos.off, b=pos.off;
-  if(a>=t.length) a=b=t.length-1;
-  if(a<0 || WORD_BREAK.test(t[a]||'')) return false;
-  while(a>0 && !WORD_BREAK.test(t[a-1])) a--;
-  while(b<t.length && !WORD_BREAK.test(t[b])) b++;
-  if(b-a<1 || b-a>30) return false;
+  let off=pos.off;
+  if(off>=t.length) off=t.length-1;
+  if(off<0) return false;
+
+  let r=wordRangeAt(t,off);
+  /* 글자 사이를 짚었을 때는 바로 앞 글자로 한 번 더 시도 */
+  if(!r && off>0) r=wordRangeAt(t,off-1);
+  if(!r) return false;
+
+  const [a,b]=r;
+  if(b-a<1 || b-a>20) return false;
+
   const rng=document.createRange();
   rng.setStart(pos.node,a); rng.setEnd(pos.node,b);
   const sel=window.getSelection();
@@ -3854,6 +3923,8 @@ $('hideStart').addEventListener('click',()=>{
    ════════════════════════════════════════════════════════════ */
 (function init(){
   try{ R={...DEFAULTS,...JSON.parse(store.get('read','{}'))}; }catch(e){}
+  /* 예전에 쓰던 분들도 한 번은 켜진 상태로 만나보도록 (그 뒤엔 고른 대로) */
+  if(store.get('tapdefault')!=='1'){ R.tap=1; store.set('tapdefault','1'); }
   if(!FONTS[R.font]) R.font=DEFAULTS.font;
   if(!THEMES.some(t=>t.id===R.theme)) R.theme=DEFAULTS.theme;
   applyRead(); paintMascots();
