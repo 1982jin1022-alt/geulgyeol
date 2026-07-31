@@ -870,7 +870,7 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
       </div>
     </section>
 
-    <footer>글결 v45<br>원문 대조 · 각주 · 단어장 · 서재</footer>
+    <footer>글결 v46<br>원문 대조 · 각주 · 단어장 · 서재</footer>
   </div>
 
   <!-- ═══════════ 서재 탭 ═══════════ -->
@@ -2385,9 +2385,19 @@ async function translate(){
           {key:'new',  label:'새 글로 따로 저장', desc:'서재에 별개의 글로 하나 더 만듭니다.'}
         ]);
       if(pick==='add'){
-        DOC.pairs = (prev.pairs||[]).concat(DOC.pairs);
+        /* 제목 줄은 맨 위에 하나만 두고, 본문끼리만 이어붙입니다 */
+        const headNew = DOC.pairs.filter(x=>x.t);
+        const headOld = (prev.pairs||[]).filter(x=>x.t);
+        const head = headNew.length ? headNew : headOld;   /* 제목은 딱 하나만 */
+        const bodyNew = DOC.pairs.filter(x=>!x.t);
+        const bodyOld = (prev.pairs||[]).filter(x=>!x.t);
+        DOC.pairs = head.concat(bodyOld, bodyNew);
         (prev.notes||[]).forEach(n=>{ if(!DOC.notes.some(x=>x.or===n.or)) DOC.notes.push(n); });
         (prev.wnotes||[]).forEach(n=>{ if(!(DOC.wnotes||[]).some(x=>x.term===n.term)) (DOC.wnotes=DOC.wnotes||[]).push(n); });
+        if(prev.src && prev.src.trim()){
+          const merged = prev.src.trim() + '\n\n' + $('source').value.trim();
+          $('source').value = merged; store.set('source', merged); updateCount();
+        }
         reannotate(); renderDoc();
       } else if(pick==='new'){
         curArc=''; store.set('curarc','');
@@ -2484,14 +2494,44 @@ function saveArchive(auto){
   return id;
 }
 
-function loadArchive(id){
+/* ── 읽기: 작업 중이던 번역 화면을 건드리지 않습니다 ──
+   읽기를 끝내면 원래 보던 내용으로 되돌아갑니다. */
+let readSnap=null;
+
+function readArchive(id){
   const d=arcGet(id);
   if(!d) return toast('내용을 불러오지 못했어요');
-  $('docTitle').value=d.title||'';
-  $('srcUrl').value=d.srcUrl||'';
-  $('source').value=d.src||'';
-  $('memo').value=d.memo||'';
-  curTitleKo=d.titleKo||'';
+  const rec=ARC.find(x=>x.id===id)||{};
+  if(!readSnap){
+    readSnap={ doc: DOC ? JSON.parse(JSON.stringify(DOC)) : null,
+               arc: curArc, titleKo: curTitleKo };
+  }
+  DOC={pairs:d.pairs||[], notes:d.notes||[], wnotes:d.wnotes||[]};
+  curArc=id;
+  curTitleKo = d.titleKo || rec.titleKo || d.title || rec.title || '';
+  renderDoc(); renderArc();
+  gotoTab('tr');
+  enterReader();
+  setTimeout(()=>offerResume(id), 400);
+}
+
+/* ── 불러오기: 번역 화면으로 통째로 가져옵니다 (수정·재번역용) ── */
+async function loadArchive(id){
+  const d=arcGet(id);
+  if(!d) return toast('내용을 불러오지 못했어요');
+  if($('source').value.trim()){
+    if(!await askConfirm('번역 화면으로 불러올까요?',
+        '지금 번역 화면에 적어둔 제목·본문·메모가 이 글의 내용으로 바뀝니다.','불러오기')) return;
+  }
+  readSnap=null;
+  /* 예전에 저장된 글은 일부 항목이 비어 있을 수 있어 목록 쪽 기록으로 메웁니다.
+     (그냥 d.title 만 쓰면 제목이 빈칸으로 지워져 버려요) */
+  const rec=ARC.find(x=>x.id===id)||{};
+  $('docTitle').value = d.title || rec.title || d.titleKo || rec.titleKo || '';
+  $('srcUrl').value   = d.srcUrl||'';
+  $('source').value   = d.src||'';
+  $('memo').value     = d.memo||'';
+  curTitleKo = d.titleKo || rec.titleKo || '';
   DOC={pairs:d.pairs||[], notes:d.notes||[], wnotes:d.wnotes||[]};
   curArc=id;
   store.set('curarc',id); store.set('title',$('docTitle').value);
@@ -2500,8 +2540,8 @@ function loadArchive(id){
   updateCount(); updateTitleKo(); updateMemoChip();
   renderDoc(); renderArc();
   gotoTab('tr');
-  enterReader();
-  setTimeout(()=>offerResume(id), 400);
+  document.body.classList.remove('reading');
+  toast('번역 화면으로 불러왔어요');
 }
 
 async function newDoc(){
@@ -2641,7 +2681,8 @@ function renderArc(){
       </div>
       <div class="ameta">${a.folder?`<span class="fchip">${esc(a.folder)}</span> · `:''}${new Date(a.at).toLocaleDateString('ko-KR')} · ${(a.chars||0).toLocaleString()}자</div>
       ${arTidy?'':`<div class="btn-row">
-        <button class="btn" data-act="open" data-id="${a.id}">열기</button>
+        <button class="btn" data-act="read" data-id="${a.id}">읽기</button>
+        <button class="btn ghost" data-act="open" data-id="${a.id}">불러오기</button>
         <button class="btn ghost" data-act="rename" data-id="${a.id}">제목</button>
         <button class="btn ghost" data-act="folder" data-id="${a.id}">폴더</button>
       </div>`}
@@ -2687,6 +2728,7 @@ $('arList').addEventListener('click',async e=>{
     $('arAll').checked = ARC.length>0 && arSel.size===ARC.length;
     return;
   }
+  if(b.dataset.act==='read') return readArchive(id);
   if(b.dataset.act==='open') return loadArchive(id);
   if(b.dataset.act==='folder') return pickFolder(id);
   if(b.dataset.act==='del'){
@@ -3828,6 +3870,16 @@ function enterReader(){
 function exitReader(toArchive){
   document.body.classList.remove('reading');
   closeFnPanel();
+  /* 읽기용으로 열었던 거라면 작업 중이던 내용으로 되돌립니다 */
+  if(readSnap){
+    DOC = readSnap.doc;
+    curArc = readSnap.arc;
+    curTitleKo = readSnap.titleKo;
+    readSnap = null;
+    store.set('curarc', curArc||'');
+    if(DOC && DOC.pairs && DOC.pairs.length) renderDoc(); else showEmpty();
+    renderArc(); updateTitleKo();
+  }
   if(toArchive) gotoTab('ar'); else window.scrollTo({top:0});
 }
 $('readerOn').addEventListener('click',enterReader);
