@@ -1,0 +1,15 @@
+# 백업 파일 — API 키와 GitHub 토큰이 들어 있습니다. 절대 커밋 금지.
+글결_백업_*.json
+*백업*.json
+backup*.json
+
+# 작업 기록 (로컬 전용)
+.claude/worklog/
+
+# 잡동사니
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
+*.tmp
+*.zip
