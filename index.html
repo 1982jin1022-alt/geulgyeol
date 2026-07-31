@@ -44,6 +44,54 @@
   --g1:rgba(211,175,120,.30); --g2:rgba(148,190,165,.24); --g3:rgba(226,201,160,.26);
   --glass:.80; --glass-strong:.94;
 }
+[data-theme="custom"]{     /* 내 테마 — 실제 값은 코드에서 채웁니다 */
+  --paper:#F6F3FC; --card:#FFFFFF; --ink:#312B44; --soft:#7A719A;
+  --line:#E7E1F5; --accent:#7A69E2; --weak:#F0ECFD; --pop:#F09FC2; --warn:#DE5F77;
+  --g1:rgba(139,118,255,.30); --g2:rgba(255,166,208,.26); --g3:rgba(140,196,255,.24);
+  --glass:.80; --glass-strong:.93;
+}
+[data-theme="sky"]{        /* 하늘 */
+  --paper:#EFF5FC; --card:#FCFDFF; --ink:#25344A; --soft:#6C7E93;
+  --line:#D8E4F2; --accent:#3E7FBE; --weak:#E4EEFA; --pop:#7BC3D8; --warn:#C4574F;
+  --g1:rgba(90,150,225,.26); --g2:rgba(130,205,225,.22); --g3:rgba(170,190,240,.22);
+  --glass:.80; --glass-strong:.94;
+}
+[data-theme="apricot"]{    /* 살구 */
+  --paper:#FFF3EA; --card:#FFFCF9; --ink:#46332A; --soft:#8A7264;
+  --line:#F6DFCB; --accent:#D97C48; --weak:#FFEADB; --pop:#E8B678; --warn:#C4553F;
+  --g1:rgba(240,160,105,.28); --g2:rgba(245,205,150,.24); --g3:rgba(235,175,150,.22);
+  --glass:.80; --glass-strong:.94;
+}
+[data-theme="mist"]{       /* 안개 */
+  --paper:#F2F3F5; --card:#FCFCFD; --ink:#2E3238; --soft:#757C87;
+  --line:#E0E3E9; --accent:#5A6B7D; --weak:#E8EBF0; --pop:#A6B3C0; --warn:#B65A55;
+  --g1:rgba(120,140,165,.20); --g2:rgba(160,175,190,.18); --g3:rgba(140,155,175,.16);
+  --glass:.82; --glass-strong:.95;
+}
+[data-theme="midnight"]{   /* 자정 */
+  --paper:#0E1626; --card:#16223A; --ink:#DCE6F5; --soft:#8DA0BE;
+  --line:#22314E; --accent:#6FA8FF; --weak:#1B2A46; --pop:#7ED2DE; --warn:#F08A96;
+  --g1:rgba(70,120,220,.30); --g2:rgba(90,190,210,.20); --g3:rgba(60,90,170,.26);
+  --glass:.74; --glass-strong:.92;
+}
+[data-theme="forest"]{     /* 숲 */
+  --paper:#101A14; --card:#17251C; --ink:#DCE8DE; --soft:#8DA692;
+  --line:#233729; --accent:#6FC98A; --weak:#1A2D20; --pop:#D8C079; --warn:#E5877A;
+  --g1:rgba(80,180,120,.24); --g2:rgba(200,180,110,.16); --g3:rgba(60,130,100,.24);
+  --glass:.74; --glass-strong:.92;
+}
+[data-theme="cocoa"]{      /* 코코아 */
+  --paper:#1A1412; --card:#251C19; --ink:#EADFD6; --soft:#A69488;
+  --line:#372A24; --accent:#C99B72; --weak:#2B201B; --pop:#D7A69E; --warn:#E58A7A;
+  --g1:rgba(200,150,105,.22); --g2:rgba(215,165,160,.18); --g3:rgba(150,110,80,.22);
+  --glass:.74; --glass-strong:.92;
+}
+[data-theme="amethyst"]{   /* 자수정 */
+  --paper:#170F1F; --card:#22182D; --ink:#E9DEF5; --soft:#A392B6;
+  --line:#32243E; --accent:#B983FF; --weak:#291D37; --pop:#EF9ECF; --warn:#F08A96;
+  --g1:rgba(150,90,240,.30); --g2:rgba(235,140,205,.22); --g3:rgba(100,70,180,.26);
+  --glass:.74; --glass-strong:.92;
+}
 [data-theme="night"]{
   --paper:#161425; --card:#242038; --ink:#E7E3F3; --soft:#A099BE;
   --line:#342F4E; --accent:#AE9DFF; --weak:#2E2848; --pop:#F09EC4; --warn:#F08A96;
@@ -189,7 +237,7 @@ label.field{display:block;font-size:11px;font-weight:700;color:var(--soft);lette
 label.field:first-child{margin-top:0}
 /* 안내 글씨는 살짝 작게 — 긴 문구도 잘리지 않도록 */
 input::placeholder,textarea::placeholder{font-size:13.5px;opacity:.75}
-input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]),select,textarea{
+input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=color]),select,textarea{
   width:100%;background:color-mix(in srgb,var(--paper) 60%,transparent);color:var(--ink);
   border:1px solid color-mix(in srgb,var(--line) 85%,transparent);border-radius:13px;
   padding:12px 13px;font-size:15px;font-family:inherit;line-height:1.55;outline:none;
@@ -272,6 +320,22 @@ button{font-family:inherit}
   text-indent:var(--read-indent);margin:0 0 var(--read-gap);word-break:break-word;white-space:pre-line
 }
 #output .para:last-child{margin-bottom:0}
+#output .doc-h,.cmp .dst.doc-h{
+  font-size:calc(var(--read-size) * 1.1);font-weight:700;color:var(--accent);
+  text-indent:0;margin-top:calc(var(--read-gap) * 1.4);margin-bottom:calc(var(--read-gap) * .5);
+  padding-bottom:5px;border-bottom:1px solid color-mix(in srgb,var(--accent) 22%,transparent)
+}
+#output .doc-li,.cmp .dst.doc-li{
+  text-indent:0;padding-left:1.5em;position:relative;
+  margin-bottom:calc(var(--read-gap) * .45)
+}
+#output .doc-li::before,.cmp .dst.doc-li::before{
+  content:'·';position:absolute;left:.45em;color:var(--accent);font-weight:700
+}
+#output .doc-num::before,.cmp .dst.doc-num::before{
+  content:attr(data-n) '.';left:0;font-size:.85em;font-weight:700
+}
+
 #output .doc-title,.cmp.is-title .dst{
   font-size:calc(var(--read-size) * 1.35);font-weight:700;line-height:1.5;
   text-indent:0;margin-bottom:calc(var(--read-gap) * 1.6);letter-spacing:-.02em
@@ -470,19 +534,22 @@ body.reading .viewbar{
 #resume span{font-size:13px;color:var(--ink);white-space:nowrap}
 #resume .rx{border:none;background:transparent;color:var(--soft);font-size:14px;cursor:pointer;padding:4px 6px}
 
-#topBtn{
+#navBtns{
   position:fixed;left:16px;bottom:calc(20px + env(safe-area-inset-bottom));z-index:54;
-  width:46px;height:46px;border:none;border-radius:50%;cursor:pointer;
+  display:flex;flex-direction:column;gap:8px;pointer-events:none
+}
+#topBtn,#botBtn{
+  width:46px;height:46px;border:none;border-radius:50%;cursor:pointer;pointer-events:auto;
   display:none;place-items:center;font-size:19px;line-height:1;color:var(--accent);
   background:color-mix(in srgb,var(--card) 88%,transparent);
   -webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);
   box-shadow:0 8px 22px -8px rgba(0,0,0,.35),inset 0 0 0 1px color-mix(in srgb,var(--accent) 22%,transparent);
   transition:transform .16s, opacity .2s
 }
-#topBtn.show{display:grid}
-#topBtn:active{transform:scale(.9)}
+#topBtn.show,#botBtn.show{display:grid}
+#topBtn:active,#botBtn:active{transform:scale(.9)}
 /* 각주 창이 열리면 그 위로 비켜섭니다 */
-body.fn-open #topBtn{bottom:calc(48vh + 16px)}
+body.fn-open #navBtns{bottom:calc(48vh + 16px)}
 
 #fnFab{
   position:fixed;right:16px;bottom:calc(20px + env(safe-area-inset-bottom));z-index:54;display:none;
@@ -684,7 +751,54 @@ input[type=url]{font-size:14px;letter-spacing:-.01em}
 .handle{width:42px;height:4px;border-radius:99px;background:var(--line);margin:2px auto 18px}
 .sheet h3{font-size:11px;font-weight:700;color:var(--soft);letter-spacing:.1em;margin:24px 0 11px;text-transform:uppercase}
 .sheet h3:first-of-type{margin-top:0}
-.covers{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+/* 읽기 설정 안의 접이식 구획 */
+.rsec{
+  border-radius:16px;margin-bottom:9px;overflow:hidden;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--line) 88%,transparent)
+}
+.rsec>summary{
+  list-style:none;cursor:pointer;padding:13px 15px;
+  font-family:var(--cute);font-size:14.5px;color:var(--ink);
+  display:flex;align-items:center;gap:8px
+}
+.rsec>summary::-webkit-details-marker{display:none}
+.rsec>summary::after{content:'▾';margin-left:auto;font-size:11px;color:var(--soft);transition:transform .2s}
+.rsec[open]>summary::after{transform:rotate(180deg)}
+.rsec[open]>summary{color:var(--accent)}
+.rsec>*:not(summary){padding:0 15px 15px}
+
+/* 테마 갈래 (접이식 안의 접이식) */
+.rsub{margin-bottom:8px}
+.rsub:last-child{margin-bottom:0}
+.rsub>summary{
+  list-style:none;cursor:pointer;padding:9px 11px;border-radius:12px;
+  font-size:13px;font-weight:700;color:var(--soft);
+  display:flex;align-items:baseline;gap:8px;
+  background:color-mix(in srgb,var(--weak) 55%,transparent)
+}
+.rsub>summary::-webkit-details-marker{display:none}
+.rsub>summary em{font-style:normal;font-weight:500;font-size:11px;opacity:.8}
+.rsub>summary::after{content:'＋';margin-left:auto;font-size:12px;opacity:.6}
+.rsub[open]>summary{color:var(--accent)}
+.rsub[open]>summary::after{content:'－'}
+.cover-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;padding-top:9px}
+.crow{display:flex;align-items:center;gap:11px;margin-bottom:9px}
+.crow input[type=color]{
+  flex:none;width:48px;height:48px;padding:3px;border:none;border-radius:15px;cursor:pointer;
+  background:color-mix(in srgb,var(--card) 80%,transparent);
+  box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--line) 90%,transparent);
+  -webkit-appearance:none;appearance:none
+}
+.crow input[type=color]::-webkit-color-swatch-wrapper{padding:4px}
+.crow input[type=color]::-webkit-color-swatch{border:none;border-radius:10px}
+.crow input[type=color]:disabled{opacity:.35;cursor:default}
+.crow .ctext{flex:1;min-width:0;line-height:1.45}
+.crow .ctext b{display:block;font-size:14px}
+.crow .ctext span{font-size:11.5px;color:var(--soft)}
+.crow .cuse{flex:none;display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--soft);cursor:pointer}
+.crow .cuse input{width:16px;height:16px;accent-color:var(--accent);margin:0}
+
+.covers{display:block}
 .cover{border:none;border-radius:16px;padding:0;overflow:hidden;cursor:pointer;
   background:color-mix(in srgb,var(--card) 60%,transparent);
   box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--line) 90%,transparent);transition:.16s}
@@ -800,7 +914,7 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
       </div>
       <div class="card-body">
         <textarea id="memo" placeholder="예) 프로세카 원더랜즈×쇼타임 — 유원지 극단이라 전반적으로 밝고 과장된 쇼 톤. 대사에 연극조 감탄사가 잦고, 진지한 장면에도 유머가 남아 있음.&#10;&#10;예) 아이나나 이누마루 토우마(狗丸トウマ) — ŹOOĻ 리더. 반말에 직설적이고 말투가 거칠지만 속은 다정한 편. 비아냥보다 직구로."></textarea>
-        <p class="hint">작품 분위기, 인물 성격, 말투, 호칭 습관 등을 적으면 번역에 반영돼요. 비워 두면 일반 소설 번역으로 처리합니다.</p>
+        <p class="hint" id="memoHint"></p>
       </div>
     </section>
 
@@ -811,6 +925,10 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
         <button class="btn ghost" id="newDoc">새 글</button>
         <button class="btn ghost" id="loadFile">txt 파일</button>
       </div>
+
+      <label class="field">글 갈래</label>
+      <div class="catbar" id="genrebar"></div>
+      <p class="hint" id="genreNote" style="margin:0 0 4px"></p>
       <!-- ① 작품 정보 — 그냥 적어두는 칸들 -->
       <label class="field" for="docTitle">제목</label>
       <input type="text" id="docTitle" placeholder="작품 제목">
@@ -873,7 +991,7 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
       </div>
     </section>
 
-    <footer>글결 v47<br>원문 대조 · 각주 · 단어장 · 서재</footer>
+    <footer>글결 v53<br>원문 대조 · 각주 · 단어장 · 서재</footer>
   </div>
 
   <!-- ═══════════ 서재 탭 ═══════════ -->
@@ -962,7 +1080,10 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
   <button class="btn" id="resumeGo">이어읽기</button>
   <button class="rx" id="resumeX" aria-label="닫기">✕</button>
 </div>
-<button id="topBtn" title="맨 위로" aria-label="맨 위로">↑</button>
+<div id="navBtns">
+  <button id="topBtn" title="맨 위로" aria-label="맨 위로">↑</button>
+  <button id="botBtn" title="맨 아래로" aria-label="맨 아래로">↓</button>
+</div>
 <button id="fnFab">각주 <b id="fnFabNum"></b></button>
 <div id="fnPanel">
   <div class="fnp-head">
@@ -979,9 +1100,18 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
 <div class="backdrop" id="backdrop"></div>
 <div class="sheet" id="sheet" role="dialog" aria-label="읽기 설정">
   <div class="handle"></div>
-  <h3>테마</h3><div class="covers" id="covers"></div>
-  <h3>본문 글꼴</h3><div id="fonts"></div>
-  <h3>마스코트</h3>
+  <details class="rsec" open>
+    <summary>테마</summary>
+    <div class="covers" id="covers"></div>
+  </details>
+
+  <details class="rsec">
+    <summary>본문 글꼴</summary>
+    <div id="fonts"></div>
+  </details>
+
+  <details class="rsec">
+    <summary>마스코트</summary>
   <div class="mrow">
     <div class="mprev"><span class="mslot" data-anim="bob" data-size="56"></span></div>
     <div style="flex:1">
@@ -993,13 +1123,18 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
     </div>
   </div>
   <input type="file" id="mascotInput" accept="image/*" hidden>
-  <h3>여백과 크기</h3>
+  </details>
+
+  <details class="rsec" open>
+    <summary>여백과 크기</summary>
   <div class="slider"><label for="sSize">글자</label><input type="range" id="sSize" min="14" max="26" step="1"><output id="oSize"></output></div>
   <div class="slider"><label for="sLead">줄 간격</label><input type="range" id="sLead" min="1.5" max="2.6" step="0.05"><output id="oLead"></output></div>
   <div class="slider"><label for="sGap">문단 사이</label><input type="range" id="sGap" min="0.3" max="2.2" step="0.1"><output id="oGap"></output></div>
   <label class="toggle"><input type="checkbox" id="cIndent"><span>문단 첫 줄 들여쓰기</span></label>
   <label class="toggle"><input type="checkbox" id="cTap"><span>단어를 한 번 탭하면 바로 선택</span></label>
   <p class="hint" style="margin:0 0 4px">켜면 길게 누르지 않아도 돼요. 폰의 복사·검색 메뉴가 뜨지 않습니다.</p>
+  </details>
+
   <h3>미리보기</h3>
   <div class="preview">
     <p>그날 밤, 창밖에는 조용히 눈이 내리고 있었다.</p>
@@ -1389,7 +1524,7 @@ function gotoTab(name){
   }
   $('fnFab').classList.toggle('show', name==='tr' && fnAvailable());
   window.scrollTo({top:0});
-  const tb=$('topBtn'); if(tb) tb.classList.remove('show');
+  ['topBtn','botBtn'].forEach(k=>{ const b=$(k); if(b) b.classList.remove('show'); });
 }
 document.querySelectorAll('.tabs button').forEach(b=>
   b.addEventListener('click',()=>gotoTab(b.dataset.tab)));
@@ -1465,12 +1600,21 @@ $('resetMascot').addEventListener('click', ()=>{
    테마 · 글꼴
    ════════════════════════════════════════════════════════════ */
 const THEMES=[
-  {id:'dawn',name:'새벽',paper:'#F6F3FC',ink:'#312B44',accent:'#7A69E2'},
-  {id:'milk',name:'딸기우유',paper:'#FFF4F6',ink:'#482E36',accent:'#E67089'},
-  {id:'matcha',name:'말차',paper:'#F2F7EB',ink:'#2E3A28',accent:'#639753'},
-  {id:'paper',name:'종이',paper:'#F5EFE2',ink:'#3A3329',accent:'#33705E'},
-  {id:'night',name:'밤하늘',paper:'#161425',ink:'#E7E3F3',accent:'#AE9DFF'},
-  {id:'ink',name:'먹',paper:'#0A0A0D',ink:'#D9D6CF',accent:'#CDB47C'}
+  /* 밝은 색 */
+  {g:'밝은 색',id:'dawn',    name:'새벽',    paper:'#F6F3FC',ink:'#312B44',accent:'#7A69E2'},
+  {g:'밝은 색',id:'milk',    name:'딸기우유',paper:'#FFF4F6',ink:'#482E36',accent:'#E67089'},
+  {g:'밝은 색',id:'matcha',  name:'말차',    paper:'#F2F7EB',ink:'#2E3A28',accent:'#639753'},
+  {g:'밝은 색',id:'sky',     name:'하늘',    paper:'#EFF5FC',ink:'#25344A',accent:'#3E7FBE'},
+  {g:'밝은 색',id:'apricot', name:'살구',    paper:'#FFF3EA',ink:'#46332A',accent:'#D97C48'},
+  {g:'밝은 색',id:'paper',   name:'종이',    paper:'#F5EFE2',ink:'#3A3329',accent:'#33705E'},
+  {g:'밝은 색',id:'mist',    name:'안개',    paper:'#F2F3F5',ink:'#2E3238',accent:'#5A6B7D'},
+  /* 어두운 색 */
+  {g:'어두운 색',id:'night',   name:'밤하늘',  paper:'#161425',ink:'#E7E3F3',accent:'#AE9DFF'},
+  {g:'어두운 색',id:'midnight',name:'자정',    paper:'#0E1626',ink:'#DCE6F5',accent:'#6FA8FF'},
+  {g:'어두운 색',id:'amethyst',name:'자수정',  paper:'#170F1F',ink:'#E9DEF5',accent:'#B983FF'},
+  {g:'어두운 색',id:'forest',  name:'숲',      paper:'#101A14',ink:'#DCE8DE',accent:'#6FC98A'},
+  {g:'어두운 색',id:'cocoa',   name:'코코아',  paper:'#1A1412',ink:'#EADFD6',accent:'#C99B72'},
+  {g:'어두운 색',id:'ink',     name:'먹',      paper:'#0A0A0D',ink:'#D9D6CF',accent:'#CDB47C'}
 ];
 const FONTS={
   pretendard:{group:'고딕',name:'프리텐다드',note:'또렷하고 깔끔',css:"'Pretendard Variable',Pretendard,sans-serif",url:null},
@@ -1497,12 +1641,119 @@ function loadFont(id){
   const l=document.createElement('link'); l.rel='stylesheet'; l.href=f.url;
   document.head.appendChild(l); loadedF.add(id);
 }
-const DEFAULTS={theme:'dawn',font:'pretendard',size:17,lead:2.0,gap:1.1,indent:0,tap:1};
+const DEFAULTS={theme:'dawn',font:'pretendard',size:17,lead:2.0,gap:1.1,indent:0,tap:1,custom:null};
 let R={...DEFAULTS};
+/* ════════════════════════════════════════════════════════════
+   내 테마 만들기
+   ── 고른 색 하나에서 배경·글자·선·그림자까지 계산해 냅니다.
+      글자가 안 보이는 일이 없도록 밝기를 안전 범위로 다듬습니다.
+   ════════════════════════════════════════════════════════════ */
+function hex2hsl(hex){
+  let x=String(hex||'').replace('#','');
+  if(x.length===3) x=x.split('').map(c=>c+c).join('');
+  const r=parseInt(x.slice(0,2),16)/255, g=parseInt(x.slice(2,4),16)/255, b=parseInt(x.slice(4,6),16)/255;
+  const mx=Math.max(r,g,b), mn=Math.min(r,g,b), d=mx-mn;
+  let h=0;
+  if(d){
+    if(mx===r) h=((g-b)/d)%6;
+    else if(mx===g) h=(b-r)/d+2;
+    else h=(r-g)/d+4;
+    h*=60; if(h<0) h+=360;
+  }
+  const l=(mx+mn)/2;
+  const sat=d ? d/(1-Math.abs(2*l-1)) : 0;
+  return {h, s:sat*100, l:l*100};
+}
+function hsl2hex(h,s,l){
+  h=((h%360)+360)%360; s=Math.max(0,Math.min(100,s))/100; l=Math.max(0,Math.min(100,l))/100;
+  const c=(1-Math.abs(2*l-1))*s, x=c*(1-Math.abs((h/60)%2-1)), m=l-c/2;
+  let r=0,g=0,b=0;
+  if(h<60){r=c;g=x;} else if(h<120){r=x;g=c;} else if(h<180){g=c;b=x;}
+  else if(h<240){g=x;b=c;} else if(h<300){r=x;b=c;} else {r=c;b=x;}
+  const to=v=>Math.round((v+m)*255).toString(16).padStart(2,'0');
+  return '#'+to(r)+to(g)+to(b);
+}
+function hslRgba(h,s,l,a){
+  const x=hsl2hex(h,s,l).slice(1);
+  return `rgba(${parseInt(x.slice(0,2),16)},${parseInt(x.slice(2,4),16)},${parseInt(x.slice(4,6),16)},${a})`;
+}
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+/* 같은 밝기라도 노랑은 훨씬 밝게 보입니다.
+   그래서 눈이 실제로 느끼는 밝기(상대휘도)로 대비를 계산해 맞춥니다. */
+function relLum(hex){
+  const x=String(hex).replace('#','');
+  const f=v=>{ v=parseInt(v,16)/255; return v<=.03928 ? v/12.92 : Math.pow((v+.055)/1.055,2.4); };
+  return .2126*f(x.slice(0,2))+.7152*f(x.slice(2,4))+.0722*f(x.slice(4,6));
+}
+function contrastOf(a,b){
+  const l1=relLum(a), l2=relLum(b);
+  return (Math.max(l1,l2)+.05)/(Math.min(l1,l2)+.05);
+}
+/* 배경 위에서 목표 대비가 나올 때까지 밝기를 조절합니다 */
+function fitOn(h,s,l,bg,target,dark){
+  let cur=l;
+  for(let i=0;i<70;i++){
+    if(contrastOf(hsl2hex(h,s,cur), bg) >= target) break;
+    cur += dark ? 1.5 : -1.5;
+    if(cur<10 || cur>92){ cur=clamp(cur,10,92); break; }
+  }
+  return clamp(cur,10,92);
+}
+
+const DEFAULT_CUSTOM={c1:'#7A69E2', c2:'#F09FC2', c3:'#F6F3FC', useC2:false, useC3:false, mode:'light'};
+const CUSTOM_VARS=['--paper','--card','--ink','--soft','--line','--accent','--weak','--pop','--warn',
+                   '--g1','--g2','--g3','--glass','--glass-strong'];
+
+function buildCustom(c){
+  c = Object.assign({}, DEFAULT_CUSTOM, c||{});
+  const dark = c.mode==='dark';
+  const A = hex2hsl(c.c1);
+
+  /* 포인트 색 — 안 고르면 기본 색에서 조금 돌려 만듭니다 */
+  const P = c.useC2 ? hex2hsl(c.c2) : {h:A.h+42, s:clamp(A.s*0.95,45,80), l:dark?72:70};
+
+  /* 바탕 색 — 안 고르면 기본 색의 색조만 아주 옅게 깝니다 */
+  const B = c.useC3 ? hex2hsl(c.c3)
+                    : {h:A.h, s:clamp(A.s*0.30,6,28), l:dark?9:97};
+
+  const paperL = dark ? clamp(B.l,5,16)  : clamp(B.l,92,99);
+  const paperS = dark ? clamp(B.s,6,30)  : clamp(B.s,3,26);
+  const accS   = clamp(A.s,25,95);
+  const paperHex = hsl2hex(B.h, paperS, paperL);
+  /* 강조색은 배경 위에서 4.5:1 이상 보이도록 맞춥니다 (노랑·연두 대비 문제 해결) */
+  const accL   = fitOn(A.h, accS, dark?clamp(A.l,58,80):clamp(A.l,34,58), paperHex, 4.5, dark);
+
+  return {
+    '--paper': paperHex,
+    '--card' : hsl2hex(B.h, dark?paperS*0.9:paperS*0.5, dark?paperL+6:clamp(paperL+2.5,0,100)),
+    '--ink'  : hsl2hex(B.h, dark?12:22, dark?90:20),
+    '--soft' : hsl2hex(B.h, dark?12:18, dark?64:46),
+    '--line' : hsl2hex(B.h, dark?18:25, dark?22:89),
+    '--accent': hsl2hex(A.h, accS, accL),
+    '--weak' : hsl2hex(A.h, dark?24:clamp(accS*0.5,10,45), dark?17:94),
+    '--pop'  : hsl2hex(P.h, clamp(P.s,30,85), dark?clamp(P.l,58,78):clamp(P.l,58,80)),
+    '--warn' : dark ? hsl2hex(355,75,74) : hsl2hex(355,62,52),
+    '--g1'   : hslRgba(A.h, clamp(accS,40,90), dark?52:62, dark?.30:.28),
+    '--g2'   : hslRgba(P.h, clamp(P.s,40,85), dark?55:68, dark?.22:.24),
+    '--g3'   : hslRgba(A.h-38, clamp(accS*0.8,30,80), dark?48:66, dark?.26:.22),
+    '--glass': dark?'.74':'.80',
+    '--glass-strong': dark?'.92':'.94'
+  };
+}
+
 function applyRead(){
+  const rootS=document.documentElement.style;
+  CUSTOM_VARS.forEach(v=>rootS.removeProperty(v));
   document.documentElement.dataset.theme=R.theme;
-  const t=THEMES.find(x=>x.id===R.theme);
-  if(t) document.querySelector('meta[name=theme-color]').content=t.paper;
+  if(R.theme==='custom'){
+    const vars=buildCustom(R.custom);
+    Object.entries(vars).forEach(([k,v])=>rootS.setProperty(k,v));
+    document.querySelector('meta[name=theme-color]').content=vars['--paper'];
+  } else {
+    const t=THEMES.find(x=>x.id===R.theme);
+    if(t) document.querySelector('meta[name=theme-color]').content=t.paper;
+  }
   loadFont(R.font);
   const s=document.documentElement.style;
   s.setProperty('--read-font',FONTS[R.font].css);
@@ -1519,12 +1770,92 @@ function applyRead(){
   document.querySelectorAll('#fonts .font-opt').forEach(b=>b.setAttribute('aria-pressed',b.dataset.id===R.font));
   store.set('read',JSON.stringify(R));
 }
-$('covers').innerHTML=THEMES.map(t=>`
-  <button class="cover" data-id="${t.id}" aria-pressed="false" title="${t.name}">
-    <span class="face" style="background:${t.paper}">
-      <span class="ribbon" style="background:${t.accent}"></span>
-      <i style="background:${t.ink}"></i><i style="background:${t.ink}"></i><i style="background:${t.ink}"></i>
-    </span><span class="name">${t.name}</span></button>`).join('');
+const THEME_NOTE={'밝은 색':'낮에 · 환한 곳에서','어두운 색':'밤에 · 눈이 편해요'};
+function renderCovers(){
+  const groups=[...new Set(THEMES.map(t=>t.g))];
+  const cur=THEMES.find(t=>t.id===R.theme);
+  $('covers').innerHTML=groups.map(g=>{
+    const items=THEMES.filter(t=>t.g===g).map(t=>`
+      <button class="cover" data-id="${t.id}" aria-pressed="false" title="${t.name}">
+        <span class="face" style="background:${t.paper}">
+          <span class="ribbon" style="background:${t.accent}"></span>
+          <i style="background:${t.ink}"></i><i style="background:${t.ink}"></i><i style="background:${t.ink}"></i>
+        </span><span class="name">${t.name}</span></button>`).join('');
+    const open = cur && cur.g===g ? ' open' : '';
+    return `<details class="rsub"${open}>
+      <summary>${g}<em>${THEME_NOTE[g]||''}</em></summary>
+      <div class="cover-grid">${items}</div>
+    </details>`;
+  }).join('') + customBlock();
+}
+
+/* ── 내 테마 만들기 ── */
+function customBlock(){
+  const c=Object.assign({},DEFAULT_CUSTOM,R.custom||{});
+  const on=R.theme==='custom';
+  return `<details class="rsub"${on?' open':''} id="customBox">
+    <summary>내 테마 만들기<em>색을 고르면 알아서 맞춰 드려요</em></summary>
+    <div style="padding-top:10px">
+      <div class="seg" style="margin-bottom:12px">
+        <button data-mode="light" class="${c.mode!=='dark'?'on':''}">밝게</button>
+        <button data-mode="dark"  class="${c.mode==='dark'?'on':''}">어둡게</button>
+      </div>
+
+      <div class="crow">
+        <input type="color" data-c="c1" value="${c.c1}">
+        <div class="ctext"><b>기본 색</b><span>버튼·강조·링크에 쓰여요</span></div>
+      </div>
+
+      <div class="crow">
+        <input type="color" data-c="c2" value="${c.c2}" ${c.useC2?'':'disabled'}>
+        <div class="ctext"><b>포인트 색</b><span>볼터치·배경 무늬에 살짝</span></div>
+        <label class="cuse"><input type="checkbox" data-use="useC2" ${c.useC2?'checked':''}>직접</label>
+      </div>
+
+      <div class="crow">
+        <input type="color" data-c="c3" value="${c.c3}" ${c.useC3?'':'disabled'}>
+        <div class="ctext"><b>바탕 색</b><span>종이처럼 깔리는 배경</span></div>
+        <label class="cuse"><input type="checkbox" data-use="useC3" ${c.useC3?'checked':''}>직접</label>
+      </div>
+
+      <p class="hint" style="margin-top:10px">글자가 잘 보이도록 밝기는 앱이 알아서 다듬어요. 고른 색과 조금 달라 보일 수 있습니다.</p>
+      <div class="btn-row" style="margin-top:10px">
+        <button class="btn ghost" id="cusReset">처음 색으로</button>
+      </div>
+    </div>
+  </details>`;
+}
+
+/* 색·밝기를 바꾸면 바로 적용됩니다 */
+function onCustomChange(patch){
+  R.custom=Object.assign({},DEFAULT_CUSTOM,R.custom||{},patch);
+  R.theme='custom';
+  applyRead();
+  document.querySelectorAll('.crow input[type=color]').forEach(inp=>{
+    const k=inp.dataset.c;
+    if(k==='c2') inp.disabled=!R.custom.useC2;
+    if(k==='c3') inp.disabled=!R.custom.useC3;
+  });
+  document.querySelectorAll('#customBox .seg button').forEach(b=>
+    b.classList.toggle('on', b.dataset.mode===(R.custom.mode||'light')));
+}
+$('covers').addEventListener('input',e=>{
+  const col=e.target.closest('input[type=color]');
+  if(col){ onCustomChange({[col.dataset.c]:col.value}); return; }
+});
+$('covers').addEventListener('change',e=>{
+  const chk=e.target.closest('input[type=checkbox][data-use]');
+  if(chk){ onCustomChange({[chk.dataset.use]:chk.checked}); }
+});
+$('covers').addEventListener('click',e=>{
+  const m=e.target.closest('#customBox .seg button');
+  if(m){ onCustomChange({mode:m.dataset.mode}); return; }
+  if(e.target.closest('#cusReset')){
+    R.custom=Object.assign({},DEFAULT_CUSTOM);
+    R.theme='custom'; applyRead(); renderCovers();
+  }
+});
+renderCovers();
 const GROUP_NOTE={'고딕':'폰으로 오래 읽을 땐 이쪽이 덜 피로해요','명조':'종이책 느낌 · 글자를 키웠을 때','손글씨':''};
 $('fonts').innerHTML=[...new Set(Object.values(FONTS).map(f=>f.group))].map(g=>{
   const items=Object.entries(FONTS).filter(([,f])=>f.group===g).map(([id,f])=>`
@@ -1535,7 +1866,10 @@ $('fonts').innerHTML=[...new Set(Object.values(FONTS).map(f=>f.group))].map(g=>{
 }).join('');
 Object.keys(FONTS).forEach(loadFont);
 
-$('covers').addEventListener('click',e=>{const b=e.target.closest('.cover'); if(b){R.theme=b.dataset.id;applyRead();}});
+$('covers').addEventListener('click',e=>{
+  const b=e.target.closest('.cover');
+  if(b){ R.theme=b.dataset.id; applyRead(); }
+});
 $('fonts').addEventListener('click',e=>{const b=e.target.closest('.font-opt'); if(b){R.font=b.dataset.id;applyRead();}});
 $('sSize').addEventListener('input',e=>{R.size=+e.target.value;applyRead();});
 $('sLead').addEventListener('input',e=>{R.lead=+e.target.value;applyRead();});
@@ -1557,28 +1891,102 @@ document.addEventListener('keydown',e=>{
 /* ════════════════════════════════════════════════════════════
    번역 규칙 — 고유명사는 본문에 괄호로 넣지 않고 목록으로 따로 받습니다
    ════════════════════════════════════════════════════════════ */
-const RULES = `당신은 소설·팬픽 전문 번역가입니다. 아래 규칙을 반드시 지켜 원문을 한국어로 옮기세요.
-
-[규칙]
+/* ════════════════════════════════════════════════════════════
+   글 갈래
+   ── 공통 규칙은 하나로 두고, 갈래마다 다른 부분만 갈아끼웁니다.
+      새 갈래를 늘릴 때 이 목록에만 추가하면 됩니다.
+   ════════════════════════════════════════════════════════════ */
+const RULE_BASE = `[모든 글에 공통으로 지키는 규칙]
 1. 원문의 언어를 스스로 판별해 한국어로 번역한다.
-2. 절대 요약하지 않는다. 원문의 모든 문장과 문단을 빠짐없이 완역한다. 해설·요약·감상·사족을 덧붙이지 않는다.
-3. 직역투를 피하고 자연스러운 한국어로 의역하되, 원문의 의미와 뉘앙스는 그대로 유지한다.
-4. 대사는 인물별 말투·성격·인칭이 드러나게 번역한다.
-5. 고유명사(인명·지명·조직·설정 용어 등)는 본문 안에 괄호로 원문을 병기하지 않는다. 본문에는 한국어 표기만 쓰고, 원문 표기는 아래 [고유명사] 목록에 따로 적는다.
-6. 일본어 호칭(くん・さん・ちゃん・様・先輩 등)은 번역하지 말고 발음 그대로 붙여 쓴다. 예: 하루토군, 사쿠라상, 미유쨩, 선배. 다른 언어의 호칭·애칭도 뉘앙스가 살아나게 처리한다.
-7. 원문의 문단 나눔과 줄바꿈 구조를 그대로 지킨다. 문단 수를 임의로 합치거나 늘리지 않는다.
-8. 어떤 문단도 건너뛰거나 원문 그대로 옮겨 적지 않는다. 모든 문장을 반드시 한국어로 바꾼다.
-9. 번역문 안에 원문 문자(히라가나·가타카나·한자 등)를 절대 남기지 않는다. 외래어·의성어·상표명도 전부 한글로 옮긴다.
-   예: スヌーズ → 스누즈, コンビニ → 편의점, ドキドキ → 두근두근
-   원문 표기가 필요한 고유명사는 본문이 아니라 [고유명사] 목록에만 적는다.
+2. 절대 요약하지 않는다. 원문의 모든 문장을 빠짐없이 완역한다. 해설·감상·사족을 덧붙이지 않는다.
+3. 원문의 줄바꿈과 문단 나눔을 그대로 지킨다. 문단 수를 임의로 합치거나 늘리지 않는다.
+4. 어떤 문단도 건너뛰거나 원문 그대로 옮겨 적지 않는다. 모든 문장을 반드시 한국어로 바꾼다.
+5. 번역문 안에 원문 문자(히라가나·가타카나·한자 등)를 남기지 않는다. 외래어도 전부 한글로 옮긴다.
+   예: スヌーズ → 스누즈, コンビニ → 편의점
+6. 고유명사는 본문에 괄호로 원문을 병기하지 않는다. 본문에는 한국어 표기만 쓰고,
+   원문 표기는 아래 [고유명사] 목록에 따로 적는다.`;
 
-[출력 형식 — 아래 두 구획을 정확히 이 표시와 함께 출력한다]
+const RULE_OUT = `[출력 형식 — 아래 두 구획을 정확히 이 표시와 함께 출력한다]
 <<<번역>>>
-(번역된 한국어 본문만. 머리말·꼬리말·설명·마크다운 기호 없이)
+(번역된 한국어 본문만. 머리말·꼬리말·설명 없이)
 
 <<<고유명사>>>
 (한 줄에 하나씩)  한국어표기 | 원문표기 | 분류
-분류는 인명·지명·조직·용어 중 하나. 고유명사가 없으면 "없음"이라고만 쓴다.`;
+고유명사가 없으면 "없음"이라고만 쓴다.`;
+
+const GENRES = {
+  novel: {
+    name:'소설·팬픽',
+    memoLabel:'작품·캐릭터 메모',
+    memoHint:'작품 분위기, 인물 성격, 말투, 호칭 습관을 적어두면 대사가 그 결에 맞게 나옵니다. 비워 두면 평범한 소설 번역으로 처리해요.',
+    memoPh:'예) 프로세카 원더랜즈×쇼타임 — 유원지 극단이라 전반적으로 밝고 과장된 쇼 톤.&#10;&#10;예) 이누마루 토우마 — 반말에 직설적이고 말투가 거칠지만 속은 다정한 편.',
+    structure:false,
+    who:'소설·팬픽 전문 번역가',
+    rules:`[이 글에 더 지킬 것 — 소설]
+· 직역투를 피하고 자연스러운 한국어로 의역하되, 원문의 의미와 뉘앙스는 그대로 지킨다.
+· 대사는 인물별 말투·성격·인칭이 드러나게 옮긴다.
+· 일본어 호칭(くん・さん・ちゃん・様・先輩 등)은 번역하지 말고 발음 그대로 붙여 쓴다.
+  예: 하루토군, 사쿠라상, 미유쨩, 선배. 다른 언어의 호칭·애칭도 뉘앙스를 살린다.
+· [고유명사] 목록의 분류는 인명·지명·조직·용어 중에서 고른다.`
+  },
+  guide: {
+    name:'게임 공략',
+    memoLabel:'게임·용어 메모',
+    memoHint:'게임 이름과 표기 기준을 적어두면 용어가 그대로 맞춰집니다. 한국 서버 정식 명칭을 쓸지, 원문 발음을 쓸지 정해두면 매번 흔들리지 않아요.',
+    memoPh:'예) 파이널판타지14. 한국 서버 정식 명칭을 우선 쓰고, 없는 용어만 원문 발음대로.&#10;&#10;예) 잡·스킬 이름은 한국 서버 표기로, 레이드 기믹 이름은 영문 그대로.',
+    structure:true,
+    who:'게임 공략 전문 번역가',
+    rules:`[이 글에 더 지킬 것 — 게임 공략]
+· 정확함이 우선이다. 멋있게 다듬기보다 원문이 알려주는 정보를 그대로 옮긴다.
+· 숫자는 절대 바꾸지 않는다. 데미지·확률·레벨·소요 시간·좌표·수량을 원문 그대로 옮긴다.
+· 아이템·스킬·장비·몬스터·NPC·지역·퀘스트 이름은 모두 고유명사로 보고 [고유명사] 목록에 넣는다.
+  게임에서 찾으려면 원문 표기가 꼭 필요하기 때문이다.
+· 메뉴 경로와 조작 표기는 형태를 유지한다. 예: 設定 > グラフィック → 설정 > 그래픽, Aボタン → A 버튼
+· 소제목은 줄 맨 앞에 "## "를 붙이고, 목록은 "- " 또는 "1. "로 시작하게 그대로 유지한다.
+  원문에 없던 소제목이나 목록을 새로 만들지는 않는다.
+· 말투는 정보를 전달하는 존댓말로 통일한다. (…하세요 / …됩니다)
+· [고유명사] 목록의 분류는 아이템·스킬·몬스터·지역·인물·용어 중에서 고른다.`
+  },
+  community: {
+    name:'썰·커뮤니티',
+    memoLabel:'글 배경 메모',
+    memoHint:'어디에 올라온 글인지, 화자가 누구인지, 반말과 존댓말 중 무엇으로 할지 적어두세요. 말투가 글 전체에서 일정하게 유지됩니다.',
+    memoPh:'예) 레딧 무서운 이야기. 화자는 20대 남성, 담담하게 서술하는 말투.&#10;&#10;예) 반말로, 커뮤니티에 올린 글처럼 편하게.',
+    structure:false,
+    who:'커뮤니티 글 번역가',
+    rules:`[이 글에 더 지킬 것 — 썰·커뮤니티]
+· 인터넷에 올라온 글답게 구어체로 옮긴다. 원문이 반말이면 반말로, 존댓말이면 존댓말로 맞춘다.
+· 원문의 감정과 호흡을 살린다. 말끝을 흐리거나 끊는 표현, 강조, 반복도 그대로 살린다.
+· 인터넷 표현은 직역하지 말고 한국 커뮤니티에서 실제로 쓰는 말로 옮긴다.
+· 커뮤니티 약어는 뜻이 통하게 푼다. 예: OP → 글쓴이, Edit → 덧붙임, TL;DR → 세 줄 요약
+· 욕설이나 거친 표현은 수위를 임의로 낮추지 말고 원문 세기에 맞춰 옮긴다.
+· [고유명사] 목록의 분류는 인명·지명·조직·용어 중에서 고른다.`
+  },
+  plain: {
+    name:'일반 글',
+    memoLabel:'글 배경 메모',
+    memoHint:'글의 분야와 쓰임새를 적어두면 전문 용어를 그 분야에서 쓰는 표준 번역어로 맞춥니다.',
+    memoPh:'예) 의학 논문 초록. 전문 용어는 학계에서 쓰는 표준 번역어로.&#10;&#10;예) 뉴스 기사. 인용문은 따옴표를 살려서.',
+    structure:true,
+    who:'전문 번역가',
+    rules:`[이 글에 더 지킬 것 — 일반 글]
+· 정확함이 우선이다. 원문의 뜻을 바꾸지 않는 선에서 자연스럽게 다듬는다.
+· 숫자·날짜·단위·인용문은 원문 그대로 옮긴다.
+· 전문 용어는 그 분야에서 쓰는 표준 번역어를 쓰고, 원문 표기는 [고유명사] 목록에 넣는다.
+· 소제목은 줄 맨 앞에 "## "를 붙이고, 목록은 "- " 또는 "1. "로 시작하게 그대로 유지한다.
+· 말투는 정보를 전달하는 존댓말로 통일한다.
+· [고유명사] 목록의 분류는 인명·지명·조직·용어 중에서 고른다.`
+  }
+};
+
+let GENRE = store.get('genre','novel');
+if(!GENRES[GENRE]) GENRE='novel';
+
+function rulesFor(g){
+  const G = GENRES[g] || GENRES.novel;
+  return `당신은 ${G.who}입니다. 아래 규칙을 반드시 지켜 원문을 한국어로 옮기세요.\n\n`
+       + RULE_BASE + `\n\n` + G.rules + `\n\n` + RULE_OUT;
+}
 
 /* 붙여넣을 때 딸려오는 보이지 않는 문자들을 걷어냅니다.
    이런 게 섞여 있으면 구글이 요청 자체를 거부해요.
@@ -1870,8 +2278,21 @@ function reannotate(){
   const raw=DOC.pairs.map(x=>stripMarks(x.d));
   const a=annotate(raw, DOC.notes||[], DOC.wnotes||[]);
   DOC.pairs=DOC.pairs.map((x,i)=>({s:x.s,d:a.paras[i],t:x.t||0}));
+  /* DOC.st 는 그대로 둡니다 */
   DOC.notes=a.notes; DOC.wnotes=a.wnotes;
 }
+/* "## 소제목", "- 항목", "1. 항목" 을 알아보고 그에 맞게 그립니다.
+   구조를 살리는 갈래에서만 씁니다. */
+function styledNode(text, cls){
+  let m=text.match(/^[ \t]{0,3}#{1,4}[ \t]+([\s\S]*)$/);
+  if(m) return paraNode(m[1].trim(), cls+' doc-h');
+  m=text.match(/^[ \t]{0,3}[-*•·][ \t]+([\s\S]*)$/);
+  if(m) return paraNode(m[1].trim(), cls+' doc-li');
+  m=text.match(/^[ \t]{0,3}(\d{1,3})[.)][ \t]+([\s\S]*)$/);
+  if(m){ const n=paraNode(m[2].trim(), cls+' doc-li doc-num'); n.dataset.n=m[1]; return n; }
+  return paraNode(text, cls);
+}
+
 function paraNode(line,cls){
   const p=document.createElement('p'); p.className=cls;
   const re=/\u0001(\d+)\u0002|\u0003(\d+)\u0004/g;
@@ -1966,14 +2387,18 @@ function renderDoc(){
 
   DOC.pairs.forEach((p,pi)=>{
     if(viewMode==='only'){
-      if(p.d){ const el=paraNode(p.d, p.t?'para doc-title':'para'); el.dataset.i=pi; out.appendChild(el); }
+      if(p.d){
+        const el = p.t ? paraNode(p.d,'para doc-title')
+                       : (DOC.st ? styledNode(p.d,'para') : paraNode(p.d,'para'));
+        el.dataset.i=pi; out.appendChild(el);
+      }
       return;
     }
     const box=document.createElement('div');
     box.className='cmp'+(viewMode==='side'?' side':'')+(p.t?' is-title':'');
     box.dataset.i=pi;
     if(p.s){ const s=document.createElement('p'); s.className='src'; s.textContent=p.s; box.appendChild(s); }
-    if(p.d) box.appendChild(paraNode(p.d,'dst'));
+    if(p.d) box.appendChild(DOC.st && !p.t ? styledNode(p.d,'dst') : paraNode(p.d,'dst'));
     out.appendChild(box);
   });
 
@@ -2238,7 +2663,7 @@ async function translate(){
       };
 
       try{
-        const raw=await askGemini(key,model,prompt,RULES,16384,opt);
+        const raw=await askGemini(key,model,prompt,rulesFor(GENRE),16384,opt);
         const {body,gloss:g}=parseReply(raw);
         g.forEach(x=>{ if(!gloss.some(y=>y.ko===x.ko)) gloss.push(x); });
         return body;
@@ -2366,7 +2791,7 @@ async function translate(){
       /* 제목도 본문과 같은 흐름에 넣어 각주가 붙게 합니다 */
       if(curTitleKo || rawTitle) pairs.unshift({s:rawTitle||'', d:curTitleKo||rawTitle||'', t:1});
       const ann=annotate(pairs.map(p=>p.d),gloss,(DOC&&DOC.wnotes)||[]);
-      DOC={pairs:pairs.map((p,k)=>({s:p.s,d:ann.paras[k],t:p.t||0})),notes:ann.notes,wnotes:ann.wnotes||[]};
+      DOC={pairs:pairs.map((p,k)=>({s:p.s,d:ann.paras[k],t:p.t||0})),notes:ann.notes,wnotes:ann.wnotes||[],st:!!(GENRES[GENRE]&&GENRES[GENRE].structure)};
       renderDoc();
 
       $('bar').firstElementChild.style.width=((i+1)/chunks.length*100)+'%';
@@ -2483,8 +2908,8 @@ function saveArchive(auto){
   const title=$('docTitle').value.trim();
   const id=curArc || ('a'+Date.now().toString(36)+Math.random().toString(36).slice(2,5));
   const at=Date.now();
-  const ok=arcPut(id,{title, titleKo:curTitleKo, memo:$('memo').value, srcUrl:$('srcUrl').value.trim(),
-    src:$('source').value, pairs:DOC.pairs, notes:DOC.notes, wnotes:DOC.wnotes||[], at});
+  const ok=arcPut(id,{title, titleKo:curTitleKo, memo:$('memo').value, srcUrl:$('srcUrl').value.trim(), genre:GENRE,
+    src:$('source').value, pairs:DOC.pairs, notes:DOC.notes, wnotes:DOC.wnotes||[], st:!!DOC.st, at});
   if(!ok){ toast('저장 공간이 부족해요. 서재에서 오래된 글을 지워 주세요'); return null; }
 
   const plain=plainResult();
@@ -2509,7 +2934,7 @@ function readArchive(id){
     readSnap={ doc: DOC ? JSON.parse(JSON.stringify(DOC)) : null,
                arc: curArc, titleKo: curTitleKo };
   }
-  DOC={pairs:d.pairs||[], notes:d.notes||[], wnotes:d.wnotes||[]};
+  DOC={pairs:d.pairs||[], notes:d.notes||[], wnotes:d.wnotes||[], st:!!d.st};
   curArc=id;
   curTitleKo = d.titleKo || rec.titleKo || d.title || rec.title || '';
   renderDoc(); renderArc();
@@ -2534,8 +2959,9 @@ async function loadArchive(id){
   $('srcUrl').value   = d.srcUrl||'';
   $('source').value   = d.src||'';
   $('memo').value     = d.memo||'';
+  if(d.genre && GENRES[d.genre]){ GENRE=d.genre; store.set('genre',GENRE); renderGenre(); }
   curTitleKo = d.titleKo || rec.titleKo || '';
-  DOC={pairs:d.pairs||[], notes:d.notes||[], wnotes:d.wnotes||[]};
+  DOC={pairs:d.pairs||[], notes:d.notes||[], wnotes:d.wnotes||[], st:!!d.st};
   curArc=id;
   store.set('curarc',id); store.set('title',$('docTitle').value);
   store.set('source',$('source').value); store.set('memo',$('memo').value);
@@ -2788,7 +3214,7 @@ async function translateTitle(key,model,title,memo){
 /* ════════ 전체 백업 · 복원 · 깃허브 연동 ════════ */
 function makeDump(){
   const dump={app:'글결', v:14, at:Date.now(), settings:{}, words:WORDS, cats:CATS, arcidx:ARC, arcs:{}};
-  ['key','key2','model','chunk','speed','memo','read','mascot','view','title','titleko','curarc','ghtok','ghrepo','ghpath','url','srcurl','terms','models','rate','folders','fdfilter']
+  ['key','key2','model','chunk','speed','memo','read','mascot','view','title','titleko','curarc','ghtok','ghrepo','ghpath','url','srcurl','terms','models','rate','folders','fdfilter','genre']
     .forEach(k=>dump.settings[k]=store.get(k));
   ARC.forEach(a=>{ const d=arcGet(a.id); if(d) dump.arcs[a.id]=d; });
   return dump;
@@ -3912,21 +4338,30 @@ function offerResume(id){
 
 /* ════════ 맨 위로 ════════ */
 (function(){
-  const btn=$('topBtn');
+  const up=$('topBtn'), down=$('botBtn');
   let ticking=false;
   function check(){
     ticking=false;
-    btn.classList.toggle('show', window.scrollY > 500);
+    const y=window.scrollY;
+    const rest=document.documentElement.scrollHeight - (y + window.innerHeight);
+    up.classList.toggle('show', y > 500);          /* 내려왔을 때만 */
+    down.classList.toggle('show', rest > 500);     /* 아래에 더 있을 때만 */
   }
   window.addEventListener('scroll',()=>{
     if(!ticking){ ticking=true; requestAnimationFrame(check); }
   },{passive:true});
-  btn.addEventListener('click',()=>{
+  window.addEventListener('resize',check);
+  function go(to){
     const smooth=!matchMedia('(prefers-reduced-motion: reduce)').matches;
-    window.scrollTo({top:0, behavior: smooth?'smooth':'auto'});
+    window.scrollTo({top:to, behavior: smooth?'smooth':'auto'});
     hideSelPop(); hideFnPop();
-  });
+  }
+  up.addEventListener('click',()=>go(0));
+  down.addEventListener('click',()=>go(document.documentElement.scrollHeight));
   check();
+  /* 글이 새로 그려지면 버튼 표시도 다시 계산합니다 */
+  new MutationObserver(()=>{ if(!ticking){ ticking=true; requestAnimationFrame(check); } })
+    .observe($('output'), {childList:true, subtree:false});
 })();
 
 /* ════════ 설명 시트 ════════ */
@@ -3958,6 +4393,31 @@ document.addEventListener('click',e=>{
   if(!t) return;
   e.preventDefault();
   openHelp(t.dataset.help);
+});
+
+/* ════════ 글 갈래 고르기 ════════ */
+const GENRE_NOTE={
+  novel:'대사 말투를 살리고 자연스럽게 옮깁니다.',
+  guide:'숫자를 그대로 두고, 아이템·스킬 이름을 각주로 모읍니다. 소제목·목록도 살려요.',
+  community:'구어체로, 원문의 감정과 호흡을 살려 옮깁니다.',
+  plain:'정확함을 우선해 옮기고, 소제목·목록을 살립니다.'
+};
+function renderGenre(){
+  $('genrebar').innerHTML=Object.entries(GENRES).map(([k,g])=>
+    `<button data-g="${k}" class="${k===GENRE?'on':''}">${esc(g.name)}</button>`).join('');
+  $('genreNote').textContent=GENRE_NOTE[GENRE]||'';
+  const G=GENRES[GENRE];
+  const lbl=document.querySelector('label[for="memo"]') || document.querySelector('#memoCard .card-head h2');
+  if(lbl) lbl.textContent=G.memoLabel;
+  const ph=$('memo');
+  if(ph) ph.setAttribute('placeholder', G.memoPh.replace(/&#10;/g,'\n'));
+  const mh=$('memoHint');
+  if(mh) mh.textContent=G.memoHint||'';
+}
+$('genrebar').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  GENRE=b.dataset.g; store.set('genre',GENRE); renderGenre();
+  toast(GENRES[GENRE].name+' 로 바꿨어요');
 });
 
 /* ════════ 처음 안내 카드 ════════ */
@@ -4025,6 +4485,7 @@ $('hideStart').addEventListener('click',()=>{
   $('apikey').dispatchEvent(new Event('input'));
   $('memo').dispatchEvent(new Event('input'));
   updateCount();
+  renderGenre();
   saveWords(); renderWords();
   saveArcIdx(); renderArc();
   refreshStart();
