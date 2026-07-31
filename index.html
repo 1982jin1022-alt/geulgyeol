@@ -427,6 +427,33 @@ sup.fn.wn{color:var(--pop);font-size:.66em}
 .fnp-x:active{background:var(--weak)}
 .fnp-body{overflow-y:auto;padding:0 16px calc(18px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}
 
+/* ════════ 읽기 모드 — 블로그 글처럼 본문만 ════════ */
+#readerBar{
+  display:none;position:sticky;top:0;z-index:40;
+  align-items:center;gap:8px;padding:10px 0 12px;
+  background:linear-gradient(var(--paper) 72%, transparent);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)
+}
+.rb-title{
+  flex:1;min-width:0;font-family:var(--cute);font-size:15px;color:var(--ink);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center
+}
+body.reading #readerBar{display:flex}
+body.reading header,
+body.reading .tabs,
+body.reading #run,
+body.reading #tab-tr > section.card:not(#result-card),
+body.reading #tab-tr > footer,
+body.reading #status,
+body.reading #afterRow{display:none}
+body.reading #result-card{background:transparent;box-shadow:none;border:none;padding:0;margin-top:4px}
+body.reading .result-top{display:none}
+body.reading .viewbar{
+  margin:0 0 18px;padding-bottom:12px;
+  border-bottom:1px dashed color-mix(in srgb,var(--line) 90%,transparent)
+}
+@media (min-width:721px){ body.reading .wrap{max-width:660px} }
+
 #resume{
   position:fixed;left:50%;transform:translate(-50%,-14px);top:calc(12px + env(safe-area-inset-top));
   z-index:56;display:none;align-items:center;gap:10px;padding:9px 10px 9px 16px;border-radius:999px;
@@ -570,6 +597,7 @@ sup.fn:active{opacity:.5}
   font-size:15px;cursor:pointer;opacity:.5;padding:2px 4px;border-radius:8px}
 .acard .del:active{opacity:1;color:var(--warn)}
 .acard .btn-row{margin-top:11px}
+.acard .fchip{color:var(--accent);font-weight:700}
 .acard .now{font-size:10px;font-weight:700;color:var(--accent);
   padding:3px 8px;border-radius:999px;background:color-mix(in srgb,var(--weak) 85%,transparent)}
 
@@ -725,6 +753,14 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
     <button class="plain-btn" id="readBtn" title="읽기 설정" aria-label="읽기 설정"><span class="aa">가<i>a</i></span></button>
   </header>
 
+  <div id="readerBar">
+    <button class="plain-btn" id="readerBack" title="서재로" aria-label="서재로">
+      <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <div class="rb-title" id="readerTitle"></div>
+    <button class="plain-btn" id="readerFont" title="읽기 설정" aria-label="읽기 설정"><span class="aa">가<i>a</i></span></button>
+  </div>
+
   <nav class="tabs">
     <button data-tab="tr" class="on">번역</button>
     <button data-tab="ar">서재 <b id="arCount"></b></button>
@@ -811,6 +847,7 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
       <div class="result-top">
         <span class="badge"><svg viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M18.5 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/></svg></span>
         <h2 class="sec-title">번역</h2><div class="grow"></div>
+        <button class="btn ghost" id="readerOn">읽기 모드</button>
         <button class="btn ghost" id="readBtn2">가a</button>
         <button class="btn" id="copyBtn">복사</button>
       </div>
@@ -829,7 +866,7 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
       </div>
     </section>
 
-    <footer>글결 v40<br>원문 대조 · 각주 · 단어장 · 서재</footer>
+    <footer>글결 v41<br>원문 대조 · 각주 · 단어장 · 서재</footer>
   </div>
 
   <!-- ═══════════ 서재 탭 ═══════════ -->
@@ -839,6 +876,7 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
         <input type="text" id="arSearch" placeholder="제목으로 찾기">
         <button class="btn ghost" id="arTidy">정리</button>
       </div>
+      <div class="catbar" id="folderbar"></div>
       <div class="selbar" id="arSelbar">
         <label class="mini"><input type="checkbox" id="arAll"> 전체 선택</label>
         <span id="arSelCount">0편</span>
@@ -846,7 +884,8 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
         <button class="btn danger" id="arDelSel">선택 삭제</button>
       </div>
       <div class="wlist" id="arList"></div>
-      <p class="hint" id="arSpace" style="margin-top:14px"></p>
+      <div class="btn-row"><div class="grow"></div><button class="btn ghost" id="folderEdit">폴더 관리</button></div>
+      <p class="hint" id="arSpace" style="margin-top:10px"></p>
     </section>
     <footer>번역이 끝나면 자동으로 여기에 담겨요</footer>
   </div>
@@ -1233,6 +1272,23 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
     <button class="btn" id="cfgClose">완료</button>
   </div>
 </div>
+<!-- 폴더 관리 -->
+<div class="backdrop" id="fdBackdrop"></div>
+<div class="sheet" id="fdSheet" role="dialog" aria-label="폴더 관리">
+  <div class="handle"></div>
+  <h3>폴더 관리</h3>
+  <p class="hint" style="margin:0 0 12px">이름을 눌러 바로 고칠 수 있어요. 폴더를 지워도 글은 사라지지 않고 폴더 없음으로 옮겨집니다.</p>
+  <div id="fdRows"></div>
+  <label class="field" for="fdNew">새 폴더 만들기</label>
+  <div class="urlrow">
+    <input type="text" id="fdNew" placeholder="예: 연재중 · 완결 · 나중에 읽기">
+    <button class="btn" id="fdAdd">추가</button>
+  </div>
+  <div class="btn-row" style="margin-top:20px">
+    <div class="grow"></div><button class="btn" id="fdClose">완료</button>
+  </div>
+</div>
+
 <!-- 분류 관리 -->
 <div class="backdrop" id="catBackdrop"></div>
 <div class="sheet" id="catSheet" role="dialog" aria-label="분류 관리">
@@ -1242,7 +1298,7 @@ footer{text-align:center;font-size:11px;color:var(--soft);padding:28px 0 6px;lin
   <div id="catRows"></div>
   <label class="field" for="catNew">새 분류 만들기</label>
   <div class="urlrow">
-    <input type="text" id="catNew" placeholder="예: 프로세카 · 관용구 · 의성어">
+    <input type="text" id="catNew" placeholder="예: 관용구 · 의성어 · 작품별">
     <button class="btn" id="catAdd">추가</button>
   </div>
   <div class="btn-row" style="margin-top:20px">
@@ -1310,6 +1366,7 @@ function sparkle(el){
    ════════════════════════════════════════════════════════════ */
 const TABS=['tr','ar','wd'];
 function gotoTab(name){
+  if(name!=='tr') document.body.classList.remove('reading');
   document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on', x.dataset.tab===name));
   TABS.forEach(t=>$('tab-'+t).hidden = (t!==name));
   hideSelPop(); hideFnPop();
@@ -2081,6 +2138,7 @@ async function translate(){
 
   const chunks=splitText(src,limit).filter(c=>c && c.trim());
   if(!chunks.length){ $('source').focus(); return toast('번역할 내용이 없어요'); }
+  document.body.classList.remove('reading');
   running=true; $('run').disabled=true;
   $('status').classList.add('show');
   $('bar').classList.toggle('show',chunks.length>1);
@@ -2406,8 +2464,8 @@ function loadArchive(id){
   updateCount(); updateTitleKo(); updateMemoChip();
   renderDoc(); renderArc();
   gotoTab('tr');
+  enterReader();
   setTimeout(()=>offerResume(id), 400);
-  toast('불러왔어요');
 }
 
 async function newDoc(){
@@ -2428,6 +2486,91 @@ $('arSave').addEventListener('click',()=>saveArchive(false));
 
 let arTidy=false, arSel=new Set();
 
+/* ── 서재 폴더 ── */
+let FOLDERS=(()=>{ try{ return JSON.parse(store.get('folders','')) || []; }catch(e){ return []; } })();
+let fdFilter=store.get('fdfilter','전체');
+const saveFolders=()=>store.set('folders',JSON.stringify(FOLDERS));
+
+function renderFolderbar(){
+  const none=ARC.filter(a=>!a.folder).length;
+  const items=[{k:'전체',n:ARC.length}]
+    .concat(FOLDERS.map(f=>({k:f,n:ARC.filter(a=>a.folder===f).length})))
+    .concat(none&&FOLDERS.length?[{k:'폴더 없음',n:none}]:[]);
+  $('folderbar').innerHTML=items.map(it=>
+    `<button data-f="${esc(it.k)}" class="${it.k===fdFilter?'on':''}">${esc(it.k)}${it.n?' '+it.n:''}</button>`).join('');
+}
+$('folderbar').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  fdFilter=b.dataset.f; store.set('fdfilter',fdFilter); renderArc();
+});
+
+async function pickFolder(id){
+  const a=ARC.find(x=>x.id===id); if(!a) return;
+  const opts=FOLDERS.map(f=>({key:'f:'+f, label:f, desc:a.folder===f?'지금 여기 있어요':''}))
+    .concat([{key:'__none', label:'폴더에서 빼기', desc:'어느 폴더에도 넣지 않습니다'},
+             {key:'__new',  label:'＋ 새 폴더 만들기', desc:''}]);
+  const pick=await askChoice('어느 폴더로 옮길까요?', a.titleKo||a.title||'무제', opts);
+  if(!pick) return;
+  if(pick==='__new'){
+    const n=await askInput('새 폴더 만들기','폴더 이름','','만들기');
+    if(!n||!n.trim()) return;
+    const v=n.trim();
+    if(!FOLDERS.includes(v)){ FOLDERS.push(v); saveFolders(); }
+    a.folder=v;
+  } else if(pick==='__none') delete a.folder;
+  else a.folder=pick.slice(2);
+  saveArcIdx(); renderArc();
+  toast(a.folder?`"${a.folder}"(으)로 옮겼어요`:'폴더에서 뺐어요');
+}
+
+/* 폴더 관리 창 */
+function renderFdRows(){
+  $('fdRows').innerHTML = FOLDERS.map((f,i)=>{
+    const n=ARC.filter(a=>a.folder===f).length;
+    return `<div class="catrow">
+      <input type="text" data-i="${i}" value="${esc(f)}">
+      <span class="cnt">${n?n+'편':''}</span>
+      <button class="x" data-del="${i}" title="지우기">✕</button>
+    </div>`;
+  }).join('') || '<p class="hint">폴더가 없어요. 아래에서 만들어 주세요.</p>';
+}
+$('fdRows').addEventListener('change',e=>{
+  const inp=e.target.closest('input[data-i]'); if(!inp) return;
+  const i=+inp.dataset.i, next=inp.value.trim(), old=FOLDERS[i];
+  if(!next){ inp.value=old; return toast('이름을 비울 수 없어요'); }
+  if(next===old) return;
+  if(FOLDERS.includes(next)){ inp.value=old; return toast('같은 이름이 이미 있어요'); }
+  FOLDERS[i]=next;
+  ARC.forEach(a=>{ if(a.folder===old) a.folder=next; });
+  if(fdFilter===old){ fdFilter=next; store.set('fdfilter',fdFilter); }
+  saveFolders(); saveArcIdx(); renderFdRows(); renderArc();
+  toast('이름을 바꿨어요');
+});
+$('fdRows').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-del]'); if(!b) return;
+  const i=+b.dataset.del, name=FOLDERS[i];
+  const n=ARC.filter(a=>a.folder===name).length;
+  if(!await askConfirm('폴더를 지울까요?',
+      `"${name}"`+(n?`\n안에 있던 글 ${n}편은 폴더 없음으로 옮겨집니다. 글이 지워지지는 않아요.`:''),
+      '지우기', true)) return;
+  FOLDERS.splice(i,1);
+  ARC.forEach(a=>{ if(a.folder===name) delete a.folder; });
+  if(fdFilter===name){ fdFilter='전체'; store.set('fdfilter','전체'); }
+  saveFolders(); saveArcIdx(); renderFdRows(); renderArc();
+  toast('지웠어요');
+});
+function addFolder(){
+  const v=$('fdNew').value.trim(); if(!v) return;
+  if(FOLDERS.includes(v)){ $('fdNew').value=''; return toast('이미 있는 폴더예요'); }
+  FOLDERS.push(v); saveFolders(); $('fdNew').value='';
+  renderFdRows(); renderArc(); toast('만들었어요');
+}
+$('fdAdd').addEventListener('click',addFolder);
+$('fdNew').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); addFolder(); } });
+$('fdClose').addEventListener('click',()=>closeS('fdSheet','fdBackdrop'));
+$('fdBackdrop').addEventListener('click',()=>closeS('fdSheet','fdBackdrop'));
+$('folderEdit').addEventListener('click',()=>{ renderFdRows(); openS('fdSheet','fdBackdrop'); });
+
 function arcSize(id){
   try{ return ((localStorage.getItem('gg_arc_'+id)||'').length*2)/1024; }catch(e){ return 0; }
 }
@@ -2435,7 +2578,12 @@ function arcSize(id){
 function renderArc(){
   $('arCount').textContent=ARC.length||'';
   const q=arQuery.trim().toLowerCase();
-  const list=ARC.filter(a=>!q || ((a.title||'')+' '+(a.titleKo||'')+' '+(a.preview||'')).toLowerCase().includes(q));
+  const list=ARC.filter(a=>{
+    if(fdFilter==='폴더 없음' && a.folder) return false;
+    if(fdFilter!=='전체' && fdFilter!=='폴더 없음' && a.folder!==fdFilter) return false;
+    return !q || ((a.title||'')+' '+(a.titleKo||'')+' '+(a.preview||'')).toLowerCase().includes(q);
+  });
+  renderFolderbar();
   $('arSelbar').classList.toggle('show', arTidy && ARC.length>0);
   $('arTidy').textContent = arTidy ? '정리 끝' : '정리';
 
@@ -2455,10 +2603,11 @@ function renderArc(){
         </div>
         ${arTidy?'':`<button class="del" data-act="del" data-id="${a.id}" title="지우기">✕</button>`}
       </div>
-      <div class="ameta">${new Date(a.at).toLocaleDateString('ko-KR')} · ${(a.chars||0).toLocaleString()}자</div>
+      <div class="ameta">${a.folder?`<span class="fchip">${esc(a.folder)}</span> · `:''}${new Date(a.at).toLocaleDateString('ko-KR')} · ${(a.chars||0).toLocaleString()}자</div>
       ${arTidy?'':`<div class="btn-row">
         <button class="btn" data-act="open" data-id="${a.id}">열기</button>
-        <button class="btn ghost" data-act="rename" data-id="${a.id}">제목 바꾸기</button>
+        <button class="btn ghost" data-act="rename" data-id="${a.id}">제목</button>
+        <button class="btn ghost" data-act="folder" data-id="${a.id}">폴더</button>
       </div>`}
     </div>`;
   }).join('')
@@ -2503,6 +2652,7 @@ $('arList').addEventListener('click',async e=>{
     return;
   }
   if(b.dataset.act==='open') return loadArchive(id);
+  if(b.dataset.act==='folder') return pickFolder(id);
   if(b.dataset.act==='del'){
     const ok=await askConfirm('이 글을 지울까요?',
       `"${a.titleKo||a.title||'무제'}"\n${(a.chars||0).toLocaleString()}자 · 되돌릴 수 없어요.`,
@@ -2557,7 +2707,7 @@ async function translateTitle(key,model,title,memo){
 /* ════════ 전체 백업 · 복원 · 깃허브 연동 ════════ */
 function makeDump(){
   const dump={app:'글결', v:14, at:Date.now(), settings:{}, words:WORDS, cats:CATS, arcidx:ARC, arcs:{}};
-  ['key','key2','model','chunk','speed','memo','read','mascot','view','title','titleko','curarc','ghtok','ghrepo','ghpath','url','srcurl','terms','models','rate']
+  ['key','key2','model','chunk','speed','memo','read','mascot','view','title','titleko','curarc','ghtok','ghrepo','ghpath','url','srcurl','terms','models','rate','folders','fdfilter']
     .forEach(k=>dump.settings[k]=store.get(k));
   ARC.forEach(a=>{ const d=arcGet(a.id); if(d) dump.arcs[a.id]=d; });
   return dump;
@@ -3595,6 +3745,25 @@ $('output').addEventListener('click',e=>{
   if(sel && !sel.isCollapsed && sel.toString().trim()) return;   /* 이미 고른 게 있으면 그대로 */
   if(pickWordAt(e.clientX,e.clientY)) queueSelPop(30);
 });
+
+/* ════════════════════════════════════════════════════════════
+   읽기 모드 — 서재에서 연 글을 본문만 크게 보여줍니다
+   ════════════════════════════════════════════════════════════ */
+function enterReader(){
+  if(!DOC || !DOC.pairs.length) return toast('읽을 번역이 없어요');
+  document.body.classList.add('reading');
+  $('readerTitle').textContent = curTitleKo || $('docTitle').value.trim() || '무제';
+  hideSelPop(); hideFnPop();
+  window.scrollTo({top:0});
+}
+function exitReader(toArchive){
+  document.body.classList.remove('reading');
+  closeFnPanel();
+  if(toArchive) gotoTab('ar'); else window.scrollTo({top:0});
+}
+$('readerOn').addEventListener('click',enterReader);
+$('readerBack').addEventListener('click',()=>exitReader(true));
+$('readerFont').addEventListener('click',()=>openS('sheet','backdrop'));
 
 /* ════════════════════════════════════════════════════════════
    이어읽기 — 서재 글마다 읽던 위치를 기억합니다
