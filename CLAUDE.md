@@ -34,8 +34,10 @@
 
 ## 작업할 때 주의
 
+- **버전 올리기 — 앱을 고쳐 커밋할 때마다 반드시.** `index.html`의 `<span class="ver">글결 v61</span>`(footer, 1060줄 근처) 숫자를 **1 올리세요.** 앱 아래에 보이는 이 숫자로 지금 켜둔 앱이 어느 패치까지 반영됐는지 판단합니다. **커밋 메시지 첫 줄도 `v61 — 요약` 형태로 시작하세요** — 그래야 `git log --oneline`이 그대로 버전별 변경 목록이 됩니다.
 - **인코딩**: `index.html`은 BOM 없는 UTF-8. PowerShell로 읽을 땐 `Get-Content -Encoding UTF8`, 쓸 땐 `-Encoding utf8`을 꼭 지정하세요. 안 하면 한글과 `═` 문자가 깨집니다.
-- **git이 설치돼 있지 않습니다.** 커밋·푸시는 GitHub 웹에서 직접 하거나 git 설치 후 진행하세요.
+- **git이 설치돼 있습니다.** 다만 git 설치 전에 켜진 셸이면 PATH에 안 잡혀요. 그럴 땐 `$env:Path = [Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [Environment]::GetEnvironmentVariable('Path','User')`를 앞에 붙이거나, 터미널을 새로 켜세요. 자격 증명이 저장돼 있어 푸시할 때 인증 창은 안 뜹니다.
+- **커밋 메시지에 큰따옴표가 있으면** PowerShell here-string이 깨져 `pathspec ... did not match`가 납니다. 메시지를 UTF-8 파일로 쓰고 `git commit -F 파일`을 쓰세요.
 - **비밀값**: `글결_백업_*.json` 안에 Gemini API 키와 GitHub PAT가 들어 있습니다. 절대 커밋하지 마세요 (`.gitignore`에 등록됨).
 - 단일 파일이라 수정 시 줄 번호가 밀립니다. 위 목차의 줄 번호는 참고용이며, 정확한 위치는 구분선 제목으로 검색하세요.
 
