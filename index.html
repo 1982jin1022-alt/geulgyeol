@@ -605,6 +605,18 @@ sup.fn:active{opacity:.5}
 .err{background:color-mix(in srgb,var(--weak) 70%,transparent);
   border:1px dashed color-mix(in srgb,var(--warn) 55%,transparent);border-radius:14px;
   padding:13px 15px;font-size:13.5px;line-height:1.6;white-space:pre-wrap;text-indent:0;margin-top:14px}
+/* ════════ 막혀서 비어 있는 문단 ════════
+   안전 필터에 막히거나 번역이 빠진 자리. 눌러서 따로 번역한 결과를 채워 넣습니다. */
+.gap{background:color-mix(in srgb,var(--weak) 55%,transparent);
+  border:1px dashed color-mix(in srgb,var(--warn) 45%,transparent);border-radius:14px;
+  padding:12px 14px;margin:0;text-indent:0}
+.gap-t{margin:0;font-size:13.5px;font-weight:700;color:var(--warn)}
+.gap-h{margin:5px 0 0;font-size:12.5px;color:var(--soft);line-height:1.55}
+.gap-row{display:flex;gap:8px;margin-top:10px}
+.gap .btn{padding:8px 13px;font-size:12.5px}
+#gapSrc{white-space:pre-wrap;word-break:break-word;font-size:14px;line-height:1.7;
+  background:color-mix(in srgb,var(--weak) 60%,transparent);border-radius:12px;
+  padding:11px 13px;margin:0;max-height:32vh;overflow-y:auto;-webkit-user-select:text;user-select:text}
 .spark{position:fixed;width:9px;height:9px;pointer-events:none;z-index:80;font-size:10px;line-height:1}
 @keyframes fly{to{transform:translate(var(--dx),var(--dy)) scale(.2) rotate(150deg);opacity:0}}
 
@@ -1057,7 +1069,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
     </section>
 
     <footer>
-      <span class="ver">글결 v61</span>
+      <span class="ver">글결 v62</span>
       <span class="made">만든 이 · 야자</span>
       <span class="ask">문의나 건의는 편하게 알려주세요</span>
       <span class="contact">
@@ -1549,6 +1561,26 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
     <button class="btn ghost" id="teCancel">취소</button>
     <div class="grow"></div>
     <button class="btn" id="teSave">고치기</button>
+  </div>
+</div>
+
+<!-- 막힌 부분 채우기 -->
+<div class="backdrop" id="gapBackdrop"></div>
+<div class="sheet" id="gapSheet" role="dialog" aria-label="막힌 부분 채우기">
+  <div class="handle"></div>
+  <h3>막힌 부분 채우기</h3>
+  <p class="hint" style="margin:0">아래 원문을 복사해 <b>새 글로 따로 번역</b>해 보세요. 그 부분만 보내면 통과하는 경우가 많아요.
+    번역한 결과를 아래 칸에 붙여넣으면 이 자리에 그대로 들어가고, 서재에도 함께 저장됩니다.</p>
+  <label class="field">막힌 원문<span id="gapCount"></span></label>
+  <p id="gapSrc"></p>
+  <div class="btn-row" style="margin-top:9px"><button class="btn" id="gapCopy">원문 복사</button></div>
+  <label class="field" for="gapKo">여기에 번역을 붙여넣으세요</label>
+  <textarea id="gapKo" rows="7" placeholder="따로 번역한 결과를 붙여넣어 주세요"></textarea>
+  <p class="hint">문단이 여러 개면 <b>빈 줄로 나눠</b> 붙여넣으세요. 원문 문단 수와 같으면 하나씩 제자리에 들어갑니다.</p>
+  <div class="btn-row" style="margin-top:18px">
+    <button class="btn ghost" id="gapCancel">취소</button>
+    <div class="grow"></div>
+    <button class="btn" id="gapSave">넣기</button>
   </div>
 </div>
 
@@ -2095,7 +2127,7 @@ $('readBtn2').addEventListener('click',()=>openS('sheet','backdrop'));
 $('backdrop').addEventListener('click',()=>closeS('sheet','backdrop'));
 $('closeSheet').addEventListener('click',()=>closeS('sheet','backdrop'));
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){closeS('sheet','backdrop');closeS('wSheet','wBackdrop');closeS('qSheet','qBackdrop');hideSelPop();}
+  if(e.key==='Escape'){closeS('sheet','backdrop');closeS('wSheet','wBackdrop');closeS('qSheet','qBackdrop');closeS('gapSheet','gapBackdrop');hideSelPop();}
 });
 
 /* ════════════════════════════════════════════════════════════
@@ -2656,6 +2688,39 @@ function keepDeco(pairs){
   return pairs;
 }
 
+/* ── 막혀서 비어 있는 문단 ────────────────────────────────────
+   안전 필터에 막히거나 번역이 빠진 자리를 알아봅니다.
+   그 자리를 눌러 원문을 보고, 따로 번역한 결과를 채워 넣을 수 있어요. */
+const BLOCK_MARK='⟪이 부분은 안전 필터에 막혀 번역하지 못했어요⟫';
+const MISS_MARK='⟪이 문단은 번역되지 않았어요⟫';
+const isGap = d => {
+  const t=stripMarks(String(d||''));
+  return t.includes(BLOCK_MARK) || t.includes(MISS_MARK);
+};
+/* 이어진 막힌 문단은 한 묶음으로 다룹니다 (따로 번역할 때도 이어서 보내야 자연스러우니까) */
+function gapRun(i){
+  let a=i, b=i;
+  while(a>0 && isGap(DOC.pairs[a-1].d)) a--;
+  while(b<DOC.pairs.length-1 && isGap(DOC.pairs[b+1].d)) b++;
+  return [a,b];
+}
+function gapNode(p, pi){
+  const box=document.createElement('div');
+  box.className='gap';
+  const t=document.createElement('p'); t.className='gap-t';
+  t.textContent = stripMarks(String(p.d||'')).includes(BLOCK_MARK)
+    ? '안전 필터에 막혀 옮기지 못한 부분이에요'
+    : '번역이 빠진 문단이에요';
+  const h=document.createElement('p'); h.className='gap-h';
+  h.textContent='이 부분만 따로 번역하면 통과하는 경우가 많아요.';
+  const row=document.createElement('div'); row.className='gap-row';
+  const b=document.createElement('button');
+  b.className='btn'; b.dataset.gap=pi; b.textContent='원문 보기 · 번역 넣기';
+  row.appendChild(b);
+  box.append(t,h,row);
+  return box;
+}
+
 function renderDoc(){
   const out=$('output'); out.innerHTML='';
   if(!DOC || !DOC.pairs.length){ showEmpty(); return; }
@@ -2665,7 +2730,8 @@ function renderDoc(){
   DOC.pairs.forEach((p,pi)=>{
     if(viewMode==='only'){
       if(p.d){
-        const el = p.t ? paraNode(p.d,'para doc-title')
+        const el = isGap(p.d) ? gapNode(p,pi)
+                 : p.t ? paraNode(p.d,'para doc-title')
                        : (DOC.st ? styledNode(p.d,'para') : paraNode(p.d,'para'));
         el.dataset.i=pi; out.appendChild(el);
       }
@@ -2675,7 +2741,8 @@ function renderDoc(){
     box.className='cmp'+(viewMode==='side'?' side':'')+(p.t?' is-title':'');
     box.dataset.i=pi;
     if(p.s){ const s=document.createElement('p'); s.className='src'; s.textContent=p.s; box.appendChild(s); }
-    if(p.d) box.appendChild(DOC.st && !p.t ? styledNode(p.d,'dst') : paraNode(p.d,'dst'));
+    if(p.d) box.appendChild(isGap(p.d) ? gapNode(p,pi)
+                          : (DOC.st && !p.t ? styledNode(p.d,'dst') : paraNode(p.d,'dst')));
     out.appendChild(box);
   });
 
@@ -2848,9 +2915,47 @@ $('fpAdd').addEventListener('click',()=>{
 });
 
 $('output').addEventListener('click',e=>{
+  const g=e.target.closest('[data-gap]');
+  if(g){ hideFnPop(); openGap(+g.dataset.gap); return; }
   const sup=e.target.closest('sup.fn');
   if(sup){ showFnPop(sup); return; }
   hideFnPop();
+});
+
+/* ── 막힌 부분 채우기 ──────────────────────────────────────── */
+let gapA=-1, gapB=-1;
+function openGap(i){
+  if(!DOC || !DOC.pairs[i]) return;
+  [gapA,gapB]=gapRun(i);
+  const n=gapB-gapA+1;
+  const srcs=[];
+  for(let k=gapA;k<=gapB;k++) if(DOC.pairs[k].s) srcs.push(DOC.pairs[k].s);
+  $('gapSrc').textContent = srcs.join('\n\n') || '(원문이 남아 있지 않아요)';
+  $('gapCount').textContent = n>1 ? ` · ${n}문단` : '';
+  $('gapKo').value='';
+  openS('gapSheet','gapBackdrop');
+  setTimeout(()=>$('gapKo').focus(),350);
+}
+$('gapCancel').addEventListener('click',()=>closeS('gapSheet','gapBackdrop'));
+$('gapBackdrop').addEventListener('click',()=>closeS('gapSheet','gapBackdrop'));
+$('gapCopy').addEventListener('click',async()=>{
+  try{ await navigator.clipboard.writeText($('gapSrc').textContent); toast('원문을 복사했어요'); }
+  catch(e){ toast('복사하지 못했어요. 원문을 길게 눌러 직접 복사해 주세요'); }
+});
+$('gapSave').addEventListener('click',()=>{
+  if(!DOC || gapA<0) return;
+  const parts=$('gapKo').value.split(/\n\s*\n/).map(x=>x.trim()).filter(Boolean);
+  if(!parts.length) return toast('붙여넣을 번역이 없어요');
+  const n=gapB-gapA+1;
+  for(let k=0;k<n;k++){
+    if(k>=parts.length) break;      /* 붙여넣은 게 모자라면 남은 자리는 표시를 그대로 둡니다 */
+    /* 붙여넣은 문단이 더 많으면 나머지는 마지막 자리에 몰아넣습니다 (짝이 밀리지 않게) */
+    DOC.pairs[gapA+k].d = (k===n-1) ? parts.slice(k).join('\n\n') : parts[k];
+  }
+  reannotate(); renderDoc(); saveArchive(true);
+  closeS('gapSheet','gapBackdrop');
+  const left=Math.max(0, n-parts.length);
+  toast(left ? `${n-left}군데를 채웠어요 · ${left}군데가 남았습니다` : '채워 넣었어요');
 });
 document.addEventListener('pointerdown',e=>{
   if(!e.target.closest('#fnpop') && !e.target.closest('sup.fn')) hideFnPop();
@@ -2968,7 +3073,7 @@ async function translate(){
              하나만 돌려주면 원문 3문단 ↔ 번역 1문단이 되어
              번갈아보기에서 그 뒤가 통째로 밀려요. */
           const n=piece.split(/\n+/).filter(x=>x.trim()).length||1;
-          return Array.from({length:n},()=>'⟪이 부분은 안전 필터에 막혀 번역하지 못했어요⟫').join('\n');
+          return Array.from({length:n},()=>BLOCK_MARK).join('\n');
         }
         say(label+' · 막힌 부분을 쪼개 다시 시도');
         const out=[];
@@ -3027,7 +3132,7 @@ async function translate(){
         const fixedLine=await retranslateLine(paras[todo[k]]);
         if(fixedLine){ paras[todo[k]]=fixedLine; changed=true; }
         /* 줄바꿈으로 붙이면 문단이 하나 늘어나 번갈아보기가 밀립니다. 같은 줄에 붙여요. */
-        else { paras[todo[k]] = paras[todo[k]] + ' ⟪이 문단은 번역되지 않았어요⟫'; changed=true; }
+        else { paras[todo[k]] = paras[todo[k]] + ' ' + MISS_MARK; changed=true; }
         await new Promise(r=>setTimeout(r,600));
       }
 
@@ -3134,7 +3239,7 @@ async function translate(){
     if(blockedCount){
       const w=document.createElement('div'); w.className='err';
       w.textContent=`${blockedCount}군데가 안전 필터에 막혀 번역되지 않았어요.\n`+
-        `본문에 ⟪⟫ 표시로 남겨두었습니다. 그 부분만 따로 복사해 다시 시도하면 통과하는 경우도 있어요.`;
+        `본문의 그 자리에서 [원문 보기 · 번역 넣기]를 누르면, 원문을 복사해 따로 번역한 뒤 그 자리에 채워 넣을 수 있어요.`;
       $('output').appendChild(w);
       toast(`다 옮겼어요 · ${blockedCount}군데는 막힘 (${secs}초)`);
     } else {
@@ -4669,6 +4774,7 @@ function pickWordAt(x,y){
 $('output').addEventListener('click',e=>{
   if(!R.tap) return;
   if(e.target.closest('sup.fn')) return;
+  if(e.target.closest('.gap')) return;   /* 막힌 문단 카드는 낱말 고르기 대상이 아닙니다 */
   const sel=window.getSelection();
   if(sel && !sel.isCollapsed && sel.toString().trim()) return;   /* 이미 고른 게 있으면 그대로 */
   if(pickWordAt(e.clientX,e.clientY)) queueSelPop(30);
