@@ -1507,6 +1507,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
 
         <details data-h="blocked"><summary>"안전 필터에 막혔어요"</summary><div class="in">
           <p>구글이 특정 내용을 걸러내는 장치예요. 평범한 장면에서도 오작동할 때가 있습니다.</p>
+          <p>앱은 이 필터를 <b>끌 수 있는 만큼 다 꺼두고</b>(OFF) 요청합니다. 그래도 아동 안전 같은 구글의 <b>고정 보호 장치</b>는 꺼지지 않아요 — 그때는 <b>PROHIBITED_CONTENT</b> 같은 이유가 함께 나옵니다.</p>
           <p>앱은 막힌 조각을 <b>반으로 쪼개 다시 시도</b>합니다. 대개 문제되는 문단 하나만 남고 나머지는 살아나요.</p>
           <p>끝까지 안 되면 본문에 <b>⟪이 부분은 안전 필터에 막혀 번역하지 못했어요⟫</b> 표시가 남습니다.</p>
           <p>그 부분만 따로 복사해 새 글로 옮기면 통과하는 경우도 있어요.</p>
@@ -2253,7 +2254,12 @@ function parseReply(raw){
 async function askGemini(key,model,prompt,system,maxTok,opts){
   opts=opts||{};
   let noThink = opts.noThink!=null ? !!opts.noThink : !!opts.fast;
-  let safeLv = 'BLOCK_NONE';   /* 소설 번역은 오작동이 잦아 가장 느슨하게 두고 시작합니다 */
+  /* 안전 필터 — 가장 느슨한 OFF 로 시작합니다.
+     OFF 는 필터 자체를 끄고, BLOCK_NONE 은 필터를 돌리되 막지 않습니다 (실제 차단률이 다릅니다).
+     계정·모델에 따라 OFF 를 400 으로 거절하기도 해서, 그때만 한 칸씩 물러납니다.
+     ※ 아동 안전 같은 구글의 핵심 보호 장치는 이 설정으로 꺼지지 않습니다. */
+  const SAFE_STEPS = ['OFF','BLOCK_NONE','BLOCK_ONLY_HIGH'];
+  let safeLv = SAFE_STEPS[0];
   const say = opts.onStatus || (()=>{});
   const sig = opts.signal || null;
   const stopIfAborted = () => { if(sig && sig.aborted) throw abortError(); };
@@ -2321,7 +2327,9 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
      구글이 한국어로 오류를 보내도 되도록, 메시지 글자에 의존하지 않습니다. */
   function retry400(){
     if(noThink){ noThink=false; say('설정을 바꿔 다시 시도하는 중'); return true; }
-    if(safeLv==='BLOCK_NONE'){ safeLv='BLOCK_ONLY_HIGH'; say('설정을 바꿔 다시 시도하는 중'); return true; }
+    /* 안전 설정을 거절당했을 때만 한 칸 물러납니다 (OFF → BLOCK_NONE → BLOCK_ONLY_HIGH) */
+    const si=SAFE_STEPS.indexOf(safeLv);
+    if(si>=0 && si<SAFE_STEPS.length-1){ safeLv=SAFE_STEPS[si+1]; say('설정을 바꿔 다시 시도하는 중'); return true; }
     if((maxTok||16384)>8192){ maxTok=8192; say('분량을 줄여 다시 시도하는 중'); return true; }
     return false;
   }
@@ -2363,7 +2371,9 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
               const j=JSON.parse(p);
               const fr=j.candidates?.[0]?.finishReason;
               if(j.promptFeedback?.blockReason) blocked=j.promptFeedback.blockReason;
-              if(fr==='SAFETY') blocked=blocked||'SAFETY';
+              /* SAFETY 말고도 PROHIBITED_CONTENT·BLOCKLIST·RECITATION 처럼
+                 안전 설정으로는 못 푸는 이유가 있어, 온 그대로 보여줍니다 */
+              if(fr && fr!=='STOP' && fr!=='MAX_TOKENS') blocked=blocked||fr;
               const t=(j.candidates?.[0]?.content?.parts||[])
                 .filter(x=>x.text&&!x.thought).map(x=>x.text).join('');
               if(t){ full+=t; opts.onChunk(full); }
@@ -2371,7 +2381,7 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
           }
         }
         if(full.trim()) return full.trim();
-        if(blocked) throw blockedError(`안전 필터에 막혔어요 (${blocked}).`);
+        if(blocked) throw blockedError(blockMsg(blocked));
         throw new Error('__nostream__');
       }catch(e){
         if(e.name==='AbortError') throw e;
@@ -2414,7 +2424,8 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
       if(!text.trim()) throw new Error('분량이 커요. 설정에서 분량을 줄여 주세요.');
     }
     if(!text.trim()){
-      if(cand.finishReason==='SAFETY') throw blockedError('안전 필터에 막혀 번역하지 못했어요.');
+      const fr=cand.finishReason||'';
+      if(fr && fr!=='STOP') throw blockedError(blockMsg(fr));
       throw new Error('답이 비어 있어요. 다시 시도해 주세요.');
     }
     return text.trim();
@@ -2422,6 +2433,16 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
   throw new Error('서버가 계속 응답하지 않아요. 잠시 뒤 다시 해주세요.');
 }
 
+/* 막힌 이유를 사람 말로 바꿔줍니다.
+   앱은 안전 필터를 OFF 로 보내지만, 구글에는 그걸로도 안 꺼지는 고정 보호 장치가 따로 있어요. */
+function blockMsg(reason){
+  const r=String(reason||'');
+  if(/PROHIBITED_CONTENT|BLOCKLIST|SPII/.test(r))
+    return `구글이 끌 수 없는 보호 장치로 막았어요 (${r}). 안전 설정으로는 풀리지 않아요.`;
+  if(r==='RECITATION')
+    return '널리 알려진 글과 너무 비슷하다고 막혔어요 (RECITATION).';
+  return `안전 필터에 막혔어요 (${r}).`;
+}
 function blockedError(msg){ const e=new Error(msg); e.blocked=true; return e; }
 /* 사용자가 [멈추기]를 눌렀을 때 — 오류가 아니라 "그만두기"로 다룹니다 */
 function abortError(){ const e=new Error('멈췄어요'); e.name='AbortError'; return e; }
