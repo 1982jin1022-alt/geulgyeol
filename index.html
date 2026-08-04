@@ -1069,7 +1069,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
     </section>
 
     <footer>
-      <span class="ver">글결 v62</span>
+      <span class="ver">글결 v63</span>
       <span class="made">만든 이 · 야자</span>
       <span class="ask">문의나 건의는 편하게 알려주세요</span>
       <span class="contact">
@@ -2825,7 +2825,7 @@ $('fnList').addEventListener('click',e=>{
   const del=e.target.closest('[data-del]');
   if(del){
     DOC.wnotes.splice(+del.dataset.del,1);
-    reannotate(); renderDoc(); saveArchive(true);
+    reannotate(); renderDoc(); saveDocPairs();
     toast('각주에서 뺐어요'); return;
   }
   const b=e.target.closest('.add'); if(!b) return;
@@ -2952,7 +2952,7 @@ $('gapSave').addEventListener('click',()=>{
     /* 붙여넣은 문단이 더 많으면 나머지는 마지막 자리에 몰아넣습니다 (짝이 밀리지 않게) */
     DOC.pairs[gapA+k].d = (k===n-1) ? parts.slice(k).join('\n\n') : parts[k];
   }
-  reannotate(); renderDoc(); saveArchive(true);
+  reannotate(); renderDoc(); saveDocPairs();
   closeS('gapSheet','gapBackdrop');
   const left=Math.max(0, n-parts.length);
   toast(left ? `${n-left}군데를 채웠어요 · ${left}군데가 남았습니다` : '채워 넣었어요');
@@ -3338,6 +3338,27 @@ function saveArchive(auto){
   saveArcIdx(); renderArc();
   if(!auto) toast('서재에 저장했어요!');
   return id;
+}
+
+/* ── 문단만 고쳐 저장하기 ──
+   막힌 부분을 채우는 것처럼 "문단만" 바뀔 때 씁니다.
+   읽기용으로 열어 둔 서재 글(readSnap)이라면 번역 화면의 제목·원문·메모는
+   그 글 것이 아니라 작업 중이던 다른 글 것입니다. saveArchive 를 그대로 부르면
+   그 값들이 서재 글에 덮어씌워지므로, 저장돼 있던 내용에 문단만 갈아 끼웁니다. */
+function saveDocPairs(){
+  if(!DOC || !DOC.pairs.length) return;
+  if(!readSnap){ saveArchive(true); return; }
+  if(!curArc) return;
+  const d=arcGet(curArc);
+  if(!d) return;
+  d.pairs=DOC.pairs; d.notes=DOC.notes; d.wnotes=DOC.wnotes||[]; d.st=!!DOC.st; d.at=Date.now();
+  if(!arcPut(curArc,d)){ toast('저장 공간이 부족해요. 서재에서 오래된 글을 지워 주세요'); return; }
+  const i=ARC.findIndex(a=>a.id===curArc);
+  if(i>=0){
+    const plain=plainResult();
+    ARC[i]={...ARC[i], at:d.at, chars:plain.length, preview:plain.slice(0,90)};
+    saveArcIdx(); renderArc();
+  }
 }
 
 /* ── 읽기: 작업 중이던 번역 화면을 건드리지 않습니다 ──
@@ -4140,7 +4161,7 @@ $('mpFoot').addEventListener('click',()=>{
   DOC.wnotes = DOC.wnotes || [];
   if(DOC.wnotes.some(w=>w.term===mpTermTxt)) { hideMeanPop(); return toast('이미 각주에 있어요'); }
   DOC.wnotes.push({term:mpTermTxt, mean:mpMeanTxt});
-  reannotate(); renderDoc(); saveArchive(true);
+  reannotate(); renderDoc(); saveDocPairs();
   hideMeanPop();
   toast('각주를 달았어요');
 });
@@ -4640,7 +4661,7 @@ $('teSave').addEventListener('click',()=>{
   n.ko=next;
   if($('teKeep').checked) putTerm(n.or, next, n.ty);
 
-  reannotate(); renderDoc(); saveArchive(true);
+  reannotate(); renderDoc(); saveDocPairs();
   closeS('teSheet','teBackdrop');
   toast($('teKeep').checked ? '고쳤어요. 다음 번역에도 이렇게 나와요' : '고쳤어요');
 });
