@@ -1069,7 +1069,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
     </section>
 
     <footer>
-      <span class="ver">글결 v65</span>
+      <span class="ver">글결 v66</span>
       <span class="made">만든 이 · 야자</span>
       <span class="ask">문의나 건의는 편하게 알려주세요</span>
       <span class="contact">
@@ -2755,6 +2755,8 @@ function buildDoc(chunks){
 const DECO_ONE  = '(?:[\\uD83C-\\uDBFF][\\uDC00-\\uDFFF]|[\\u2190-\\u2BFF\\u2E00-\\u2E7F\\uFE0F\\u3030\\u303D\\u301C\\uFF5E~])';
 const DECO_TAIL = new RegExp('(?:'+DECO_ONE+'|\\s){1,12}$');
 const HAS_DECO  = new RegExp(DECO_ONE);
+/* 문단 끝의 마침표 자리. 원문에 없던 것을 모델이 붙였을 때만 떼어냅니다. */
+const END_PUNCT = /[.!?…。！？]+\s*$/;
 
 function keepDeco(pairs){
   pairs.forEach(p=>{
@@ -2766,7 +2768,16 @@ function keepDeco(pairs){
     /* 번역문 끝에 이미 살아 있으면 그대로 둡니다 */
     const dTail=(p.d.match(DECO_TAIL)||[''])[0];
     if(HAS_DECO.test(dTail)) return;
-    p.d=p.d.replace(/\s+$/,'')+tail;
+    let d=p.d.replace(/\s+$/,'');
+    /* 원문은 "정말로〜"처럼 기호 앞에 마침표를 두지 않았는데 모델이 "정말로."로 끝냈다면,
+       그대로 붙이면 "정말로.〜"가 됩니다. 그 마침표를 떼고 붙여 "정말로〜"로 맞춥니다.
+       원문이 "정말로!〜"처럼 부호를 두었으면 번역문의 부호도 그대로 둡니다. */
+    const head=p.s.slice(0, p.s.length-m[0].length);
+    if(!END_PUNCT.test(head)){
+      const cut=d.replace(END_PUNCT,'');
+      if(cut) d=cut;                                /* 부호만 남는 문단은 손대지 않습니다 */
+    }
+    p.d=d+tail;
   });
   return pairs;
 }
