@@ -1069,7 +1069,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
     </section>
 
     <footer>
-      <span class="ver">글결 v68</span>
+      <span class="ver">글결 v69</span>
       <span class="made">만든 이 · 야자</span>
       <span class="ask">문의나 건의는 편하게 알려주세요</span>
       <span class="contact">
@@ -2543,6 +2543,11 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
           if(retryCut()) continue;
           throw truncatedError();
         }
+        /* 필터가 만들다 말고 끊었으면, 앞부분이 와 있어도 실패로 봅니다.
+           번역 요청에서는 막힘으로 올려 보내야 부르는 쪽이 조각을 쪼개
+           통과하는 부분은 온전히 살리고 막힌 자리에만 표시를 남깁니다. */
+        if(wantFull && blocked && CUT_REASONS.test(blocked))
+          throw blockedError(bmsg(blocked,bWhere,bRat));
         if(fin==='MAX_TOKENS' && full.trim() && opts.onCut) opts.onCut();
         if(full.trim()) return full.trim();
         if(blocked) throw blockedError(bmsg(blocked,bWhere,bRat));
@@ -2603,8 +2608,10 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
       /* 잘린 채로라도 쓰는 요청(링크 가져오기 등)에는 잘렸다는 사실을 알려줍니다 */
       if(opts.onCut) opts.onCut();
     }
+    const fr=cand.finishReason||'';
+    /* 스트리밍과 같은 이유 — 필터가 도중에 끊은 답을 완성본으로 받지 않습니다 */
+    if(wantFull && CUT_REASONS.test(fr)) throw blockedError(bmsg(fr,'out',cand.safetyRatings));
     if(!text.trim()){
-      const fr=cand.finishReason||'';
       if(fr && fr!=='STOP') throw blockedError(bmsg(fr,'out',cand.safetyRatings));
       throw new Error('답이 비어 있어요. 다시 시도해 주세요.');
     }
@@ -2623,6 +2630,11 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
      ② candidates[0].finishReason==='SAFETY' → 번역문(출력)이 필터에 걸림. 안전 설정으로 다룰 수 있음
      ③ finishReason==='STOP' 인데 본문이 거절문 → 모델 자체의 거절. 안전 설정으로는 안 풀림
    ③을 필터로 착각하기 쉬운데, 설정을 아무리 만져도 그대로입니다. 아래 refusalLike 로 가려냅니다. */
+/* 만들다 말고 끊는 이유들. 이때 온 본문은 "앞부분뿐"이라 완성본으로 받으면 안 됩니다.
+   MAX_TOKENS 와 증상이 똑같아요 — 뒤쪽이 아무 표시 없이 사라집니다.
+   ※ OTHER 는 일부러 뺐습니다. 뜻이 정해져 있지 않아 답이 멀쩡해도 붙어 오는데,
+     이걸 끊긴 것으로 보면 멀쩡한 번역을 통째로 쪼개다 못 살립니다. */
+const CUT_REASONS=/^(SAFETY|PROHIBITED_CONTENT|BLOCKLIST|SPII|RECITATION|IMAGE_SAFETY)$/;
 const HARM_KO={
   HARM_CATEGORY_HARASSMENT:'괴롭힘',
   HARM_CATEGORY_HATE_SPEECH:'증오 표현',
