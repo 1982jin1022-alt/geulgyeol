@@ -1069,7 +1069,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
     </section>
 
     <footer>
-      <span class="ver">글결 v66</span>
+      <span class="ver">글결 v67</span>
       <span class="made">만든 이 · 야자</span>
       <span class="ask">문의나 건의는 편하게 알려주세요</span>
       <span class="contact">
@@ -2153,9 +2153,15 @@ const RULE_BASE = `[모든 글에 공통으로 지키는 규칙]
      탁점(″ ゛)도 반드시 한글로 옮긴다. 소리 느낌은 한글 표기로 살린다.
      예: あーっ → 아앗   ぁあ゛あ゛っ → 으아아앗   ふぇぇ → 흐에엥
          ぐすっ → 훌쩍   ふぅ → 후우   ねーい → 네에
-   · 가타카나로 적힌 일본어 낱말은 발음을 그대로 옮기지 말고 뜻으로 번역한다.
+   · 가타카나로 적혔더라도 일본어 낱말이면 반드시 뜻으로 옮긴다. 발음 그대로 적는 것은
+     인명·작품명·상표 같은 고유명사뿐이다.
      예: オレノカミ → 내 머리   ヤバイ → 큰일이야   ダメ → 안 돼
-     단 인명·작품명 같은 고유명사는 발음대로 적고 [고유명사] 목록에 넣는다.
+   · 인칭대명사는 특히 발음으로 옮기기 쉬우니 반드시 뜻으로 바꾼다.
+     オレ・俺 → 나        アタシ・ワタシ・私 → 나 (또는 저)
+     ボク・僕 → 나        キミ・君 → 너
+     アンタ・オマエ・お前 → 너
+     オレノ・ワタシノ・ボクノ → 내 (또는 제)
+     "오레" "아타시" "와타시" "보쿠" "키미" "안타" "오마에" 같은 발음 표기를 번역문에 남기지 않는다.
 6. 문장부호도 한국어 표기로 바꾼다.
    、→ ,    。→ .    ！→ !    ？→ ?    ・→ ·
    대사를 감싸는 「」『』는 그대로 두어도 된다.
@@ -2298,12 +2304,45 @@ function parseReply(raw){
   return {body,gloss};
 }
 
+/* ── 같은 말이 되풀이되는 폭주 ────────────────────────────────
+   모델이 "억지로 억지로 억지로 …"처럼 같은 조각을 끝없이 되풀이할 때가 있습니다.
+   그대로 두면 화면이 가득 차고, 답이 한도에 닿을 때까지 사용량도 그만큼 나갑니다.
+   두 가지로 봅니다.
+     ① 2~8글자 조각이 20번 넘게 잇따라 나온다
+     ② 번역문이 원문의 3배를 넘는다
+   ①에서 "ㅋㅋㅋㅋ…" "……" 같은 강조는 걸러야 하므로, 되풀이되는 조각에
+   서로 다른 글자가 둘 이상 있을 때만 폭주로 봅니다. */
+const LOOP_TIMES=20, LOOP_OVER=3, LOOP_FLOOR=1500;
+function loopRun(text){
+  const t=String(text||'');
+  const re=new RegExp('([\\s\\S]{2,8}?)\\1{'+(LOOP_TIMES-1)+',}','g');
+  let m;
+  while((m=re.exec(t))){
+    if(new Set(m[1].replace(/\s/g,'')).size>=2) return m[1];
+    re.lastIndex=m.index+m[1].length;      /* 겹치는 자리부터 다시 봅니다 */
+  }
+  return '';
+}
+function looksLooping(text, srcLen){
+  const t=String(text||'');
+  if(!t) return false;
+  /* 3배 기준에 여유를 둡니다 — 짧은 조각은 뒤에 붙는 [고유명사] 목록만으로도 몇 배가 되거든요.
+     진짜 폭주는 답이 한도에 닿을 때까지 이어져서 이 여유쯤은 훌쩍 넘습니다. */
+  if(srcLen>0 && t.length > Math.max(srcLen*LOOP_OVER, srcLen+LOOP_FLOOR)) return true;
+  /* 폭주는 끝에서 자랍니다. 긴 글은 끝자락만 봐도 충분하고 훨씬 빠릅니다 */
+  return !!loopRun(t.length>4000 ? t.slice(-4000) : t);
+}
+
 /* opts.fast    = true  → 짧은 답(단어 뜻 등)용. 잘린 답을 오류로 처리합니다.
    opts.noThink = true  → 모델이 "속으로 생각하는" 과정을 끕니다 (훨씬 빠름).
+   opts.wantFull= true  → 답이 잘리면(MAX_TOKENS) 실패로 봅니다. 기본값은 fast 의 반대.
+   opts.srcLen          → 원문 길이. 폭주(원문의 3배 넘김)를 가려내는 데 씁니다.
    opts.onStatus(msg)   → 기다리는 중일 때 화면에 상황을 알려줍니다. */
 async function askGemini(key,model,prompt,system,maxTok,opts){
   opts=opts||{};
   let noThink = opts.noThink!=null ? !!opts.noThink : !!opts.fast;
+  let temp = opts.temp!=null ? opts.temp : 0.8;
+  const wantFull = opts.wantFull!=null ? !!opts.wantFull : !opts.fast;
   /* 안전 필터 — 가장 느슨한 OFF 로 시작합니다.
      OFF 는 필터 자체를 끄고, BLOCK_NONE 은 필터를 돌리되 막지 않습니다 (실제 차단률이 다릅니다).
      계정·모델에 따라 OFF 를 400 으로 거절하기도 해서, 그때만 한 칸씩 물러납니다.
@@ -2319,7 +2358,7 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
     const b={
       contents:[{role:'user',parts}],
       generationConfig:{
-        temperature:opts.temp!=null?opts.temp:0.8, topP:0.95,
+        temperature:temp, topP:0.95,
         maxOutputTokens:maxTok||16384
       },
       safetySettings:['HARM_CATEGORY_HARASSMENT','HARM_CATEGORY_HATE_SPEECH',
@@ -2394,13 +2433,39 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
     return false;
   }
 
+  /* ── 잘린 답 다시 받기 ────────────────────────────────────────
+     MAX_TOKENS 로 끝난 답은 문장 도중에 끊긴 조각입니다. 예전에는 내용이 조금이라도
+     있으면 그대로 받아들여서, 원문 20문단 중 3~4문단만 번역된 결과가 "정상"으로
+     들어왔습니다(뒤쪽이 통째로 빈칸). 이제는 실패로 보고 분량을 두 배로 늘려 한 번
+     다시 받고, 그래도 잘리면 위로 알립니다 — 부르는 쪽에서 조각을 반으로 쪼갭니다. */
+  let cutTries=0, loopTries=0;
+  function retryCut(){
+    if(cutTries++>0) return false;
+    maxTok=Math.min((maxTok||16384)*2, 65536);
+    say('답이 잘려서 분량을 늘려 다시 받는 중');
+    return true;
+  }
+  /* 폭주는 온도가 높을수록 잘 납니다. 온도를 낮추고 생각 과정을 켜서 한 번 다시 받습니다. */
+  function retryLoop(){
+    if(loopTries++>0) return false;
+    temp=0.3; noThink=false;
+    say('같은 말이 되풀이돼서 설정을 바꿔 다시 받는 중');
+    return true;
+  }
+
   for(let a=0;a<12;a++){
     stopIfAborted();
     /* ── 스트리밍: 글자가 만들어지는 대로 바로 보여줍니다 ── */
     if(opts.onChunk){
+      /* 폭주를 발견하면 우리 쪽에서 요청을 끊습니다. 사용자의 [멈추기]와 구분해야 해서
+         이 시도만의 AbortController 를 따로 두고, 사용자의 멈춤은 여기로 넘겨줍니다. */
+      const ac=new AbortController();
+      const relay=()=>ac.abort();
+      if(sig) sig.addEventListener('abort', relay);
+      let killed='';
       try{
         const res=await fetch(base()+':streamGenerateContent?alt=sse',
-          {method:'POST',headers:headers(),body:JSON.stringify(makeBody()),signal:sig||undefined});
+          {method:'POST',headers:headers(),body:JSON.stringify(makeBody()),signal:ac.signal});
         if(res.status===400){
           const t=await res.text();
           if(retry400()) continue;
@@ -2416,13 +2481,14 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
         if(!res.body) throw new Error('__nostream__');
 
         const reader=res.body.getReader(), dec=new TextDecoder();
-        let buf='', full='', blocked='', bWhere='', bRat=null;
+        let buf='', full='', blocked='', bWhere='', bRat=null, fin='', watched=0;
         while(true){
           const {value,done}=await reader.read();
           if(done) break;
           buf+=dec.decode(value,{stream:true});
           let i;
           while((i=buf.indexOf('\n'))>=0){
+            if(killed) break;
             const line=buf.slice(0,i).trim(); buf=buf.slice(i+1);
             if(!line.startsWith('data:')) continue;
             const p=line.slice(5).trim();
@@ -2430,6 +2496,7 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
             try{
               const j=JSON.parse(p);
               const fr=j.candidates?.[0]?.finishReason;
+              if(fr) fin=fr;      /* 스트리밍에서도 끝난 이유를 챙깁니다 (MAX_TOKENS 를 놓치지 않게) */
               /* ① 원문(입력)이 걸린 경우 — 이쪽이 먼저입니다 */
               if(j.promptFeedback?.blockReason){
                 blocked=j.promptFeedback.blockReason; bWhere='in';
@@ -2444,18 +2511,50 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
               }
               const t=(j.candidates?.[0]?.content?.parts||[])
                 .filter(x=>x.text&&!x.thought).map(x=>x.text).join('');
-              if(t){ full+=t; opts.onChunk(full); }
+              if(t){
+                full+=t; opts.onChunk(full);
+                /* 폭주가 시작되면 끝까지 받을 이유가 없습니다 — 그만큼 사용량이 나가니까요.
+                   2,000자마다 한 번씩만 봅니다 (글자마다 보면 느려집니다) */
+                if(full.length-watched>=2000){
+                  watched=full.length;
+                  if(looksLooping(full, opts.srcLen)){ killed='loop'; ac.abort(); break; }
+                }
+              }
             }catch(e){}
           }
+          if(killed) break;
+        }
+        if(killed==='loop'){
+          if(retryLoop()) continue;
+          throw loopError();
+        }
+        /* 다 받고 나서 한 번 더 봅니다 (2,000자에 못 미치게 짧으면 위에서 못 걸러요) */
+        if(looksLooping(full, opts.srcLen)){
+          if(retryLoop()) continue;
+          throw loopError();
+        }
+        /* 잘린 답을 그대로 돌려주지 않습니다 — 뒤쪽 문단이 통째로 사라진 채 완성된 것처럼 보여요 */
+        if(fin==='MAX_TOKENS' && wantFull){
+          if(retryCut()) continue;
+          throw truncatedError();
         }
         if(full.trim()) return full.trim();
         if(blocked) throw blockedError(bmsg(blocked,bWhere,bRat));
         throw new Error('__nostream__');
       }catch(e){
-        if(e.name==='AbortError') throw e;
+        if(e.name==='AbortError'){
+          if(sig && sig.aborted) throw abortError();        /* 사용자가 [멈추기]를 누름 */
+          if(killed==='loop'){                              /* 폭주를 보고 우리가 끊음 */
+            if(retryLoop()) continue;
+            throw loopError();
+          }
+          throw e;
+        }
         if(e.message==='__nostream__'){ opts=Object.assign({},opts,{onChunk:null}); continue; }
         if(e instanceof TypeError) throw new Error('인터넷 연결에 실패했어요. 웹 주소(https)로 열었는지 확인해 주세요.');
         throw e;
+      }finally{
+        if(sig) sig.removeEventListener('abort', relay);
       }
     }
 
@@ -2489,12 +2588,21 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
     const text=(cand.content?.parts||[]).filter(p=>p.text&&!p.thought).map(p=>p.text).join('');
     if(cand.finishReason==='MAX_TOKENS'){
       if(opts.fast && a<5){ maxTok=(maxTok||2048)*2; noThink=true; continue; }
+      /* 잘린 답을 그대로 돌려주지 않습니다. 분량을 늘려 한 번 다시 받고, 그래도 잘리면 알립니다 */
+      if(wantFull){
+        if(retryCut()) continue;
+        throw truncatedError();
+      }
       if(!text.trim()) throw new Error('분량이 커요. 설정에서 분량을 줄여 주세요.');
     }
     if(!text.trim()){
       const fr=cand.finishReason||'';
       if(fr && fr!=='STOP') throw blockedError(bmsg(fr,'out',cand.safetyRatings));
       throw new Error('답이 비어 있어요. 다시 시도해 주세요.');
+    }
+    if(looksLooping(text, opts.srcLen)){
+      if(retryLoop()) continue;
+      throw loopError();
     }
     return text.trim();
   }
@@ -2561,6 +2669,20 @@ function refusedError(){
   const e=new Error('모델이 이 부분의 번역을 거절했어요. 안전 필터가 아니라 모델 자체의 거절이어서 '
     +'안전 설정으로는 풀리지 않아요 — 다른 모델로 바꿔 보세요.');
   e.blocked=true; e.refused=true; return e;
+}
+/* 아래 셋은 "조각을 반으로 쪼개 다시 하면 대개 풀리는" 실패입니다.
+   splittable 표시를 보고 askPiece 가 쪼개서 다시 번역합니다. */
+function truncatedError(){        /* 답이 문장 도중에 끊김 (MAX_TOKENS) */
+  const e=new Error('답이 도중에 잘렸어요.');
+  e.truncated=true; e.splittable=true; return e;
+}
+function loopError(){             /* 같은 말이 끝없이 되풀이됨 */
+  const e=new Error('같은 말이 되풀이되는 답이 왔어요.');
+  e.looped=true; e.splittable=true; return e;
+}
+function shortError(){            /* 원문에 견줘 번역문이 너무 짧음 = 모델이 임의로 요약함 */
+  const e=new Error('번역문이 원문보다 너무 짧아요.');
+  e.tooShort=true; e.splittable=true; return e;
 }
 /* 사용자가 [멈추기]를 눌렀을 때 — 오류가 아니라 "그만두기"로 다룹니다 */
 function abortError(){ const e=new Error('멈췄어요'); e.name='AbortError'; return e; }
@@ -2789,9 +2911,12 @@ const BLOCK_MARK='⟪이 부분은 안전 필터에 막혀 번역하지 못했�
 const MISS_MARK='⟪이 문단은 번역되지 않았어요⟫';
 /* 안전 필터가 아니라 모델이 스스로 거절한 자리. 대처가 달라서 따로 표시합니다. */
 const REFUSE_MARK='⟪모델이 이 부분의 번역을 거절했어요⟫';
+/* 모델이 같은 말만 되풀이해서(폭주) 끝내 살리지 못한 자리 */
+const LOOP_MARK='⟪이 부분은 번역이 반복되어 실패했어요⟫';
 const isGap = d => {
   const t=stripMarks(String(d||''));
-  return t.includes(BLOCK_MARK) || t.includes(MISS_MARK) || t.includes(REFUSE_MARK);
+  return t.includes(BLOCK_MARK) || t.includes(MISS_MARK)
+      || t.includes(REFUSE_MARK) || t.includes(LOOP_MARK);
 };
 /* 이어진 막힌 문단은 한 묶음으로 다룹니다 (따로 번역할 때도 이어서 보내야 자연스러우니까) */
 function gapRun(i){
@@ -2806,12 +2931,16 @@ function gapNode(p, pi){
   const t=document.createElement('p'); t.className='gap-t';
   const mk=stripMarks(String(p.d||''));
   const refused=mk.includes(REFUSE_MARK);
+  const looped=mk.includes(LOOP_MARK);
   t.textContent = refused ? '모델이 번역을 거절한 부분이에요'
+                : looped ? '같은 말이 되풀이돼서 실패한 부분이에요'
                 : mk.includes(BLOCK_MARK) ? '안전 필터에 막혀 옮기지 못한 부분이에요'
                 : '번역이 빠진 문단이에요';
   const h=document.createElement('p'); h.className='gap-h';
   h.textContent = refused
     ? '안전 설정으로는 풀리지 않아요. 다른 모델로 바꾸거나, 이 부분만 따로 번역해 넣어 주세요.'
+    : looped
+    ? '모델이 같은 말만 되풀이했어요. 다른 모델로 바꾸거나, 이 부분만 따로 번역해 넣어 주세요.'
     : '이 부분만 따로 번역하면 통과하는 경우가 많아요.';
   const row=document.createElement('div'); row.className='gap-row';
   const b=document.createElement('button');
@@ -3133,10 +3262,27 @@ async function translate(){
       return [t.slice(0,cut).trim(), t.slice(cut).trim()].filter(Boolean);
     }
 
-    let blockedCount=0, refusedCount=0;
+    let blockedCount=0, refusedCount=0, loopedCount=0, missCount=0;
 
-    /* 안전 필터에 막히면 통째로 포기하지 않고,
-       반으로 쪼개 되는 부분만 살려냅니다. */
+    /* 모델이 원문을 임의로 요약해 버리는 경우를 잡습니다.
+       글자 수 기준은 언어마다 다릅니다 — 일본어·중국어는 글자가 촘촘해서 한국어로 옮기면
+       길이가 비슷하지만, 영어는 한국어보다 훨씬 길어서 절반 아래로 줄어드는 게 정상입니다.
+       그래서 원문이 라틴 문자 위주면 기준을 낮춥니다 (안 그러면 멀쩡한 번역을 실패로 봐요). */
+    function tooShort(body, piece){
+      const n = s => String(s||'').replace(/\s/g,'').length;
+      const pl=n(piece), bl=n(body);
+      if(pl<80) return false;                 /* 짧은 조각은 재지 않습니다 */
+      const cjk=(piece.match(/[぀-ヿ一-鿿㐀-䶿]/g)||[]).length;
+      const min = cjk > pl*0.2 ? 0.5 : 0.3;
+      if(bl < pl*min) return true;
+      /* 문단 수도 봅니다 — 뒤쪽이 통째로 빠지면 길이보다 문단 수에서 먼저 드러납니다 */
+      const sp=piece.split(/\n+/).filter(x=>x.trim()).length;
+      const dp=String(body||'').split(/\n+/).filter(x=>x.trim()).length;
+      return sp>=3 && dp < sp*0.6;
+    }
+
+    /* 안전 필터에 막히거나, 답이 잘리거나, 같은 말이 되풀이되거나, 너무 짧게 나오면
+       통째로 포기하지 않고 반으로 쪼개 되는 부분만 살려냅니다. */
     async function askPiece(piece, label, live){
       let prompt='';
       if(memo.trim()) prompt+=`[작품·캐릭터 설정]\n${memo.trim()}\n\n`;
@@ -3149,37 +3295,58 @@ async function translate(){
       prompt+=`[번역할 원문]\n${piece}`;
 
       const box=live ? $('streamBox') : null;
-      if(box) box.textContent='';
-
-      const opt={noThink, onStatus, signal};
-      if(box) opt.onChunk=(full)=>{
-        const cut=full.indexOf('<<<고유명사>>>');
-        box.textContent=(cut>=0?full.slice(0,cut):full).replace(/<<<번역>>>/g,'').trimStart();
-      };
 
       try{
-        const raw=await askGemini(key,model,prompt,rulesFor(GENRE),16384,opt);
-        const {body,gloss:g}=parseReply(raw);
-        /* 필터에 막힌 게 아니라 모델이 "번역할 수 없습니다"로 답한 경우.
-           그대로 두면 이 거절문이 번역문 자리에 들어앉습니다. */
-        if(refusalLike(body, piece.length)) throw refusedError();
-        g.forEach(x=>{ if(!gloss.some(y=>y.ko===x.ko)) gloss.push(x); });
-        return body;
+        /* 요약해 버렸거나 되풀이가 남아 있으면 한 번 더 받아 봅니다.
+           두 번째는 온도를 낮추고 생각 과정을 켜서 — 그쪽이 규칙을 더 잘 지킵니다. */
+        let last=null;
+        for(let t=0;t<2;t++){
+          if(box) box.textContent='';
+          const opt={noThink, onStatus, signal, wantFull:true, srcLen:piece.length};
+          if(t){ opt.temp=0.3; opt.noThink=false; }
+          if(box) opt.onChunk=(full)=>{
+            const cut=full.indexOf('<<<고유명사>>>');
+            box.textContent=(cut>=0?full.slice(0,cut):full).replace(/<<<번역>>>/g,'').trimStart();
+          };
+          const raw=await askGemini(key,model,prompt,rulesFor(GENRE),16384,opt);
+          const {body,gloss:g}=parseReply(raw);
+          /* 필터에 막힌 게 아니라 모델이 "번역할 수 없습니다"로 답한 경우.
+             그대로 두면 이 거절문이 번역문 자리에 들어앉습니다. */
+          if(refusalLike(body, piece.length)) throw refusedError();
+          /* askGemini 가 놓친 폭주 — 고유명사 목록을 떼어낸 본문으로 다시 봅니다 */
+          if(looksLooping(body, piece.length)){
+            last=loopError(); say(label+' · 같은 말이 되풀이돼서 다시 시도'); continue;
+          }
+          if(tooShort(body, piece)){
+            last=shortError(); say(label+' · 번역이 원문보다 너무 짧아 다시 시도'); continue;
+          }
+          g.forEach(x=>{ if(!gloss.some(y=>y.ko===x.ko)) gloss.push(x); });
+          return body;
+        }
+        throw last||shortError();
       }catch(err){
-        if(isAbort(err) || !err.blocked) throw err;
+        if(isAbort(err)) throw err;
+        if(!err.blocked && !err.splittable) throw err;
 
         /* 더 쪼갤 수 없을 만큼 짧으면 그 자리만 표시하고 넘어갑니다 */
         const parts=piece.length<400 ? [] : halve(piece);
         if(parts.length<2){
-          if(err.refused) refusedCount++; else blockedCount++;
+          let mark=MISS_MARK;
+          if(err.refused){ refusedCount++; mark=REFUSE_MARK; }
+          else if(err.looped){ loopedCount++; mark=LOOP_MARK; }
+          else if(err.blocked){ blockedCount++; mark=BLOCK_MARK; }
+          else missCount++;              /* 잘렸거나 너무 짧았던 자리 */
           /* 표시를 원문 문단 수만큼 넣습니다.
              하나만 돌려주면 원문 3문단 ↔ 번역 1문단이 되어
              번갈아보기에서 그 뒤가 통째로 밀려요. */
           const n=piece.split(/\n+/).filter(x=>x.trim()).length||1;
-          const mark=err.refused ? REFUSE_MARK : BLOCK_MARK;
           return Array.from({length:n},()=>mark).join('\n');
         }
-        say(label + (err.refused ? ' · 거절된 부분을 쪼개 다시 시도' : ' · 막힌 부분을 쪼개 다시 시도'));
+        say(label + (err.refused   ? ' · 거절된 부분을 쪼개 다시 시도'
+                   : err.looped    ? ' · 되풀이된 부분을 쪼개 다시 시도'
+                   : err.truncated ? ' · 잘린 부분을 쪼개 다시 시도'
+                   : err.tooShort  ? ' · 짧게 나온 부분을 쪼개 다시 시도'
+                   : ' · 막힌 부분을 쪼개 다시 시도'));
         const out=[];
         for(const sub of parts){
           out.push(await askPiece(sub, label, false));
@@ -3216,6 +3383,27 @@ async function translate(){
     const memoHead = (memo.trim()?`[작품·캐릭터 설정]\n${memo.trim()}\n\n`:'')
       + (TERMS.length?`[정해진 고유명사 표기]\n`+TERMS.slice(0,40).map(t=>`${t.or} = ${t.ko}`).join('\n')+`\n\n`:'');
 
+    /* ── 가타카나 인칭대명사를 발음 그대로 옮긴 자리 ──────────────
+       オレ → "오레", アタシ → "아타시", オレノカミ → "오레노카미" 처럼
+       뜻이 아니라 소리로 옮겨 놓는 일이 잦습니다. 한글이라 foreignRatio 로는 안 잡혀요.
+       "안타"(야구·안타깝다)처럼 멀쩡한 한국어와 겹치는 말이 있어서, 원문에 그 인칭대명사가
+       실제로 있을 때만 봅니다. 이 짝맞춤이 헛짚기를 거의 다 없애 줍니다. */
+    const ROMAJI=[
+      {or:/オレ|俺/,          ko:/오레/},
+      {or:/アタシ|あたし/,     ko:/아타시/},
+      {or:/ワタシ|わたし|私/,  ko:/와타시/},
+      {or:/ボク|ぼく|僕/,      ko:/보쿠/},
+      {or:/キミ|君/,          ko:/키미(?!테)/},
+      {or:/アンタ|あんた/,     ko:/안타(?!깝|까|끼|친|율)/},
+      {or:/オマエ|お前/,       ko:/오마에/}
+    ];
+    function romajiHits(srcText){
+      return ROMAJI.filter(r=>r.or.test(srcText||''));
+    }
+    function hasRomaji(line, hits){
+      return hits.some(r=>r.ko.test(line||''));
+    }
+
     /* ① 통째로 번역되지 않은 문단 — 한 줄씩 다시 번역합니다 */
     async function retranslateLine(text){
       for(let a=0;a<2;a++){
@@ -3234,14 +3422,15 @@ async function translate(){
       return '';
     }
 
-    async function repairLeftovers(body,label){
+    async function repairLeftovers(body,label,srcPiece){
       const paras=body.split(/\n/);
-      const heavy=[], light=[];
+      const hits=romajiHits(srcPiece||'');
+      const heavy=[], light=[], roman=[];
       paras.forEach((t,i)=>{
-        if(!FOREIGN.test(t)) return;
-        (foreignRatio(t)>=0.25 ? heavy : light).push(i);
+        if(FOREIGN.test(t)){ (foreignRatio(t)>=0.25 ? heavy : light).push(i); return; }
+        if(hits.length && hasRomaji(t, hits)) roman.push(i);
       });
-      if(!heavy.length && !light.length) return body;
+      if(!heavy.length && !light.length && !roman.length) return body;
       let changed=false;
 
       /* ① 통째로 안 된 문단 (최대 12개까지) */
@@ -3275,6 +3464,10 @@ async function translate(){
             '- 작은 가나(っ ぁ ぃ ぅ ぇ ぉ ゃ ゅ ょ)와 장음(ー), 탁점(″ ゛)이 섞인 비명·감탄사도 한글로 옮기세요.\n'+
             '  예: あーっ → 아앗   ぁあ゛あ゛っ → 으아아앗   ふぇぇ → 흐에엥   ねーい → 네에\n'+
             '- 가타카나로 적힌 낱말은 발음이 아니라 뜻으로 옮기세요. 예: オレノカミ → 내 머리\n'+
+            '  인칭대명사도 마찬가지입니다. オレ・俺 → 나 / アタシ・ワタシ・私 → 나(저) / ボク・僕 → 나\n'+
+            '  キミ・君 → 너 / アンタ・オマエ・お前 → 너.\n'+
+            '  "오레" "아타시" "와타시" "보쿠" "키미" "안타" "오마에" 같은 발음 표기를 남기지 마세요.\n'+
+            '  발음 그대로 적는 것은 인명·작품명·상표 같은 고유명사뿐입니다.\n'+
             '- 외래어도 한글로 적습니다. 예: スヌーズ → 스누즈\n'+
             '- 대사를 감싸는 「」『』는 그대로 두세요.\n'+
             '- 꾸밈 기호와 물결표(♡ ☆ ♪ 〜 ～)는 있던 자리에 그대로 두세요.\n'+
@@ -3295,6 +3488,44 @@ async function translate(){
       }
       if(light.length > BATCH*MAX_BATCH)
         say(label+` · 남은 원문 글자가 많아 ${BATCH*MAX_BATCH}줄까지만 다듬었어요`);
+
+      /* ③ 인칭대명사를 발음 그대로 옮긴 줄 — 뜻으로 고쳐 씁니다.
+         ②의 판정(원문 글자가 줄었는가)은 여기 쓸 수 없어요. 이미 다 한글이라 둘 다 0 입니다.
+         그래서 "발음 표기가 사라졌는가"로 따로 봅니다. */
+      const rRounds=Math.min(Math.ceil(roman.length/BATCH), MAX_BATCH);
+      for(let b=0; b<rRounds; b++){
+        const part=roman.slice(b*BATCH, (b+1)*BATCH);
+        if(!part.length) break;
+        say(roman.length>BATCH
+          ? `${label} · 발음으로 옮겨진 말을 고치는 중 ${b+1}/${rRounds}`
+          : label+' · 발음으로 옮겨진 말을 고치는 중');
+        const listed=part.map((i,k)=>`${k+1}|| ${paras[i]}`).join('\n');
+        try{
+          const out=await askGemini(key,model,
+            memoHead+
+            '아래 줄에는 일본어 인칭대명사를 뜻이 아니라 발음 그대로 옮긴 말이 남아 있습니다. 뜻으로 고쳐 주세요.\n\n'+
+            '오레 · 와타시 · 아타시 · 보쿠 → 나 (또는 저)\n'+
+            '키미 · 안타 · 오마에 → 너\n'+
+            '오레노 · 와타시노 · 보쿠노 → 내 (또는 제)\n\n'+
+            '지켜야 할 것\n'+
+            '- 줄 번호와 개수를 그대로 유지하고 "번호|| 내용" 형식으로만 답하세요.\n'+
+            '- 그 말이 사람 이름이라면 그대로 두세요. 발음 그대로 적는 것은 고유명사뿐입니다.\n'+
+            '- 말투와 나머지 문장은 손대지 말고, 그 낱말만 자연스럽게 바꾸세요.\n'+
+            '- 설명이나 인사말을 붙이지 마세요.\n\n'+listed,
+            null, 8192, {fast:true, temp:0.2, onStatus, signal});
+          const map={};
+          out.split('\n').forEach(line=>{
+            const m=line.match(/^\s*(\d+)\s*\|\|\s*(.*)$/);
+            if(m && m[2].trim()) map[+m[1]]=m[2].trim();
+          });
+          part.forEach((i,k)=>{
+            const got=map[k+1];
+            if(got && !refusalLike(got, paras[i].length) && !hasRomaji(got, hits)
+               && foreignRatio(got)<0.15){ paras[i]=polishPunct(got); changed=true; }
+          });
+        }catch(e){ if(isAbort(e)) throw e; break; }
+        await new Promise(r=>setTimeout(r,700));
+      }
       return changed ? paras.join('\n') : body;
     }
 
@@ -3321,7 +3552,7 @@ async function translate(){
 
       let body=await askPiece(chunks[i], label, true);
       body=polishPunct(body);                 /* 문장부호 먼저 정리 (요청 없이, 사용량 0) */
-      body=await repairLeftovers(body, label);
+      body=await repairLeftovers(body, label, chunks[i]);
       done.push({src:chunks[i],dst:body});
 
       const pairs=buildDoc(done);
@@ -3373,7 +3604,10 @@ async function translate(){
       /* 취소해도 그대로 덮어씁니다 (번역 결과를 잃지 않도록) */
     }
     saveArchive(true);
-    if(blockedCount || refusedCount){
+    /* 어떤 표시도 남지 않았는데 번역이 비어 있는 문단이 있으면 그것도 알려줍니다.
+       (원문만 있고 아래가 빈 문단이 줄줄이 나오던 것을 눈으로 세지 않아도 되게) */
+    const emptyCount=(DOC&&DOC.pairs||[]).filter(p=>!p.t && p.s && !stripMarks(String(p.d||'')).trim()).length;
+    if(blockedCount || refusedCount || loopedCount || missCount || emptyCount){
       const w=document.createElement('div'); w.className='err';
       const lines=[];
       if(blockedCount)
@@ -3381,12 +3615,22 @@ async function translate(){
       if(refusedCount)
         lines.push(`${refusedCount}군데는 모델이 번역을 거절했어요. 이건 안전 설정으로는 풀리지 않아요 — `
           +`설정에서 다른 모델로 바꿔 보세요.`);
+      if(loopedCount)
+        lines.push(`${loopedCount}군데는 모델이 같은 말만 되풀이해서 실패했어요. 다른 모델로 바꿔 보세요.`);
+      if(missCount)
+        lines.push(`${missCount}군데는 답이 잘리거나 원문보다 너무 짧게 나와 번역되지 않았어요. `
+          +`설정에서 "한 번에 보낼 분량"을 줄이면 나아집니다.`);
+      if(emptyCount)
+        lines.push(`${emptyCount}개 문단이 번역되지 않았어요.`);
       lines.push(`본문의 그 자리에서 [원문 보기 · 번역 넣기]를 누르면, 원문을 복사해 따로 번역한 뒤 그 자리에 채워 넣을 수 있어요.`);
       w.textContent=lines.join('\n');
       $('output').appendChild(w);
       const bits=[];
       if(blockedCount) bits.push(`${blockedCount}군데는 막힘`);
       if(refusedCount) bits.push(`${refusedCount}군데는 거절`);
+      if(loopedCount) bits.push(`${loopedCount}군데는 되풀이`);
+      if(missCount) bits.push(`${missCount}군데는 잘림`);
+      if(emptyCount) bits.push(`${emptyCount}문단은 빈칸`);
       toast(`다 옮겼어요 · ${bits.join(', ')} (${secs}초)`);
     } else {
       toast(`다 옮겼어요! (${secs}초)`);
