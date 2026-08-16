@@ -1069,7 +1069,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
     </section>
 
     <footer>
-      <span class="ver">글결 v72</span>
+      <span class="ver">글결 v73</span>
       <span class="made">만든 이 · 야자</span>
       <span class="ask">문의나 건의는 편하게 알려주세요</span>
       <span class="contact">
@@ -2163,6 +2163,9 @@ const RULE_BASE = `[모든 글에 공통으로 지키는 규칙]
      탁점(″ ゛)도 반드시 한글로 옮긴다. 소리 느낌은 한글 표기로 살린다.
      예: あーっ → 아앗   ぁあ゛あ゛っ → 으아아앗   ふぇぇ → 흐에엥
          ぐすっ → 훌쩍   ふぅ → 후우   ねーい → 네에
+   · 작은 모음(ぁ ぃ ぅ ぇ ぉ)은 앞 소리를 늘이는 표시다. 받침으로 옮기지 않는다.
+     예: あぁ → 아아 (X: 아앗)   そんなぁ → 그런…   ふぇぇ → 흐에엥
+     받침(앗, 엇)으로 옮기는 것은 짧고 강한 っ 뿐이다.
    · 작은 っ 를 무조건 받침으로 바꾸지 않는다. 자리에 따라 다르게 옮긴다.
      - 말끝에서 숨이 끊기는 っ → 앞 모음을 늘이거나 문장부호로 표현한다.
        예: なにっ！？ → 뭐라고오?!   やめてっ → 그만해애
@@ -2190,6 +2193,11 @@ const RULE_BASE = `[모든 글에 공통으로 지키는 규칙]
    대사를 감싸는 「」『』는 그대로 두어도 된다.
 7. 고유명사는 본문에 괄호로 원문을 병기하지 않는다. 본문에는 한국어 표기만 쓰고,
    원문 표기는 아래 [고유명사] 목록에 따로 적는다.
+   · 인명은 성과 이름을 한 덩어리로 [고유명사] 목록에 넣는다. 성만 또는 이름만 따로 올리지 않는다.
+     예: 카미시로 루이 | 神代 類 | 인명   (X: 루이 | 類 | 인명)
+   · 한자 인명의 읽기가 여러 가지일 때는 작품 메모에 적힌 표기를 최우선으로 따른다.
+     메모에 없으면 가장 널리 쓰이는 읽기를 고르고, 글 전체에서 같은 읽기를 유지한다.
+     예: 神代 를 "카미조"와 "카미시로"로 섞어 쓰지 않는다.
 8. 원문에 있는 꾸밈 기호와 이모지는 있던 자리에 그대로 옮긴다. 빼거나 다른 기호로 바꾸지 않는다.
    예: ♡ ♥ ❤ ☆ ★ ♪ ♬ ✨ 💕 ～ 〜, 말끝의 물결표와 반복 기호도 그대로 살린다.
    예: おはよう♡ → 좋은 아침♡ / たのしい～ → 즐거워～
@@ -2205,6 +2213,7 @@ const RULE_BASE = `[모든 글에 공통으로 지키는 규칙]
    さっそく → 곧바로             なるほど → 그렇구나, 과연
    ちなみに → 참고로             そういえば → 그러고 보니
    まさか → 설마                 どうせ → 어차피
+   全く → 문장 첫머리 감탄이면 "정말이지…" "참나…", 부정문과 함께면 "전혀"
 10. 종조사와 명령·요청 어미는 형태를 기계적으로 대응시키지 말고, 그 인물의 말투와
    상황에 맞는 한국어 어미로 옮긴다.
    ※ "~다오", "~하시오", "~구려", "~이오" 같은 옛말투는 실제로 나이 든 인물이거나
@@ -2216,7 +2225,29 @@ const RULE_BASE = `[모든 글에 공통으로 지키는 규칙]
    ～さ → ~야 / ~거든              ～かしら → ~일까
    ～だろ → ~잖아 / ~지            ～のに → ~인데 ("~련만"은 쓰지 않는다)
    예: 括ったぞ → 다잡았다 / 다잡았어 (X: 먹었다오)
-       ぶっかけてくれぇぇええ！！ → 끼얹어 줘어어어!! (X: 끼얹어다오오오오오!!)`;
+       ぶっかけてくれぇぇええ！！ → 끼얹어 줘어어어!! (X: 끼얹어다오오오오오!!)
+11. 요즘 한국어에서 실제로 쓰지 않는 예스러운 말투와 낱말을 쓰지 않는다.
+   사전에 있더라도 어감이 어긋나면 고르지 않는다.
+   · 쓰지 말 것: ~다오, ~하시오, ~구려, ~이오, ~마는, ~느냐, ~잖느냐, ~노라, ~느니라,
+     ~련만, 뇌까리다, 경애하다, 자못, 무릇
+   · 물음 어미를 ~냐 로 굳히지 않는다. 인물 말투에 맞게 ~야? ~어? 를 쓴다.
+   예: 人目があるだろうが！ → 보는 눈이 있잖아! (X: 보는 눈이 있잖느냐!)
+       呟いた → 중얼거렸다 (X: 뇌까렸어 — "함부로 지껄이다"라 어감이 정반대다)
+       馬鹿か！ → 바보야? / 미쳤어? (X: 바보냐!)
+       全く、お前と言うやつは → 정말이지, 너란 녀석은 (X: 말씀을 하십니다마는, 너라는 녀석은)
+   ※ 작품 메모에 사극·고전 말투를 쓰라고 적혀 있으면 이 규칙은 적용하지 않는다.
+12. 일본어 한자어를 음으로만 읽어 옮기지 않는다. 한국어에서 쓰지 않는 말이면 뜻으로 풀어 쓴다.
+   예: 座長 → 단장   人目 → 남의 눈   一縷 → 한 가닥
+       敬愛すべき座長 → 존경하는 단장 (X: 경애 마땅한 좌장)
+13. 원문의 쉼표 위치를 그대로 지키려 하지 않는다. 일본어의 쉼표는 문장을 나누는 표시가
+   아니라 호흡을 나타낼 때가 많다. 한국어에서 자연스럽게 끊기는 자리에 다시 배치한다.
+   문단을 나누거나 합치는 것은 금지하지만, 문단 안의 쉼표는 옮겨도 된다.
+   예: そう、なのか → 그런… 건가? (X: 그래, 인가...?)
+14. 겹쳐 쓰인 어미는 통째로 하나의 뜻으로 보고 옮긴다. 조각내지 않는다.
+   ～させてほしい → ~하게 해줘        ～てもらう → 상황에 맞게 풀어 쓴다
+   ～ておく → 미리 ~해두다            ～てしまう → ~해버리다
+   ～ざるをえない → ~할 수밖에 없다
+   예: 好きでいさせてほしい → 좋아한 채로 있게 해줘 (X: 좋아하게 있어 줬으면 해)`;
 
 const RULE_OUT = `[출력 형식 — 아래 두 구획을 정확히 이 표시와 함께 출력한다]
 <<<번역>>>
@@ -2235,6 +2266,8 @@ const GENRES = {
     structure:false,
     who:'소설·팬픽 전문 번역가',
     rules:`[이 글에 더 지킬 것 — 소설]
+· 낱말 단위로 대응시키기보다 문장 전체의 뜻과 감정이 통하는 것을 우선한다.
+  한국어로 자연스럽다면 어순과 표현을 바꿔도 좋다.
 · 직역투를 피하고 자연스러운 한국어로 의역하되, 원문의 의미와 뉘앙스는 그대로 지킨다.
 · 대사는 인물별 말투·성격·인칭이 드러나게 옮긴다.
 · 일본어 호칭(くん・さん・ちゃん・様・先輩 등)은 번역하지 말고 발음 그대로 붙여 쓴다.
@@ -2332,22 +2365,59 @@ function splitText(text,limit){
   push(); return chunks;
 }
 
-/* 응답에서 본문과 고유명사 목록을 갈라냅니다 */
+/* ── 응답에서 본문과 고유명사 목록을 갈라내기 ──────────────────
+   예전에는 "<<<고유명사>>>" 라는 정확한 글자만 찾았습니다. 모델이 조금만 다르게
+   ("<<<고유명사표기>>>", "<< 용어집 >>") 써도 경계를 못 찾아서, 목록이 통째로
+   번역문 한가운데에 찍혔습니다. 이제 표시를 느슨하게 알아보고,
+   그래도 새어 나온 목록 줄은 본문에서 걷어내 목록 쪽으로 옮깁니다. */
 const GLOSS_MARK='<<<고유명사>>>';
+const GLOSS_RE=/<{2,3}\s*(?:고유\s*명사(?:\s*표기)?|용어집?)\s*>{2,3}/;
+const TRANS_RE=/<{2,3}\s*번역\s*>{2,3}/g;
+const MARK_RE=/^\s*<{2,3}[^<>\n]{0,20}>{2,3}\s*$/;      /* 홀로 남은 구획 표시 줄 */
+/* "카미시로 루이 | 神代 類 | 인명" — 세로선 2개로 3칸인 줄은 본문일 수 없습니다.
+   대사 안에 세로선이 들어갈 일은 없고, 있더라도 3칸으로 딱 나뉘지는 않습니다. */
+const LIST_RE=/^\s*[^|\n]{1,40}\|[^|\n]{1,40}\|[^|\n]{1,30}\s*$/;
+
+function glossLine(t, gloss){
+  const p=t.split('|').map(x=>x.trim());
+  if(p.length>=2 && p[0] && p[1]){ gloss.push({ko:p[0],or:p[1],ty:p[2]||''}); return true; }
+  return false;
+}
+/* 한 줄씩 훑습니다. 표시 하나로 통째로 자르면, 목록이 본문 한가운데 끼어든 경우
+   그 뒤의 번역문까지 목록으로 딸려가 사라집니다. 목록 줄이 끝나면 다시 본문으로 봅니다. */
 function parseReply(raw){
-  let body=raw, gloss=[];
-  const gi=raw.indexOf(GLOSS_MARK);
-  if(gi>=0){
-    body=raw.slice(0,gi);
-    raw.slice(gi+GLOSS_MARK.length).split('\n').forEach(line=>{
-      const t=line.trim();
-      if(!t||t==='없음'||t.startsWith('<<<')) return;
-      const p=t.split('|').map(x=>x.trim());
-      if(p.length>=2 && p[0] && p[1]) gloss.push({ko:p[0],or:p[1],ty:p[2]||''});
-    });
-  }
-  body=body.replace(/<<<번역>>>/g,'').replace(/<<<고유명사>>>/g,'').trim();
-  return {body,gloss};
+  const s=String(raw||'').replace(TRANS_RE,'');
+  const out=[], gloss=[];
+  let inGloss=false, leaked=0, bad=false;
+  s.split('\n').forEach(line=>{
+    let t=line;
+    const m=t.match(GLOSS_RE);
+    if(m){
+      if(t.slice(0,m.index).trim()) out.push(t.slice(0,m.index));   /* 표시 앞 본문은 살립니다 */
+      inGloss=true;
+      t=t.slice(m.index+m[0].length);
+    }
+    const v=t.trim();
+    if(!v){ if(!inGloss) out.push(''); return; }
+    if(MARK_RE.test(v)){ leaked++; return; }        /* 홀로 남은 구획 표시 */
+    if(inGloss){
+      if(v==='없음') return;
+      if(v.includes('|')){ if(!glossLine(v,gloss)) bad=true; return; }
+      inGloss=false;                                /* 목록이 끝났습니다 — 여기부터 다시 본문 */
+    }
+    if(LIST_RE.test(v)){                            /* 본문에 새어 나온 목록 줄 */
+      if(glossLine(v,gloss)){ leaked++; return; }
+      bad=true; return;
+    }
+    out.push(t);
+  });
+  const body=out.join('\n').replace(/\n{3,}/g,'\n\n').trim();
+  /* 걷어낸 뒤에도 남아 있으면 형식이 무너진 답으로 봅니다 (부르는 쪽에서 다시 요청) */
+  if(!bad) bad = body.split('\n').some(line=>{
+    const t=line.trim();
+    return t && (MARK_RE.test(t) || LIST_RE.test(t));
+  });
+  return {body, gloss, leaked, badFormat:bad};
 }
 
 /* ── 같은 말이 되풀이되는 폭주 ────────────────────────────────
@@ -2749,6 +2819,10 @@ function loopError(){             /* 같은 말이 끝없이 되풀이됨 */
 function shortError(){            /* 원문에 견줘 번역문이 너무 짧음 = 모델이 임의로 요약함 */
   const e=new Error('번역문이 원문보다 너무 짧아요.');
   e.tooShort=true; e.splittable=true; return e;
+}
+function formatError(){           /* 응답 형식이 무너져 용어 목록이 본문에 섞임 */
+  const e=new Error('응답 형식이 어긋났어요.');
+  e.badFormat=true; e.splittable=true; return e;
 }
 /* 사용자가 [멈추기]를 눌렀을 때 — 오류가 아니라 "그만두기"로 다룹니다 */
 function abortError(){ const e=new Error('멈췄어요'); e.name='AbortError'; return e; }
@@ -3375,10 +3449,14 @@ async function translate(){
             box.textContent=(cut>=0?full.slice(0,cut):full).replace(/<<<번역>>>/g,'').trimStart();
           };
           const raw=await askGemini(key,model,prompt,rulesFor(GENRE),16384,opt);
-          const {body,gloss:g}=parseReply(raw);
+          const {body,gloss:g,badFormat}=parseReply(raw);
           /* 필터에 막힌 게 아니라 모델이 "번역할 수 없습니다"로 답한 경우.
              그대로 두면 이 거절문이 번역문 자리에 들어앉습니다. */
           if(refusalLike(body, piece.length)) throw refusedError();
+          /* 걷어내고도 목록 줄·구획 표시가 본문에 남았다면 형식이 무너진 답입니다 */
+          if(badFormat){
+            last=formatError(); say(label+' · 응답 형식이 어긋나 다시 시도'); continue;
+          }
           /* askGemini 가 놓친 폭주 — 고유명사 목록을 떼어낸 본문으로 다시 봅니다 */
           if(looksLooping(body, piece.length)){
             last=loopError(); say(label+' · 같은 말이 되풀이돼서 다시 시도'); continue;
@@ -3386,6 +3464,8 @@ async function translate(){
           if(tooShort(body, piece)){
             last=shortError(); say(label+' · 번역이 원문보다 너무 짧아 다시 시도'); continue;
           }
+          /* 성 없이 이름만 올라온 인명은 성을 찾아 붙입니다 */
+          mergeNames(g, piece, body);
           g.forEach(x=>{ if(!gloss.some(y=>y.ko===x.ko)) gloss.push(x); });
           return body;
         }
@@ -3412,6 +3492,7 @@ async function translate(){
                    : err.looped    ? ' · 되풀이된 부분을 쪼개 다시 시도'
                    : err.truncated ? ' · 잘린 부분을 쪼개 다시 시도'
                    : err.tooShort  ? ' · 짧게 나온 부분을 쪼개 다시 시도'
+                   : err.badFormat ? ' · 형식이 어긋난 부분을 쪼개 다시 시도'
                    : ' · 막힌 부분을 쪼개 다시 시도'));
         const out=[];
         for(const sub of parts){
@@ -3436,6 +3517,11 @@ async function translate(){
       PUNCT.forEach(([re,to])=>{ x=x.replace(re,to); });
       /* 일본어는 ！？ 순서를 쓰지만 한국어는 ?! 로 씁니다. 이미 ?! 인 것은 건드리지 않습니다 */
       x=x.replace(/!\?/g,'?!');
+      /* 이어 붙이다 겹친 부호를 정리합니다 ("하십니다마는,," 처럼).
+         말줄임표는 살립니다 — 점 세 개 이상은 그대로 두고, 딱 두 개일 때만 하나로 줄입니다.
+         …… (U+2026)은 아예 다른 글자라 손대지 않습니다. */
+      x=x.replace(/,(?:\s*,)+/g,',');
+      x=x.replace(/\.{2,}/g, d => d.length===2 ? '.' : d);
       return x.replace(/ +([,.!?])/g,'$1')      /* 부호 앞 공백 정리 */
               .replace(/([,.!?:;]) +(?=[』」\)\]])/g,'$1')
               .replace(/[ \t]{2,}/g,' ')
@@ -3472,6 +3558,49 @@ async function translate(){
       return hits.some(r=>r.ko.test(line||''));
     }
 
+    /* ── 성 없이 등록된 인명 합치기 ─────────────────────────────
+       神代 類 를 "루이 | 類 | 인명"으로만 올리면, ✎(표기 고치기)로 고쳐도
+       성씨가 빠져 본문의 "카미조"가 그대로 남습니다. 이름만 올라온 것 같으면
+       성을 찾아 붙입니다. 헛짚으면 각주가 틀어지니 증거를 둘 다 볼 때만 합칩니다.
+         ① 원문에서 그 한자 바로 앞에 다른 한자 덩어리가 있다 (神代 + 類)
+         ② 번역문에서 그 이름 앞에 같은 낱말이 붙어 나온다 (카미시로 + 루이)
+       ②의 앞말이 "웃으며"처럼 서술어면 안 되므로, 조사·어미로 끝나는 말은 거릅니다. */
+    const NAME_JOSA='(?:은|는|이|가|을|를|의|도|와|과|랑|이랑|에게|한테|께|께서|만|씩|부터|까지|처럼|보다|야|아|여)?';
+    const NAME_STOP=/(?:며|서|고|만|도|은|는|이|가|을|를|에|의|와|과|랑|께|씩|채|자|듯|데|면|나|라|워|해|한|던|들|께서)$/;
+    const NAME_SKIP=new Set(['그','저','내','네','우리','당신','그녀','그놈','그자','이','저기','거기']);
+    /* 정규식에 넣을 때 뜻을 갖는 글자를 막습니다.
+       (바깥의 esc 는 HTML 용이라 이름이 겹치지 않게 따로 둡니다) */
+    const reEsc = s => String(s).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    function mergeNames(gl, srcText, bodyText){
+      gl.forEach(g=>{
+        if(!/인명|인물/.test(g.ty||'')) return;
+        if(/\s/.test(g.ko)) return;                     /* 이미 성+이름이면 둘 것 */
+        if(g.ko.length<2 || g.ko.length>6) return;
+        /* ① 원문 증거 — 그 한자 앞에 붙은 한자 덩어리 */
+        const sm=String(srcText||'').match(
+          new RegExp('([\\u4E00-\\u9FFF]{1,3})[\\s\\u3000]*'+reEsc(g.or)));
+        if(!sm) return;
+        /* ② 번역문 증거 — 그 이름 앞에 같은 낱말이 붙어 나오는가 */
+        const front={};
+        let hit=0, all=0;
+        /* 이름 뒤에는 조사가 붙습니다("루이는"). 조사까지 허용하고 그 뒤만 막아야
+           "루이스" 같은 다른 이름에 잘못 걸리지 않습니다. */
+        const re=new RegExp('([가-힣]{2,5})?\\s*'+reEsc(g.ko)+NAME_JOSA+'(?![가-힣])','g');
+        let mm;
+        while((mm=re.exec(String(bodyText||'')))){
+          all++;
+          const f=mm[1];
+          if(f && !NAME_STOP.test(f) && !NAME_SKIP.has(f)){ front[f]=(front[f]||0)+1; hit++; }
+        }
+        if(!all || !hit) return;
+        const best=Object.keys(front).sort((a,b)=>front[b]-front[a])[0];
+        if(!best || front[best]/all < 0.6) return;      /* 어쩌다 한 번이면 두고 봅니다 */
+        g.ko = best+' '+g.ko;
+        g.or = sm[1]+' '+g.or;
+      });
+      return gl;
+    }
+
     /* ── 굳어진 부사 오역 ────────────────────────────────────────
        모델이 발음이 비슷한 한국어를 골라 굳어버린 자리들입니다.
        どうやら(추측)를 "모름지기"(당위)로 옮기는 게 대표적인데, 뜻이 반대에 가깝습니다.
@@ -3503,12 +3632,25 @@ async function translate(){
       {re:/하거늘(?![가-힣])/,       why:'"하거늘"은 옛말투입니다. "~하는데 / ~인데" 로 고치세요.'}
     ];
 
-    /* 작품 메모에 사극·고전 말투를 쓰라고 적혀 있으면 옛말투 검사는 건너뜁니다
+    /* ── 어감이 어긋나는 낱말·물음 어미 ─────────────────────────
+       사전에는 있지만 요즘 글에서 쓰면 어색하거나 뜻이 어긋나는 말들입니다.
+       "뇌까리다"는 "함부로 지껄이다"라 呟く(중얼거리다)와 어감이 정반대예요. */
+    const STIFF_WORDS=[
+      {re:/잖느냐/,          why:'"~잖느냐"는 실제로 쓰지 않는 말입니다. "~잖아"로 고치세요. 예: 보는 눈이 있잖아!'},
+      {re:/느냐(?![가-힣])/, why:'"~느냐"는 예스러운 물음 어미입니다. 인물 말투에 맞게 "~야? / ~어? / ~니?"로 고치세요.'},
+      {re:/(?:다|지|나)마는(?![가-힣])/, why:'"~마는"은 예스러운 말입니다. "~지만"으로 고치세요.'},
+      {re:/뇌까리|뇌까렸|뇌까린/, why:'"뇌까리다"는 "함부로 지껄이다"라는 뜻이라 어감이 정반대입니다. 呟く 라면 "중얼거리다"로 고치세요.'},
+      {re:/경애(?:하|받|스러)/, why:'"경애하다"는 요즘 잘 쓰지 않습니다. "존경하다"로 고치세요.'},
+      {re:/[가-힣]\s자못(?![가-힣])|^자못/, why:'"자못"은 예스러운 말입니다. "꽤 / 상당히"로 고치세요.'},
+      {re:/[가-힣]\s무릇(?![가-힣])|^무릇/, why:'"무릇"은 예스러운 말입니다. 빼거나 "대개"로 고치세요.'}
+    ];
+
+    /* 작품 메모에 사극·고전 말투를 쓰라고 적혀 있으면 옛말투·예스러운 낱말 검사를 건너뜁니다
        (그 글에서는 "~하시오"가 틀린 게 아니라 원하는 말투니까요) */
     const PERIOD_STYLE=/사극|시대극|무협|고전|옛말|고풍|예스러/;
     const periodOK=PERIOD_STYLE.test(memo);
     /* 다시 다듬을 때 볼 표현 목록 — 여기에 한 줄 더 넣으면 바로 걸립니다 */
-    const WORDING = periodOK ? BAD_ADVERBS : BAD_ADVERBS.concat(OLD_STYLE);
+    const WORDING = periodOK ? BAD_ADVERBS : BAD_ADVERBS.concat(OLD_STYLE, STIFF_WORDS);
     const wordingHits = line => WORDING.filter(b=>b.re.test(line||''));
     const hasWording  = line => WORDING.some(b=>b.re.test(line||''));
 
@@ -3589,6 +3731,7 @@ async function translate(){
             (periodOK ? '' :
             '- 옛말투 어미(~다오, ~하시오, ~구려, ~이오)를 쓰지 마세요. 인물 말투에 맞는 요즘 어미로 옮기세요.\n'+
             '  예: 括ったぞ → 다잡았다·다잡았어   ぶっかけてくれ → 끼얹어 줘\n')+
+            '- 작은 모음(ぁ ぃ ぅ ぇ ぉ)은 앞 소리를 늘이는 표시입니다. 받침으로 옮기지 마세요. 예: あぁ → 아아 (X: 아앗)\n'+
             '- 작은 っ 를 받침으로 굳히지 말고 자리에 맞게 옮기세요.\n'+
             '  말끝에서 숨이 끊기면 앞 모음을 늘이고(なにっ！？ → 뭐라고오?!), 짧고 강한 놀람만 받침으로(あっ → 앗).\n'+
             '- 늘어진 모음(ぇぇええ ーー ぁあ)은 앞말의 모음을 늘여서 표현하세요. 어미 뒤에 소리만 덧붙이지 마세요.\n'+
@@ -3653,6 +3796,8 @@ async function translate(){
         '아래 줄에는 일본어 글자가 아직 한두 자 남아 있습니다. 한 글자도 남기지 말고 한국어로 옮겨 주세요.\n\n'+
         '지켜야 할 것\n'+
         '- 줄 번호와 개수를 그대로 유지하고 "번호|| 내용" 형식으로만 답하세요.\n'+
+        '- 작은 모음(ぁ ぃ ぅ ぇ ぉ)은 앞 소리를 늘이는 표시입니다. 받침으로 옮기지 마세요.\n'+
+        '  예: あぁ → 아아 (X: 아앗)   そんなぁ → 그런…\n'+
         '- 작은 っ 는 자리에 맞게 옮기세요. 말끝에서 숨이 끊기면 앞 모음을 늘이고(なにっ！？ → 뭐라고오?!),\n'+
         '  짧고 강한 놀람만 받침으로(あっ → 앗), 힘을 주는 ッッ 반복은 말줄임으로(ッッ！ → 읏…!).\n'+
         '- 늘어진 모음(ぇぇええ ーー)은 앞말의 모음을 늘여서 표현하세요. 예: くれぇぇええ → 줘어어어\n'+
