@@ -1069,7 +1069,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
     </section>
 
     <footer>
-      <span class="ver">글결 v69</span>
+      <span class="ver">글결 v70</span>
       <span class="made">만든 이 · 야자</span>
       <span class="ask">문의나 건의는 편하게 알려주세요</span>
       <span class="contact">
@@ -1527,6 +1527,16 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
           <p>앱은 이 필터를 <b>끌 수 있는 만큼 다 꺼두고</b>(OFF) 요청합니다. 그래도 아동 안전 같은 구글의 <b>고정 보호 장치</b>는 꺼지지 않아요 — 그때는 <b>PROHIBITED_CONTENT</b> 같은 이유가 나오고, 이것도 설정으로는 풀리지 않습니다.</p>
           <p>앱은 막힌 조각을 <b>반으로 쪼개 다시 시도</b>합니다. 대개 문제되는 문단 하나만 남고 나머지는 살아나요.</p>
           <p>끝까지 안 되면 본문에 <b>⟪이 부분은 안전 필터에 막혀 번역하지 못했어요⟫</b> 또는 <b>⟪모델이 이 부분의 번역을 거절했어요⟫</b> 표시가 남습니다. 그 자리를 눌러 원문을 복사해 따로 번역한 뒤 채워 넣을 수 있어요.</p>
+          <p>필터와 <b>상관없이</b> 문단이 비는 경우도 있어요 — <a href="#" data-help="cut">답이 잘리거나, 되풀이하거나, 너무 짧게 나온 경우</a>를 보세요.</p>
+        </div></details>
+
+        <details data-h="cut"><summary>"번역이 반복되어 실패했어요" · 문단이 빈칸으로 남아요</summary><div class="in">
+          <p>안전 필터와 <b>상관없는</b> 실패예요. 모델이 답을 끝까지 제대로 못 만든 경우인데, 예전에는 이걸 <b>알아채지 못하고 그대로 저장</b>했습니다. 원문만 있고 아래가 빈 문단이 줄줄이 남던 게 이것이에요. 지금은 앱이 스스로 알아보고 다시 시도합니다.</p>
+          <p><b>① 답이 도중에 잘렸어요</b> — 모델이 한 번에 쓸 수 있는 분량을 넘긴 경우예요. 앱이 분량을 <b>두 배로 늘려 다시</b> 받고, 그래도 잘리면 조각을 반으로 쪼개 번역합니다. 이게 자주 뜬다면 설정에서 <b>한 번에 보낼 분량</b>을 줄이세요 — 가장 잘 듣는 방법입니다.</p>
+          <p><b>② 같은 말이 되풀이돼요</b> — "억지로 억지로 억지로…"처럼 모델이 되풀이에 빠지는 현상이에요. 앱이 <b>만들어지는 도중에 알아채고 요청을 끊은 뒤</b> 설정을 바꿔 다시 받습니다(그래야 사용량이 낭비되지 않아요). 끝내 안 되면 <b>⟪이 부분은 번역이 반복되어 실패했어요⟫</b> 표시가 남습니다. 이건 <b>모델을 바꾸는 것</b>이 가장 잘 들어요.</p>
+          <p><b>③ 번역이 원문보다 너무 짧아요</b> — 모델이 시키지 않은 <b>요약</b>을 해버린 경우예요. 앱이 한 번 다시 시도한 뒤, 그래도 짧으면 조각을 쪼갭니다.</p>
+          <p>번역이 끝나면 결과 아래에 <b>몇 군데가 어떤 이유로 실패했는지</b> 함께 알려줍니다. 표시가 남은 자리를 눌러 원문을 복사해 따로 번역한 뒤 채워 넣을 수 있어요.</p>
+          <p>세 가지 모두 <b>모델을 최신 것으로 바꾸면</b> 눈에 띄게 줄어듭니다.</p>
         </div></details>
 
         <details data-h="err"><summary>그 밖의 오류</summary><div class="in">
@@ -3645,6 +3655,12 @@ async function translate(){
         lines.push(`${emptyCount}개 문단이 번역되지 않았어요.`);
       lines.push(`본문의 그 자리에서 [원문 보기 · 번역 넣기]를 누르면, 원문을 복사해 따로 번역한 뒤 그 자리에 채워 넣을 수 있어요.`);
       w.textContent=lines.join('\n');
+      /* 왜 이런 일이 생기는지 바로 볼 수 있게 — 막힘/거절이면 blocked, 나머지는 cut 항목으로 */
+      const a=document.createElement('a');
+      a.href='#'; a.dataset.help=(blockedCount||refusedCount) ? 'blocked' : 'cut';
+      a.textContent='왜 이런 일이 생기나요?';
+      a.style.cssText='display:inline-block;margin-top:8px';
+      w.appendChild(a);
       $('output').appendChild(w);
       const bits=[];
       if(blockedCount) bits.push(`${blockedCount}군데는 막힘`);
