@@ -1069,7 +1069,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
     </section>
 
     <footer>
-      <span class="ver">글결 v67</span>
+      <span class="ver">글결 v68</span>
       <span class="made">만든 이 · 야자</span>
       <span class="ask">문의나 건의는 편하게 알려주세요</span>
       <span class="contact">
@@ -2343,6 +2343,11 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
   let noThink = opts.noThink!=null ? !!opts.noThink : !!opts.fast;
   let temp = opts.temp!=null ? opts.temp : 0.8;
   const wantFull = opts.wantFull!=null ? !!opts.wantFull : !opts.fast;
+  /* 폭주 감시는 원문 길이를 준 요청 — 곧 번역 — 에서만 합니다.
+     링크에서 본문 가져오기 같은 건 "-=-=-=-=" 같은 구분선이 그대로 실려 오는데,
+     그걸 폭주로 잘못 보면 멀쩡한 페이지를 통째로 못 가져옵니다.
+     되풀이로 사용량이 크게 새는 것도 분량이 큰 번역 요청 쪽입니다. */
+  const watchLoop = opts.srcLen>0;
   /* 안전 필터 — 가장 느슨한 OFF 로 시작합니다.
      OFF 는 필터 자체를 끄고, BLOCK_NONE 은 필터를 돌리되 막지 않습니다 (실제 차단률이 다릅니다).
      계정·모델에 따라 OFF 를 400 으로 거절하기도 해서, 그때만 한 칸씩 물러납니다.
@@ -2515,7 +2520,7 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
                 full+=t; opts.onChunk(full);
                 /* 폭주가 시작되면 끝까지 받을 이유가 없습니다 — 그만큼 사용량이 나가니까요.
                    2,000자마다 한 번씩만 봅니다 (글자마다 보면 느려집니다) */
-                if(full.length-watched>=2000){
+                if(watchLoop && full.length-watched>=2000){
                   watched=full.length;
                   if(looksLooping(full, opts.srcLen)){ killed='loop'; ac.abort(); break; }
                 }
@@ -2529,7 +2534,7 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
           throw loopError();
         }
         /* 다 받고 나서 한 번 더 봅니다 (2,000자에 못 미치게 짧으면 위에서 못 걸러요) */
-        if(looksLooping(full, opts.srcLen)){
+        if(watchLoop && looksLooping(full, opts.srcLen)){
           if(retryLoop()) continue;
           throw loopError();
         }
@@ -2538,6 +2543,7 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
           if(retryCut()) continue;
           throw truncatedError();
         }
+        if(fin==='MAX_TOKENS' && full.trim() && opts.onCut) opts.onCut();
         if(full.trim()) return full.trim();
         if(blocked) throw blockedError(bmsg(blocked,bWhere,bRat));
         throw new Error('__nostream__');
@@ -2594,13 +2600,15 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
         throw truncatedError();
       }
       if(!text.trim()) throw new Error('분량이 커요. 설정에서 분량을 줄여 주세요.');
+      /* 잘린 채로라도 쓰는 요청(링크 가져오기 등)에는 잘렸다는 사실을 알려줍니다 */
+      if(opts.onCut) opts.onCut();
     }
     if(!text.trim()){
       const fr=cand.finishReason||'';
       if(fr && fr!=='STOP') throw blockedError(bmsg(fr,'out',cand.safetyRatings));
       throw new Error('답이 비어 있어요. 다시 시도해 주세요.');
     }
-    if(looksLooping(text, opts.srcLen)){
+    if(watchLoop && looksLooping(text, opts.srcLen)){
       if(retryLoop()) continue;
       throw loopError();
     }
@@ -3569,6 +3577,10 @@ async function translate(){
       }
     }
     const secs=Math.round((Date.now()-t0)/1000);
+    /* 어떤 표시도 없이 번역만 비어 있는 문단을 셉니다.
+       "뒤에 이어붙이기"로 예전 번역이 섞이기 전에 세야 이번에 옮긴 몫만 나옵니다. */
+    const emptyCount=((DOC&&DOC.pairs)||[])
+      .filter(p=>!p.t && p.s && !stripMarks(String(p.d||'')).trim()).length;
     learnRate(model, src.length, secs);
     updateCount();
     celebrate(); sparkle($('result-card'));
@@ -3604,9 +3616,6 @@ async function translate(){
       /* 취소해도 그대로 덮어씁니다 (번역 결과를 잃지 않도록) */
     }
     saveArchive(true);
-    /* 어떤 표시도 남지 않았는데 번역이 비어 있는 문단이 있으면 그것도 알려줍니다.
-       (원문만 있고 아래가 빈 문단이 줄줄이 나오던 것을 눈으로 세지 않아도 되게) */
-    const emptyCount=(DOC&&DOC.pairs||[]).filter(p=>!p.t && p.s && !stripMarks(String(p.d||'')).trim()).length;
     if(blockedCount || refusedCount || loopedCount || missCount || emptyCount){
       const w=document.createElement('div'); w.className='err';
       const lines=[];
@@ -4858,11 +4867,15 @@ async function fetchFromUrl(){
   const btn=$('urlGet'); btn.disabled=true;
   busy(true,'링크를 읽는 중', '페이지를 열어 본문을 찾고 있어요');
   srcNote('');
+  let wasCut=false;
   try{
+    /* 여기서는 잘린 답도 쓸모가 있습니다 — 앞부분이라도 가져오면 나머지는 이어 붙이면 되니까요.
+       번역과 달리 실패로 돌리면 아무것도 못 가져옵니다. 대신 잘렸다는 사실을 꼭 알려줍니다. */
     const t=await askGemini(key,$('model').value,
       `아래 주소의 페이지에서 소설 본문을 그대로 옮겨 적어 주세요.\n\n${url}`,
       URL_SYSTEM, 32768,
-      {noThink:false, temp:0.1, tools:[{url_context:{}}],
+      {noThink:false, temp:0.1, tools:[{url_context:{}}], wantFull:false,
+       onCut:()=>{ wasCut=true; },
        onStatus:m=>{$('busyS').textContent=m;}});
 
     const body=t.replace(/^```[\w]*\n?|```$/g,'').trim();
@@ -4879,7 +4892,9 @@ async function fetchFromUrl(){
     if(!$('docTitle').value.trim()){
       try{ $('docTitle').value=new URL(url).hostname.replace(/^www\./,''); store.set('title',$('docTitle').value); }catch(e){}
     }
-    if(body.length>=200)
+    if(wasCut)
+      srcNote('페이지가 길어서 <b>가져온 글이 도중에 잘렸어요.</b> 뒷부분은 직접 복사해 이어 붙여 주세요.', true);
+    else if(body.length>=200)
       srcNote('링크에서 가져온 글이에요. <b>빠진 부분이나 잘린 곳이 없는지 꼭 확인</b>한 뒤 번역하세요.');
     $('source').scrollIntoView({behavior:'smooth',block:'center'});
     toast(`${body.length.toLocaleString()}자를 가져왔어요`);
