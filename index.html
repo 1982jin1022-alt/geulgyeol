@@ -1069,7 +1069,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
     </section>
 
     <footer>
-      <span class="ver">글결 v70</span>
+      <span class="ver">글결 v71</span>
       <span class="made">만든 이 · 야자</span>
       <span class="ask">문의나 건의는 편하게 알려주세요</span>
       <span class="contact">
@@ -2180,7 +2180,18 @@ const RULE_BASE = `[모든 글에 공통으로 지키는 규칙]
 8. 원문에 있는 꾸밈 기호와 이모지는 있던 자리에 그대로 옮긴다. 빼거나 다른 기호로 바꾸지 않는다.
    예: ♡ ♥ ❤ ☆ ★ ♪ ♬ ✨ 💕 ～ 〜, 말끝의 물결표와 반복 기호도 그대로 살린다.
    예: おはよう♡ → 좋은 아침♡ / たのしい～ → 즐거워～
-   물결표는 6번 규칙보다 이 규칙이 앞선다. 〜 ～ 는 ~ 로 바꾸지 않고 그대로 둔다.`;
+   물결표는 6번 규칙보다 이 규칙이 앞선다. 〜 ～ 는 ~ 로 바꾸지 않고 그대로 둔다.
+9. 부사·접속사·감탄사는 발음이 비슷한 한국어를 고르지 말고, 문맥에서 실제로 하는
+   역할(추측·강조·역접 등)에 맞는 말로 옮긴다.
+   どうやら → 아무래도, 어쩐지, 보아하니
+     ※ "모름지기"로 옮기지 않는다. どうやら 는 추측이고 "모름지기"는 당위라 뜻이 반대에 가깝다.
+   さすが → 역시, 과연            せっかく → 모처럼, 애써
+   とりあえず → 일단, 우선        なんとか → 어떻게든
+   やっぱり → 역시               むしろ → 오히려
+   いっそ → 차라리               たしか → 아마, 분명
+   さっそく → 곧바로             なるほど → 그렇구나, 과연
+   ちなみに → 참고로             そういえば → 그러고 보니
+   まさか → 설마                 どうせ → 어차피`;
 
 const RULE_OUT = `[출력 형식 — 아래 두 구획을 정확히 이 표시와 함께 출력한다]
 <<<번역>>>
@@ -3434,6 +3445,21 @@ async function translate(){
       return hits.some(r=>r.ko.test(line||''));
     }
 
+    /* ── 굳어진 부사 오역 ────────────────────────────────────────
+       모델이 발음이 비슷한 한국어를 골라 굳어버린 자리들입니다.
+       どうやら(추측)를 "모름지기"(당위)로 옮기는 게 대표적인데, 뜻이 반대에 가깝습니다.
+       한글이라 foreignRatio 로는 안 잡히고, 원문 짝맞춤도 소용없어요
+       (같은 오역이 여러 낱말에서 나옵니다). 그래서 표현 자체를 봅니다.
+       ※ 새 항목은 여기에 한 줄 더 넣으면 됩니다. `why` 는 다시 다듬을 때 모델에게 그대로 보냅니다. */
+    const BAD_ADVERBS=[
+      {re:/모름지기/,  why:'"모름지기"는 당위(마땅히 ~해야 한다)입니다. どうやら 같은 추측 부사를 이렇게 옮긴 것이면 "아무래도 / 어쩐지 / 보아하니"로 고치세요.'},
+      {re:/과연히/,    why:'"과연히"는 없는 말입니다. "과연"으로 고치세요.'},
+      {re:/역시나로/,  why:'"역시나로"는 없는 말입니다. "역시" 또는 "역시나"로 고치세요.'},
+      {re:/모처럼에/,  why:'"모처럼에"는 어색합니다. "모처럼" 또는 "모처럼의"로 고치세요.'}
+    ];
+    const badAdverbs = line => BAD_ADVERBS.filter(b=>b.re.test(line||''));
+    const hasBadAdverb = line => BAD_ADVERBS.some(b=>b.re.test(line||''));
+
     /* ① 통째로 번역되지 않은 문단 — 한 줄씩 다시 번역합니다 */
     async function retranslateLine(text){
       for(let a=0;a<2;a++){
@@ -3455,12 +3481,13 @@ async function translate(){
     async function repairLeftovers(body,label,srcPiece){
       const paras=body.split(/\n/);
       const hits=romajiHits(srcPiece||'');
-      const heavy=[], light=[], roman=[];
+      const heavy=[], light=[], roman=[], adverb=[];
       paras.forEach((t,i)=>{
         if(FOREIGN.test(t)){ (foreignRatio(t)>=0.25 ? heavy : light).push(i); return; }
-        if(hits.length && hasRomaji(t, hits)) roman.push(i);
+        if(hits.length && hasRomaji(t, hits)){ roman.push(i); return; }
+        if(hasBadAdverb(t)) adverb.push(i);
       });
-      if(!heavy.length && !light.length && !roman.length) return body;
+      if(!heavy.length && !light.length && !roman.length && !adverb.length) return body;
       let changed=false;
 
       /* ① 통째로 안 된 문단 (최대 12개까지) */
@@ -3499,6 +3526,9 @@ async function translate(){
             '  "오레" "아타시" "와타시" "보쿠" "키미" "안타" "오마에" 같은 발음 표기를 남기지 마세요.\n'+
             '  발음 그대로 적는 것은 인명·작품명·상표 같은 고유명사뿐입니다.\n'+
             '- 외래어도 한글로 적습니다. 예: スヌーズ → 스누즈\n'+
+            '- 부사를 발음이 비슷한 한국어로 옮기지 말고, 문맥상 역할에 맞는 말로 고치세요.\n'+
+            '  예: どうやら → 아무래도·어쩐지·보아하니 ("모름지기"가 아닙니다 — 추측이지 당위가 아닙니다)\n'+
+            '      さすが → 역시·과연   せっかく → 모처럼   とりあえず → 일단   むしろ → 오히려\n'+
             '- 대사를 감싸는 「」『』는 그대로 두세요.\n'+
             '- 꾸밈 기호와 물결표(♡ ☆ ♪ 〜 ～)는 있던 자리에 그대로 두세요.\n'+
             '- 설명이나 인사말을 붙이지 마세요.\n\n'+listed,
@@ -3519,42 +3549,63 @@ async function translate(){
       if(light.length > BATCH*MAX_BATCH)
         say(label+` · 남은 원문 글자가 많아 ${BATCH*MAX_BATCH}줄까지만 다듬었어요`);
 
-      /* ③ 인칭대명사를 발음 그대로 옮긴 줄 — 뜻으로 고쳐 씁니다.
-         ②의 판정(원문 글자가 줄었는가)은 여기 쓸 수 없어요. 이미 다 한글이라 둘 다 0 입니다.
-         그래서 "발음 표기가 사라졌는가"로 따로 봅니다. */
-      const rRounds=Math.min(Math.ceil(roman.length/BATCH), MAX_BATCH);
-      for(let b=0; b<rRounds; b++){
-        const part=roman.slice(b*BATCH, (b+1)*BATCH);
-        if(!part.length) break;
-        say(roman.length>BATCH
-          ? `${label} · 발음으로 옮겨진 말을 고치는 중 ${b+1}/${rRounds}`
-          : label+' · 발음으로 옮겨진 말을 고치는 중');
-        const listed=part.map((i,k)=>`${k+1}|| ${paras[i]}`).join('\n');
-        try{
-          const out=await askGemini(key,model,
-            memoHead+
-            '아래 줄에는 일본어 인칭대명사를 뜻이 아니라 발음 그대로 옮긴 말이 남아 있습니다. 뜻으로 고쳐 주세요.\n\n'+
-            '오레 · 와타시 · 아타시 · 보쿠 → 나 (또는 저)\n'+
-            '키미 · 안타 · 오마에 → 너\n'+
-            '오레노 · 와타시노 · 보쿠노 → 내 (또는 제)\n\n'+
-            '지켜야 할 것\n'+
-            '- 줄 번호와 개수를 그대로 유지하고 "번호|| 내용" 형식으로만 답하세요.\n'+
-            '- 그 말이 사람 이름이라면 그대로 두세요. 발음 그대로 적는 것은 고유명사뿐입니다.\n'+
-            '- 말투와 나머지 문장은 손대지 말고, 그 낱말만 자연스럽게 바꾸세요.\n'+
-            '- 설명이나 인사말을 붙이지 마세요.\n\n'+listed,
-            null, 8192, {fast:true, temp:0.2, onStatus, signal});
-          const map={};
-          out.split('\n').forEach(line=>{
-            const m=line.match(/^\s*(\d+)\s*\|\|\s*(.*)$/);
-            if(m && m[2].trim()) map[+m[1]]=m[2].trim();
-          });
-          part.forEach((i,k)=>{
-            const got=map[k+1];
-            if(got && !refusalLike(got, paras[i].length) && !hasRomaji(got, hits)
-               && foreignRatio(got)<0.15){ paras[i]=polishPunct(got); changed=true; }
-          });
-        }catch(e){ if(isAbort(e)) throw e; break; }
-        await new Promise(r=>setTimeout(r,700));
+      /* ③④ 줄 단위로 고쳐 쓰는 공통 틀.
+         ②의 판정(원문 글자가 줄었는가)은 여기 쓸 수 없어요 — 이미 다 한글이라 둘 다 0 입니다.
+         그래서 "고치려던 표현이 사라졌는가"(stillBad)로 봅니다.
+         안 고쳐졌으면 원래 줄을 그대로 둡니다 — 멀쩡한 줄을 건드려 망치지 않으려고요. */
+      async function fixLines(idxs, doing, head, stillBad){
+        const rounds=Math.min(Math.ceil(idxs.length/BATCH), MAX_BATCH);
+        for(let b=0; b<rounds; b++){
+          const part=idxs.slice(b*BATCH, (b+1)*BATCH);
+          if(!part.length) break;
+          say(idxs.length>BATCH ? `${label} · ${doing} ${b+1}/${rounds}` : `${label} · ${doing}`);
+          const listed=part.map((i,k)=>`${k+1}|| ${paras[i]}`).join('\n');
+          try{
+            const out=await askGemini(key,model, head+listed, null, 8192,
+              {fast:true, temp:0.2, onStatus, signal});
+            const map={};
+            out.split('\n').forEach(line=>{
+              const m=line.match(/^\s*(\d+)\s*\|\|\s*(.*)$/);
+              if(m && m[2].trim()) map[+m[1]]=m[2].trim();
+            });
+            part.forEach((i,k)=>{
+              const got=map[k+1];
+              if(got && !refusalLike(got, paras[i].length) && !stillBad(got)
+                 && foreignRatio(got)<0.15){ paras[i]=polishPunct(got); changed=true; }
+            });
+          }catch(e){ if(isAbort(e)) throw e; break; }
+          await new Promise(r=>setTimeout(r,700));
+        }
+      }
+
+      /* ③ 인칭대명사를 발음 그대로 옮긴 줄 — 뜻으로 고쳐 씁니다 */
+      if(roman.length) await fixLines(roman, '발음으로 옮겨진 말을 고치는 중',
+        memoHead+
+        '아래 줄에는 일본어 인칭대명사를 뜻이 아니라 발음 그대로 옮긴 말이 남아 있습니다. 뜻으로 고쳐 주세요.\n\n'+
+        '오레 · 와타시 · 아타시 · 보쿠 → 나 (또는 저)\n'+
+        '키미 · 안타 · 오마에 → 너\n'+
+        '오레노 · 와타시노 · 보쿠노 → 내 (또는 제)\n\n'+
+        '지켜야 할 것\n'+
+        '- 줄 번호와 개수를 그대로 유지하고 "번호|| 내용" 형식으로만 답하세요.\n'+
+        '- 그 말이 사람 이름이라면 그대로 두세요. 발음 그대로 적는 것은 고유명사뿐입니다.\n'+
+        '- 말투와 나머지 문장은 손대지 말고, 그 낱말만 자연스럽게 바꾸세요.\n'+
+        '- 설명이나 인사말을 붙이지 마세요.\n\n',
+        got => hasRomaji(got, hits));
+
+      /* ④ 굳어진 부사 오역 — 그 줄에 걸린 항목의 설명만 뽑아 함께 보냅니다 */
+      if(adverb.length){
+        const why=[...new Set(adverb.flatMap(i=>badAdverbs(paras[i]).map(b=>b.why)))];
+        await fixLines(adverb, '어색한 부사를 고치는 중',
+          memoHead+
+          '아래 줄에는 부사가 어색하게 옮겨진 곳이 있습니다. 그 부분만 고쳐 주세요.\n\n'+
+          why.map(w=>'- '+w).join('\n')+'\n\n'+
+          '지켜야 할 것\n'+
+          '- 부사는 발음이 비슷한 한국어를 고르지 말고, 문맥에서 하는 역할(추측·강조·역접 등)에 맞는 말로 옮기세요.\n'+
+          '- 줄 번호와 개수를 그대로 유지하고 "번호|| 내용" 형식으로만 답하세요.\n'+
+          '- 문맥상 그 말이 정말 맞다면 그대로 두세요.\n'+
+          '- 말투와 나머지 문장은 손대지 말고, 그 부사만 자연스럽게 바꾸세요.\n'+
+          '- 설명이나 인사말을 붙이지 마세요.\n\n',
+          hasBadAdverb);
       }
       return changed ? paras.join('\n') : body;
     }
