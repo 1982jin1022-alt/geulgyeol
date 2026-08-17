@@ -108,7 +108,7 @@
   --r-card:22px;
   --shadow:0 1px 2px rgba(60,45,95,.05), 0 12px 30px -12px rgba(60,45,95,.18);
   --read-font:'Pretendard Variable',Pretendard,sans-serif;
-  --read-size:17px; --read-leading:2.0; --read-gap:1.1em; --read-indent:0;
+  --read-size:17px; --read-leading:2.0; --read-gap:1.1em; --read-gap-base:1.1em; --read-indent:0;
   --cute:'Jua','Pretendard Variable',sans-serif;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -324,6 +324,12 @@ button{font-family:inherit}
 .mini input{width:17px;height:17px;accent-color:var(--accent);margin:0}
 
 #output{padding:2px}
+/* ════════ 줄이 짧은 글 (노래 가사) ════════
+   한 줄이 곧 한 문단이라 기본 여백이면 줄이 서로 떠 보입니다.
+   --read-gap 을 60% 로 줄여 이 안의 문단·대조 여백이 함께 좁아집니다. */
+#output.tight{--read-gap:calc(var(--read-gap-base) * .6)}
+/* 절과 절 사이의 빈 줄 — 원문에 있던 빈 줄을 그대로 살립니다 */
+.verse-br{height:1.5em;pointer-events:none}
 #output .para,.cmp .dst{
   font-family:var(--read-font);font-size:var(--read-size);line-height:var(--read-leading);
   text-indent:var(--read-indent);margin:0 0 var(--read-gap);word-break:break-word;white-space:pre-line
@@ -1141,7 +1147,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
     </section>
 
     <footer>
-      <span class="ver">글결 v77</span>
+      <span class="ver">글결 v78</span>
       <span class="made">만든 이 · 야자</span>
       <span class="ask">문의나 건의는 편하게 알려주세요</span>
       <span class="contact">
@@ -1425,6 +1431,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
           <p><b>소설·팬픽</b> — 자연스럽게 의역하고, 인물별 말투와 호칭을 살립니다.</p>
           <p><b>게임 공략</b> — 숫자를 그대로 두고, 아이템·스킬·몬스터 이름을 모두 각주로 모읍니다. 소제목과 목록도 살려요.</p>
           <p><b>썰·커뮤니티</b> — 구어체로 감정과 호흡을 살립니다. OP·TL;DR 같은 약어도 풀어줘요.</p>
+          <p><b>노래 가사</b> — 줄바꿈을 그대로 살려 뜻 위주로 옮깁니다. 부를 수 있게 음절을 맞추지는 않아요. 후렴 반복과 절 사이 빈 줄도 그대로 두고, 문단 사이 여백을 좁혀 줄이 뜨지 않게 합니다.</p>
           <p><b>정보 글</b> — 정확함을 우선합니다. 뉴스 기사, 안내문, 설명서, 리뷰처럼 사실을 전하는 글에 맞아요.</p>
           <p>고른 갈래는 서재에 함께 저장돼서, 나중에 그 글을 불러오면 갈래도 같이 돌아옵니다.</p>
         </div></details>
@@ -2093,6 +2100,9 @@ function applyRead(){
   s.setProperty('--read-size',R.size+'px');
   s.setProperty('--read-leading',R.lead);
   s.setProperty('--read-gap',R.gap+'em');
+  /* 가사처럼 줄이 짧은 글에서 이 값의 60% 로 줄여 쓰려고 원래 값을 따로 둡니다
+     (#output.tight 안에서 var(--read-gap) 을 스스로 참조하면 순환이 됩니다) */
+  s.setProperty('--read-gap-base',R.gap+'em');
   s.setProperty('--read-indent',R.indent?'1em':'0');
   $('sSize').value=R.size; $('oSize').textContent=R.size+'px';
   $('sLead').value=R.lead; $('oLead').textContent=Number(R.lead).toFixed(2);
@@ -2443,6 +2453,31 @@ const GENRES = {
 · 욕설이나 거친 표현은 수위를 임의로 낮추지 말고 원문 세기에 맞춰 옮긴다.
 · [고유명사] 목록의 분류는 인명·지명·조직·용어 중에서 고른다.`
   },
+  lyrics: {
+    name:'노래 가사',
+    memoLabel:'곡·가수 메모',
+    memoHint:'곡 제목과 가수, 곡의 분위기를 적어두면 말투와 어조가 그에 맞게 맞춰집니다. 화자가 누구인지(남성·여성·화자 불명) 적어두면 어미가 흔들리지 않아요.',
+    memoPh:'예) 발라드. 이별 후 담담하게 회상하는 분위기. 화자는 여성.&#10;&#10;예) 밝은 록. 반말로, 외치는 느낌이 살아나게.',
+    structure:false,
+    who:'노래 가사 전문 번역가',
+    /* 가사는 줄이 짧고 후렴이 되풀이돼서 기본 검사들이 헛짚습니다 (아래 CHECK_DEFAULT 참고) */
+    checks:{ loopTimes:80, shortCJK:0.3, lineAlign:true, keepBlank:true, tightGap:true },
+    rules:`[이 글에 더 지킬 것 — 노래 가사]
+· 뜻을 정확히 전달하는 것이 목적이다. 부를 수 있게 음절을 맞추려 하지 않는다.
+· 줄바꿈이 곧 의미 단위다. 원문의 한 줄은 번역도 한 줄로 옮긴다.
+  여러 줄을 한 문장으로 합치거나, 한 줄을 여러 줄로 쪼개지 않는다.
+· 가사는 문법이 온전하지 않은 것이 정상이다.
+  조사가 빠지거나 어순이 뒤집혀 있어도 억지로 완전한 문장으로 다듬지 않는다.
+  원문이 명사로 끝나면 번역도 명사로 끝낼 수 있다.
+· 후렴이 반복되면 반복된 그대로 옮긴다. 같은 줄이라도 생략하지 않는다.
+  다만 같은 원문 줄은 같은 번역으로 통일한다.
+· 비유와 함축은 풀어 설명하지 않는다. 원문이 모호하면 번역도 모호하게 남긴다.
+  괄호로 뜻을 덧붙이거나 해설을 붙이지 않는다.
+· 영어가 섞인 줄은 영어 그대로 두는 것이 자연스러우면 그대로 둔다.
+  (제목·후렴구의 영어 문구 등)
+· 말투는 작품 메모에 적힌 화자에 맞춘다. 메모가 없으면 원문 어조를 따라간다.
+· [고유명사] 목록의 분류는 인명·지명·용어 중에서 고른다.`
+  },
   plain: {
     name:'정보 글',
     memoLabel:'글 배경 메모',
@@ -2575,9 +2610,12 @@ function parseReply(raw){
    ①에서 "ㅋㅋㅋㅋ…" "……" 같은 강조는 걸러야 하므로, 되풀이되는 조각에
    서로 다른 글자가 둘 이상 있을 때만 폭주로 봅니다. */
 const LOOP_TIMES=20, LOOP_OVER=3, LOOP_FLOOR=1500;
-function loopRun(text){
+/* times 를 주면 그만큼 이어질 때만 폭주로 봅니다.
+   노래 가사는 후렴이 되풀이되는 것이 정상이라 이 값을 크게 올려 씁니다. */
+function loopRun(text, times){
   const t=String(text||'');
-  const re=new RegExp('([\\s\\S]{2,8}?)\\1{'+(LOOP_TIMES-1)+',}','g');
+  const n=Math.max(2, times||LOOP_TIMES);
+  const re=new RegExp('([\\s\\S]{2,8}?)\\1{'+(n-1)+',}','g');
   let m;
   while((m=re.exec(t))){
     if(new Set(m[1].replace(/\s/g,'')).size>=2) return m[1];
@@ -2585,15 +2623,30 @@ function loopRun(text){
   }
   return '';
 }
-function looksLooping(text, srcLen){
+function looksLooping(text, srcLen, times){
   const t=String(text||'');
   if(!t) return false;
   /* 3배 기준에 여유를 둡니다 — 짧은 조각은 뒤에 붙는 [고유명사] 목록만으로도 몇 배가 되거든요.
      진짜 폭주는 답이 한도에 닿을 때까지 이어져서 이 여유쯤은 훌쩍 넘습니다. */
   if(srcLen>0 && t.length > Math.max(srcLen*LOOP_OVER, srcLen+LOOP_FLOOR)) return true;
   /* 폭주는 끝에서 자랍니다. 긴 글은 끝자락만 봐도 충분하고 훨씬 빠릅니다 */
-  return !!loopRun(t.length>4000 ? t.slice(-4000) : t);
+  return !!loopRun(t.length>4000 ? t.slice(-4000) : t, times);
 }
+
+/* ── 갈래마다 달라지는 검사 기준 ──────────────────────────────
+   갈래를 늘릴 때 위 GENRES 의 그 갈래에 checks:{...} 만 적으면 됩니다.
+   적지 않은 항목은 아래 기본값을 씁니다 (= 지금까지의 동작).
+   ※ LOOP_TIMES 를 참조하므로 반드시 그 선언 뒤에 있어야 합니다. */
+const CHECK_DEFAULT = {
+  loopTimes : LOOP_TIMES,   /* 같은 조각이 몇 번 이어지면 폭주로 볼지 */
+  shortCJK  : 0.5,          /* 일본어·중국어 원문일 때 "너무 짧다"의 기준 비율 */
+  shortLatin: 0.3,          /* 라틴 문자 원문일 때 */
+  lineAlign : false,        /* 줄 수가 같으면 길이 계산 없이 순서대로 1:1 짝짓기 */
+  keepBlank : false,        /* 원문의 빈 줄을 번역에도 남길지 */
+  tightGap  : false         /* 문단 사이 여백을 좁힐지 (줄이 짧은 글) */
+};
+const checksFor = g => Object.assign({}, CHECK_DEFAULT, (GENRES[g]||{}).checks||{});
+
 
 /* opts.fast    = true  → 짧은 답(단어 뜻 등)용. 잘린 답을 오류로 처리합니다.
    opts.noThink = true  → 모델이 "속으로 생각하는" 과정을 끕니다 (훨씬 빠름).
@@ -2784,7 +2837,7 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
                    2,000자마다 한 번씩만 봅니다 (글자마다 보면 느려집니다) */
                 if(watchLoop && full.length-watched>=2000){
                   watched=full.length;
-                  if(looksLooping(full, opts.srcLen)){ killed='loop'; ac.abort(); break; }
+                  if(looksLooping(full, opts.srcLen, opts.loopTimes)){ killed='loop'; ac.abort(); break; }
                 }
               }
             }catch(e){}
@@ -2796,7 +2849,7 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
           throw loopError();
         }
         /* 다 받고 나서 한 번 더 봅니다 (2,000자에 못 미치게 짧으면 위에서 못 걸러요) */
-        if(watchLoop && looksLooping(full, opts.srcLen)){
+        if(watchLoop && looksLooping(full, opts.srcLen, opts.loopTimes)){
           if(retryLoop()) continue;
           throw loopError();
         }
@@ -2877,7 +2930,7 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
       if(fr && fr!=='STOP') throw blockedError(bmsg(fr,'out',cand.safetyRatings));
       throw new Error('답이 비어 있어요. 다시 시도해 주세요.');
     }
-    if(watchLoop && looksLooping(text, opts.srcLen)){
+    if(watchLoop && looksLooping(text, opts.srcLen, opts.loopTimes)){
       if(retryLoop()) continue;
       throw loopError();
     }
@@ -3149,12 +3202,30 @@ function alignParas(sp, dp){
   return out.reverse();
 }
 
-function buildDoc(chunks){
+function buildDoc(chunks, ck){
+  ck = ck || CHECK_DEFAULT;
   const pairs=[];
   chunks.forEach(c=>{
-    const sp=c.src.split(/\n+/).map(x=>x.trim()).filter(Boolean);
-    const dp=c.dst.split(/\n+/).map(x=>x.trim()).filter(Boolean);
-    alignParas(sp,dp).forEach(x=>pairs.push(x));
+    let sp, dp;
+    if(ck.keepBlank){
+      /* 가사는 절과 절 사이의 빈 줄이 뜻을 가릅니다. 한 줄씩 끊고 빈 줄을 남깁니다.
+         (기본 방식은 \n+ 로 끊고 빈 줄을 걸러내 절 구분이 사라집니다) */
+      sp=c.src.split(/\r?\n/).map(x=>x.trim());
+      dp=c.dst.split(/\r?\n/).map(x=>x.trim());
+      /* 앞뒤로 딸려온 빈 줄만 떼어냅니다 */
+      const trim = a => { while(a.length && !a[0]) a.shift(); while(a.length && !a[a.length-1]) a.pop(); return a; };
+      trim(sp); trim(dp);
+    } else {
+      sp=c.src.split(/\n+/).map(x=>x.trim()).filter(Boolean);
+      dp=c.dst.split(/\n+/).map(x=>x.trim()).filter(Boolean);
+    }
+    /* 줄 수가 같으면 길이 계산 없이 순서대로 짝지습니다.
+       가사는 줄이 짧고 길이가 고르게 비슷해서 길이 기반 정렬이 쉽게 어긋납니다. */
+    if(ck.lineAlign && sp.length===dp.length && sp.length){
+      for(let i=0;i<sp.length;i++) pairs.push({s:sp[i], d:dp[i]});
+    } else {
+      alignParas(sp,dp).forEach(x=>pairs.push(x));
+    }
   });
   return keepDeco(pairs);
 }
@@ -3313,6 +3384,8 @@ function renderDoc(){
   if(!DOC || !DOC.pairs.length){ showEmpty(); return; }
   $('viewbar').style.display='flex';
   $('afterRow').style.display='flex';
+  /* 가사처럼 줄이 짧은 글은 문단 사이 여백을 좁혀 줄이 뜨지 않게 합니다 */
+  out.classList.toggle('tight', !!(DOC && DOC.tg));
 
   /* 이어 붙은 같은 종류의 실패 문단은 안내를 하나만 그립니다.
      3,000자 조각이 400자가 될 때까지 쪼개지면 표시가 여덟 개까지 늘어나서,
@@ -3324,6 +3397,12 @@ function renderDoc(){
   };
 
   DOC.pairs.forEach((p,pi)=>{
+    /* 절과 절 사이의 빈 줄 — 가사에서는 이 자리가 뜻을 가릅니다 */
+    if(DOC.ln && !p.t && !String(p.s||'').trim() && !stripMarks(String(p.d||'')).trim()){
+      const br=document.createElement('div'); br.className='verse-br';
+      br.dataset.i=pi; out.appendChild(br);
+      return;
+    }
     if(viewMode==='only'){
       if(p.d){
         if(contGap(pi)) return;                /* 앞 것과 같은 종류면 건너뜁니다 */
@@ -3472,7 +3551,14 @@ function showEmpty(){
   closeFnPanel();
 }
 
-const plainResult = () => DOC ? DOC.pairs.map(p=>stripMarks(p.d)).filter(Boolean).join('\n\n') : '';
+/* 줄 단위로 다루는 글(가사)은 줄바꿈이 곧 뜻이라 한 줄씩 그대로 이어 붙입니다.
+   빈 줄도 남겨 절 구분이 살아 있게 합니다. 그 밖에는 예전처럼 문단 사이를 비웁니다. */
+const plainResult = () => {
+  if(!DOC) return '';
+  const lines=DOC.pairs.map(p=>stripMarks(p.d));
+  if(DOC.ln) return lines.join('\n').replace(/\n{3,}/g,'\n\n').trim();
+  return lines.filter(Boolean).join('\n\n');
+};
 
 $('viewSeg').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b) return;
@@ -3671,6 +3757,7 @@ async function translate(){
   const done=[]; let gloss=TERMS.map(t=>({ko:t.ko,or:t.or,ty:t.ty||''}));
   let leftCount=0;                 /* 다듬고도 원문 글자가 남은 줄 수 */
   let madeParas=0;                 /* 지어낸 내용을 걷어내고 원문으로 되돌린 문단 수 */
+  const CK=checksFor(GENRE);       /* 이 갈래의 검사 기준 */
   try{
     const rawTitle=cleanText($('docTitle').value).trim();
     if(rawTitle){
@@ -3709,7 +3796,8 @@ async function translate(){
       const pl=n(piece), bl=n(body);
       if(pl<80) return false;                 /* 짧은 조각은 재지 않습니다 */
       const cjk=(piece.match(/[぀-ヿ一-鿿㐀-䶿]/g)||[]).length;
-      const min = cjk > pl*0.2 ? 0.5 : 0.3;
+      /* 기준은 갈래마다 다릅니다 — 가사는 원래 짧게 나오는 것이 정상입니다 */
+      const min = cjk > pl*0.2 ? CK.shortCJK : CK.shortLatin;
       if(bl < pl*min) return true;
       /* 문단 수도 봅니다 — 뒤쪽이 통째로 빠지면 길이보다 문단 수에서 먼저 드러납니다 */
       const sp=piece.split(/\n+/).filter(x=>x.trim()).length;
@@ -3754,7 +3842,8 @@ async function translate(){
         let last=null;
         for(let t=0;t<2;t++){
           if(box) box.textContent='';
-          const opt={noThink, onStatus, signal, wantFull:true, srcLen:piece.length};
+          const opt={noThink, onStatus, signal, wantFull:true, srcLen:piece.length,
+                     loopTimes:CK.loopTimes};
           if(t){ opt.temp=0.3; opt.noThink=false; }
           if(box) opt.onChunk=(full)=>{
             const cut=full.indexOf('<<<고유명사>>>');
@@ -3770,7 +3859,7 @@ async function translate(){
             last=formatError(); say(label+' · 응답 형식이 어긋나 다시 시도'); continue;
           }
           /* askGemini 가 놓친 폭주 — 고유명사 목록을 떼어낸 본문으로 다시 봅니다 */
-          if(looksLooping(body, piece.length)){
+          if(looksLooping(body, piece.length, CK.loopTimes)){
             last=loopError(); say(label+' · 같은 말이 되풀이돼서 다시 시도'); continue;
           }
           if(tooShort(body, piece)){
@@ -4396,7 +4485,7 @@ async function translate(){
       leftCount += leftoverLines(body);
       done.push({src:chunks[i],dst:body});
 
-      const pairs=buildDoc(done);
+      const pairs=buildDoc(done, CK);
       /* 기호뿐인 원문 문단에 지어낸 글이 들어왔으면 걷어냅니다.
          짝을 맞춘 뒤라야 어느 문단인지 정확히 짚을 수 있어 여기서 봅니다. */
       /* buildDoc 은 done 전체를 매번 다시 짝지으므로, 더하지 않고 그때의 값을 씁니다
@@ -4405,7 +4494,10 @@ async function translate(){
       /* 제목도 본문과 같은 흐름에 넣어 각주가 붙게 합니다 */
       if(curTitleKo || rawTitle) pairs.unshift({s:rawTitle||'', d:curTitleKo||rawTitle||'', t:1});
       const ann=annotate(pairs.map(p=>p.d),gloss,(DOC&&DOC.wnotes)||[]);
-      DOC={pairs:pairs.map((p,k)=>({s:p.s,d:ann.paras[k],t:p.t||0})),notes:ann.notes,wnotes:ann.wnotes||[],st:!!(GENRES[GENRE]&&GENRES[GENRE].structure)};
+      DOC={pairs:pairs.map((p,k)=>({s:p.s,d:ann.paras[k],t:p.t||0})),notes:ann.notes,wnotes:ann.wnotes||[],
+           st:!!(GENRES[GENRE]&&GENRES[GENRE].structure),
+           /* 줄 단위로 다루는 글(가사)인지 — 그리기·복사에서 빈 줄과 줄바꿈을 살리는 데 씁니다 */
+           ln:!!CK.lineAlign, tg:!!CK.tightGap};
       renderDoc();
 
       $('bar').firstElementChild.style.width=((i+1)/chunks.length*100)+'%';
@@ -6296,6 +6388,7 @@ const GENRE_NOTE={
   novel:'대사 말투를 살리고 자연스럽게 옮깁니다.',
   guide:'숫자를 그대로 두고, 아이템·스킬 이름을 각주로 모읍니다. 소제목·목록도 살려요.',
   community:'구어체로, 원문의 감정과 호흡을 살려 옮깁니다.',
+  lyrics:'줄바꿈을 그대로 살려 뜻 위주로 옮깁니다. 옮긴 가사를 다른 곳에 올릴 때는 저작권을 확인해 주세요.',
   plain:'정확함을 우선해 옮기고, 소제목·목록을 살립니다.'
 };
 function renderGenre(){
