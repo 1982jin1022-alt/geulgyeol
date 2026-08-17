@@ -362,6 +362,41 @@ button{font-family:inherit}
   border-right:2px solid color-mix(in srgb,var(--accent) 22%,transparent);margin:0}
 .cmp.side .dst{font-size:calc(var(--read-size) * .92)}
 
+/* ════════ 펼쳐보기 — 번역만 보이다가 문단을 탭하면 그 문단 원문이 펼쳐집니다 ════════
+   폰에서 한 손으로 읽다가 궁금한 문단만 확인하는 용도입니다.
+   원문은 자리를 차지하지 않게 접어 두고, .open 이 붙은 것만 보여줍니다. */
+.cmp.fold .src{display:none}
+.cmp.fold.open .src{display:block;margin:8px 0 0;
+  animation:foldIn .18s ease-out}
+@keyframes foldIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+/* 펼칠 수 있다는 표시 — 번역문 오른쪽 아래에 작은 점 세 개 */
+.cmp.fold{position:relative;cursor:pointer}
+.cmp.fold.can::after{
+  content:'⋯';position:absolute;right:2px;bottom:-2px;
+  font-size:15px;line-height:1;color:color-mix(in srgb,var(--accent) 45%,transparent);
+  pointer-events:none
+}
+.cmp.fold.open.can::after{content:'⋀';font-size:10px;bottom:2px}
+
+/* ════════ 폰 (좁은 화면) ════════
+   · "나란히"는 한 칸이 너무 좁아 못 씁니다 — 없애지 않고 숨깁니다
+   · "번갈아"는 원문과 번역이 붙어 있어 경계가 흐렸습니다 */
+@media (max-width:639px){
+  #viewSide{display:none}
+  /* 원문에 옅은 배경을 깔아 번역과 확실히 가릅니다 (왼쪽 세로선은 그대로) */
+  .cmp:not(.side) .src{
+    font-size:calc(var(--read-size) * .78);
+    color:color-mix(in srgb,var(--soft) 88%,transparent);
+    background:color-mix(in srgb,var(--weak) 42%,transparent);
+    border-radius:0 10px 10px 0;
+    padding:8px 11px 8px 11px;
+    margin:0 0 12px
+  }
+  /* 한 쌍(원문+번역)이 끝나면 여백을 넉넉히 */
+  .cmp{margin-bottom:calc(var(--read-gap) * 1.9 + 6px)}
+  .cmp.fold.open .src{margin:10px 0 0}
+}
+
 /* 설명 시트는 설정 시트 위에 뜨도록 (설정을 열어둔 채 설명을 볼 수 있게) */
 #helpBackdrop{z-index:63}
 #helpSheet{z-index:64}
@@ -572,6 +607,29 @@ body.fn-open #navBtns{bottom:calc(48vh + 16px)}
 #fnFab:active{transform:scale(.93)}
 #fnFab b{font-weight:400;font-size:12px;opacity:.85}
 body.fn-open{padding-bottom:calc(48vh + 20px)}
+
+/* ════════ 키보드가 올라온 동안 ════════
+   폰에서 키보드가 화면 절반을 덮으면 떠 있는 단추들이 키보드와 겹치고,
+   시트 안 입력칸이 가려집니다. --kb 에는 키보드 높이(px)가 들어갑니다. */
+body.keyboard-up #navBtns,
+body.keyboard-up #fnFab,
+body.keyboard-up #resume{display:none !important}
+/* 시트는 남은 높이에 맞추고, 아래로 키보드만큼 여백을 둡니다 */
+body.keyboard-up .sheet{
+  max-height:calc(100vh - var(--kb, 0px) - 12px);
+  padding-bottom:calc(18px + var(--kb, 0px))
+}
+/* 키보드 바로 위에 뜨는 작은 "번역하기" — visualViewport 가 있을 때만 만듭니다 */
+#kbGo{
+  position:fixed;left:50%;transform:translateX(-50%);z-index:58;
+  display:none;align-items:center;gap:6px;
+  padding:11px 22px;border:none;border-radius:999px;cursor:pointer;
+  font-family:var(--cute);font-size:14px;color:#fff;white-space:nowrap;
+  background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 58%,var(--pop)));
+  box-shadow:0 10px 26px -8px color-mix(in srgb,var(--accent) 90%,transparent),inset 0 1px 0 rgba(255,255,255,.3)
+}
+#kbGo.show{display:flex}
+#kbGo:active{transform:translateX(-50%) scale(.94)}
 
 sup.fn{
   font-size:.62em;color:var(--accent);font-weight:700;cursor:pointer;
@@ -1070,7 +1128,8 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
         <div class="seg" id="viewSeg">
           <button data-v="only" class="on">번역만</button>
           <button data-v="alt">번갈아</button>
-          <button data-v="side">나란히</button>
+          <button data-v="fold">펼쳐보기</button>
+          <button data-v="side" id="viewSide">나란히</button>
         </div>
         <button class="btn ghost" id="fnPanelBtn" style="display:none">각주 창 <b id="fnBtnNum"></b></button>
       </div>
@@ -1082,7 +1141,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
     </section>
 
     <footer>
-      <span class="ver">글결 v76</span>
+      <span class="ver">글결 v77</span>
       <span class="made">만든 이 · 야자</span>
       <span class="ask">문의나 건의는 편하게 알려주세요</span>
       <span class="contact">
@@ -1199,6 +1258,8 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
   <button id="botBtn" title="맨 아래로" aria-label="맨 아래로">↓</button>
 </div>
 <button id="fnFab">각주 <b id="fnFabNum"></b></button>
+<!-- 키보드 위에 뜨는 작은 번역하기 (visualViewport 가 있을 때만 보입니다) -->
+<button id="kbGo">번역하기</button>
 <div id="fnPanel">
   <div class="fnp-head">
     <span class="fnp-title">고유명사</span>
@@ -3238,6 +3299,15 @@ function dropInvented(pairs){
   return n;
 }
 
+/* ── 폰·키보드 판정 기준 ──────────────────────────────────────
+   여기 두 숫자만 고치면 됩니다. */
+const PHONE_MAX = 640;   /* 이 너비 미만이면 폰으로 봅니다 ("나란히"를 숨김) */
+const KB_MIN    = 150;   /* 화면이 이만큼 줄어들면 키보드가 올라온 것으로 봅니다 */
+const isPhone = () => window.innerWidth < PHONE_MAX;
+
+/* 펼쳐보기에서 열어 둔 문단 번호. 보기를 다시 그려도 열림이 유지됩니다. */
+const foldOpen = new Set();
+
 function renderDoc(){
   const out=$('output'); out.innerHTML='';
   if(!DOC || !DOC.pairs.length){ showEmpty(); return; }
@@ -3264,13 +3334,27 @@ function renderDoc(){
       }
       return;
     }
+    const fold = viewMode==='fold';
     const box=document.createElement('div');
-    box.className='cmp'+(viewMode==='side'?' side':'')+(p.t?' is-title':'');
+    box.className='cmp'+(viewMode==='side'?' side':'')+(fold?' fold':'')+(p.t?' is-title':'');
     box.dataset.i=pi;
     /* 대조 보기에서는 원문을 지우면 안 되니, 안내만 빼고 원문 줄은 그대로 둡니다 */
-    if(p.s){ const s=document.createElement('p'); s.className='src'; s.textContent=p.s; box.appendChild(s); }
-    if(p.d && !contGap(pi)) box.appendChild(isGap(p.d) ? gapNode(p,pi)
-                          : (DOC.st && !p.t ? styledNode(p.d,'dst') : paraNode(p.d,'dst')));
+    const srcNode = p.s ? (()=>{ const s=document.createElement('p');
+      s.className='src'; s.textContent=p.s; return s; })() : null;
+    const dstNode = (p.d && !contGap(pi))
+      ? (isGap(p.d) ? gapNode(p,pi)
+        : (DOC.st && !p.t ? styledNode(p.d,'dst') : paraNode(p.d,'dst')))
+      : null;
+    /* 펼쳐보기는 번역이 먼저 오고 원문이 그 아래로 펼쳐집니다 (읽는 순서 그대로) */
+    if(fold){
+      if(dstNode) box.appendChild(dstNode);
+      if(srcNode) box.appendChild(srcNode);
+      if(srcNode && dstNode) box.classList.add('can');     /* 펼칠 것이 있다는 표시 */
+      if(foldOpen.has(pi)) box.classList.add('open');      /* 보기를 다시 그려도 열림 유지 */
+    } else {
+      if(srcNode) box.appendChild(srcNode);
+      if(dstNode) box.appendChild(dstNode);
+    }
     out.appendChild(box);
   });
 
@@ -3279,7 +3363,9 @@ function renderDoc(){
   renderNotes();
   /* 읽기로 열어둔 서재 글은 저장하지 않습니다 (작업 중이던 번역을 지키려고) */
   if(!readSnap) store.set('doc', JSON.stringify(DOC));
-  store.set('view', viewMode);
+  /* 좁아서 "나란히"가 잠시 물러난 상태라면 설정값을 덮어쓰지 않습니다 —
+     화면을 넓히거나 돌리면 다시 "나란히"로 돌아가야 하니까요. */
+  if(!sideParked) store.set('view', viewMode);
 }
 
 /* 각주 창 내용 그리기 — 본문에는 더 이상 목록을 붙이지 않습니다 */
@@ -3390,10 +3476,51 @@ const plainResult = () => DOC ? DOC.pairs.map(p=>stripMarks(p.d)).filter(Boolean
 
 $('viewSeg').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b) return;
+  if(viewMode!==b.dataset.v) foldOpen.clear();   /* 다른 보기로 가면 펼친 것을 접습니다 */
   viewMode=b.dataset.v;
-  $('viewSeg').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+  sideParked=false;              /* 손으로 고른 것이니 "잠시 물러남"은 끝입니다 */
+  syncViewSeg();
   renderDoc();
 });
+
+/* 단추의 눌림 표시를 지금 보기와 맞춥니다 */
+function syncViewSeg(){
+  $('viewSeg').querySelectorAll('button')
+    .forEach(x=>x.classList.toggle('on', x.dataset.v===viewMode));
+}
+
+/* ── 화면 너비에 따라 "나란히"를 감추고, 그 상태였으면 "번갈아"로 내립니다 ──
+   폰에서는 좌우 2단이 한 칸씩 너무 좁아 낱말이 서너 자마다 끊깁니다.
+   설정값(store 의 view)은 건드리지 않습니다 — 넓은 화면으로 돌아오면 되살아나게. */
+let sideParked=false;              /* 좁아서 잠시 물러난 상태인가 */
+function applyWidth(){
+  const phone=isPhone();
+  if(phone && viewMode==='side'){
+    viewMode='alt'; sideParked=true;
+    syncViewSeg();
+    if(DOC && DOC.pairs && DOC.pairs.length) renderDoc();
+  } else if(!phone && sideParked){
+    viewMode='side'; sideParked=false;
+    syncViewSeg();
+    if(DOC && DOC.pairs && DOC.pairs.length) renderDoc();
+  }
+}
+window.addEventListener('resize', applyWidth);
+if(window.matchMedia) try{
+  window.matchMedia(`(max-width:${PHONE_MAX-1}px)`).addEventListener('change', applyWidth);
+}catch(e){}
+
+/* ── 펼쳐보기 — 문단의 빈 곳을 탭하면 그 문단 원문이 펼쳐집니다 ──
+   낱말 위를 탭하면 지금처럼 낱말이 선택되어야 하므로, 낱말을 고르지 못한 경우에만
+   펼칩니다. 그 판단은 #output 의 click 처리기(pickWordAt)가 이미 하고 있어서,
+   여기서는 pickWordAt 이 실패했을 때 불립니다. */
+function toggleFold(box){
+  const pi=+box.dataset.i;
+  if(!box.classList.contains('can')) return false;
+  if(foldOpen.has(pi)){ foldOpen.delete(pi); box.classList.remove('open'); }
+  else { foldOpen.add(pi); box.classList.add('open'); }
+  return true;
+}
 
 /* 각주 번호를 누르면 그 자리에 작게 뜹니다 (화면이 움직이지 않아요) */
 let fnPopIdx=-1;
@@ -6006,7 +6133,6 @@ function samePick(p, node, a, b){
       && c.endContainer===node   && c.endOffset===b;
 }
 $('output').addEventListener('click',e=>{
-  if(!R.tap) return;
   /* ① 누른 대상이 위 자리 안이면 아무것도 하지 않습니다 */
   if(e.target.closest && e.target.closest(NO_PICK)) return;
   /* ② 말풍선 단추를 누른 직후에 온 click 은 무시합니다.
@@ -6017,15 +6143,24 @@ $('output').addEventListener('click',e=>{
   /* ③ 그 좌표의 맨 위 요소가 본문이 아니면(무언가 덮고 있으면) 고르지 않습니다 */
   const top=document.elementFromPoint(e.clientX, e.clientY);
   if(!top || !top.closest('#output') || top.closest(NO_PICK)) return;
-  /* 손으로 끌어 고른 것은 그대로 둡니다. 탭으로 고른 것(lastPick)만 다시 고르거나 풉니다 —
-     그러지 않으면 데스크톱에서 드래그가 끝나는 순간 click 이 나면서 한 낱말로 줄어듭니다. */
-  const sel=window.getSelection();
-  const mine=lastPick && samePick(lastPick, lastPick.node, lastPick.a, lastPick.b);
-  if(sel && !sel.isCollapsed && sel.toString().trim() && !mine) return;
-  if(pickWordAt(e.clientX,e.clientY)){ queueSelPop(30); return; }
-  /* 빈 곳을 눌렀거나 같은 낱말을 다시 누른 경우 — 선택을 풀고 말풍선을 닫습니다.
-     폰에서는 다른 곳을 눌러도 선택이 안 풀려서 계속 갇히던 자리입니다. */
-  clearPick();
+  /* ④ 낱말 고르기 (설정에서 껐으면 건너뜁니다) */
+  if(R.tap){
+    /* 손으로 끌어 고른 것은 그대로 둡니다. 탭으로 고른 것(lastPick)만 다시 고르거나 풉니다 —
+       그러지 않으면 데스크톱에서 드래그가 끝나는 순간 click 이 나면서 한 낱말로 줄어듭니다. */
+    const sel=window.getSelection();
+    const mine=lastPick && samePick(lastPick, lastPick.node, lastPick.a, lastPick.b);
+    if(sel && !sel.isCollapsed && sel.toString().trim() && !mine) return;
+    if(pickWordAt(e.clientX,e.clientY)){ queueSelPop(30); return; }
+    /* 빈 곳을 눌렀거나 같은 낱말을 다시 누른 경우 — 선택을 풀고 말풍선을 닫습니다.
+       폰에서는 다른 곳을 눌러도 선택이 안 풀려서 계속 갇히던 자리입니다. */
+    clearPick();
+  }
+  /* ⑤ 펼쳐보기에서 문단의 빈 곳(줄 끝 여백 등)을 눌렀으면 그 문단 원문을 펼칩니다.
+     낱말 위를 눌렀으면 ④에서 이미 돌아갔으니 여기까지 오지 않습니다. */
+  if(viewMode==='fold'){
+    const box=e.target.closest('.cmp.fold');
+    if(box) toggleFold(box);
+  }
 });
 
 /* ════════════════════════════════════════════════════════════
@@ -6196,6 +6331,76 @@ $('hideStart').addEventListener('click',()=>{
 });
 
 /* ════════════════════════════════════════════════════════════
+   키보드가 올라온 동안
+   ── 폰에서 키보드가 화면 절반을 덮으면 글자 수·[번역하기]가 안 보이고,
+      떠 있는 단추들이 키보드와 겹치고, 시트 안 입력칸이 가려집니다.
+      visualViewport 로 얼마나 줄었는지 재서 그만큼 비켜섭니다.
+      이 API 가 없는 브라우저(주로 데스크톱)에서는 아무 일도 하지 않습니다.
+   ════════════════════════════════════════════════════════════ */
+const VV = window.visualViewport || null;
+let kbUp=false;
+
+function kbHeight(){
+  if(!VV) return 0;
+  return Math.max(0, Math.round(window.innerHeight - VV.height - VV.offsetTop));
+}
+function onViewport(){
+  if(!VV) return;
+  const h=kbHeight();
+  const up=h>KB_MIN;
+  document.documentElement.style.setProperty('--kb', (up?h:0)+'px');
+  if(up!==kbUp){
+    kbUp=up;
+    document.body.classList.toggle('keyboard-up', up);
+    /* 각주 창이 열려 있으면 닫습니다 — 키보드와 겹쳐 둘 다 못 씁니다 */
+    if(up && $('fnPanel').classList.contains('show')) closeFnPanel();
+  }
+  placeKbGo();
+}
+if(VV){
+  VV.addEventListener('resize', onViewport);
+  VV.addEventListener('scroll', onViewport);
+}
+
+/* 입력칸에 들어가면 잠시 뒤 그 칸을 화면 가운데로 올립니다 (키보드가 올라온 다음에) */
+document.addEventListener('focusin', e=>{
+  const el=e.target;
+  if(!el || !el.matches || !el.matches('textarea,input')) return;
+  if(el.type==='checkbox' || el.type==='radio' || el.type==='color') return;
+  setTimeout(()=>{
+    /* 그 사이 초점이 옮겨갔으면 그냥 둡니다 */
+    if(document.activeElement!==el) return;
+    try{ el.scrollIntoView({block:'center', behavior:'smooth'}); }catch(err){ el.scrollIntoView(); }
+    placeKbGo();
+  }, 300);
+});
+document.addEventListener('focusout', ()=>setTimeout(placeKbGo, 60));
+
+/* 본문 칸에 글을 넣는 동안, 키보드 바로 위에 작은 [번역하기]를 띄웁니다.
+   visualViewport 를 못 쓰면 자리를 잡을 수 없으니 아예 만들지 않습니다. */
+function placeKbGo(){
+  if(!VV) return;                     /* 자리를 잡을 수 없으니 아예 다루지 않습니다 */
+  const b=$('kbGo');
+  if(!b) return;
+  const on = kbUp
+    && document.activeElement===$('source')
+    && $('source').value.trim().length>0
+    && !running;
+  b.classList.toggle('show', on);
+  if(on) b.style.bottom=(kbHeight()+12)+'px';
+}
+$('kbGo').addEventListener('click',()=>{
+  $('kbGo').classList.remove('show');
+  $('source').blur();
+  $('run').click();
+});
+/* 글자를 넣거나 지울 때마다 보일지 다시 판단합니다 */
+$('source').addEventListener('input', ()=>placeKbGo());
+/* visualViewport 가 없으면 이 단추는 자리를 잡을 수 없으니 아예 없앱니다
+   (주로 데스크톱 — 거기서는 [번역하기]가 원래 화면에 보입니다) */
+if(!VV){ const kg=$('kbGo'); if(kg) kg.remove(); }
+
+/* ════════════════════════════════════════════════════════════
    시작
    ════════════════════════════════════════════════════════════ */
 (function init(){
@@ -6237,7 +6442,9 @@ $('hideStart').addEventListener('click',()=>{
   /* 브라우저가 저장 내용을 함부로 지우지 않도록 요청합니다 */
   try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persist(); }catch(e){}
 
-  $('viewSeg').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===viewMode));
+  /* 좁은 화면이면 "나란히"를 잠시 물러나게 합니다 (설정값은 그대로 둡니다) */
+  if(isPhone() && viewMode==='side'){ viewMode='alt'; sideParked=true; }
+  syncViewSeg();
   try{ DOC=JSON.parse(store.get('doc','')) || null; }catch(e){ DOC=null; }
   if(DOC && !DOC.wnotes) DOC.wnotes=[];
   if(DOC && DOC.pairs && DOC.pairs.length){
