@@ -575,7 +575,9 @@ body.fn-open{padding-bottom:calc(48vh + 20px)}
 
 sup.fn{
   font-size:.62em;color:var(--accent);font-weight:700;cursor:pointer;
-  padding:0 1px 0 2px;vertical-align:super;text-indent:0
+  padding:0 1px 0 2px;vertical-align:super;text-indent:0;
+  /* 낱말을 고를 때 각주 번호가 딸려 들어가지 않게 합니다 ("상대1 지나친다") */
+  -webkit-user-select:none;user-select:none
 }
 sup.fn:active{opacity:.5}
 .notes{
@@ -631,6 +633,11 @@ sup.fn:active{opacity:.5}
 #selpop button{border:none;background:transparent;color:var(--accent);font-size:13px;font-weight:700;
   padding:8px 12px;border-radius:10px;cursor:pointer;white-space:nowrap}
 #selpop button:active{background:var(--weak)}
+/* 폰에서 선택을 확실히 빠져나갈 길 하나 — 맨 오른쪽 닫기 단추 */
+#spClose{
+  color:var(--soft);font-size:15px;padding:8px 10px;
+  margin-left:2px;border-left:1px solid color-mix(in srgb,var(--line) 80%,transparent)
+}
 
 /* ════════ 단어장 ════════ */
 /* ════════ 서재 ════════ */
@@ -1069,7 +1076,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
     </section>
 
     <footer>
-      <span class="ver">글결 v74</span>
+      <span class="ver">글결 v75</span>
       <span class="made">만든 이 · 야자</span>
       <span class="ask">문의나 건의는 편하게 알려주세요</span>
       <span class="contact">
@@ -1140,6 +1147,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
   <button id="spMean">뜻 보기</button>
   <button id="spSave">단어장</button>
   <button id="spTrans">번역</button>
+  <button id="spClose" aria-label="선택 풀기" title="선택 풀기">✕</button>
 </div>
 
 <!-- 원문 보기 말풍선 -->
@@ -1535,8 +1543,9 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
           <p><b>① 답이 도중에 잘렸어요</b> — 모델이 한 번에 쓸 수 있는 분량을 넘긴 경우예요. 앱이 분량을 <b>두 배로 늘려 다시</b> 받고, 그래도 잘리면 조각을 반으로 쪼개 번역합니다. 이게 자주 뜬다면 설정에서 <b>한 번에 보낼 분량</b>을 줄이세요 — 가장 잘 듣는 방법입니다.</p>
           <p><b>② 같은 말이 되풀이돼요</b> — "억지로 억지로 억지로…"처럼 모델이 되풀이에 빠지는 현상이에요. 앱이 <b>만들어지는 도중에 알아채고 요청을 끊은 뒤</b> 설정을 바꿔 다시 받습니다(그래야 사용량이 낭비되지 않아요). 끝내 안 되면 <b>⟪이 부분은 번역이 반복되어 실패했어요⟫</b> 표시가 남습니다. 이건 <b>모델을 바꾸는 것</b>이 가장 잘 들어요.</p>
           <p><b>③ 번역이 원문보다 너무 짧아요</b> — 모델이 시키지 않은 <b>요약</b>을 해버린 경우예요. 앱이 한 번 다시 시도한 뒤, 그래도 짧으면 조각을 쪼갭니다.</p>
+          <p><b>④ 원문 글자가 한두 자 남았어요</b> — "일리<b>どころか</b>", "무<b>粹</b>한"처럼 낱말 한둘이 옮겨지지 않고 남는 경우예요. 앱이 그 줄만 모아서 다듬고, 그래도 남으면 <b>그 줄 하나만 떼어 다시</b> 물어봅니다. 끝내 남으면 결과 아래에 <b>"N군데에 원문 글자가 남았어요"</b>라고 알려요 — 조용히 넘기지 않습니다. 그 낱말을 눌러 <b>[번역]</b>으로 그 자리만 고칠 수 있어요.</p>
           <p>번역이 끝나면 결과 아래에 <b>몇 군데가 어떤 이유로 실패했는지</b> 함께 알려줍니다. 표시가 남은 자리를 눌러 원문을 복사해 따로 번역한 뒤 채워 넣을 수 있어요.</p>
-          <p>세 가지 모두 <b>모델을 최신 것으로 바꾸면</b> 눈에 띄게 줄어듭니다.</p>
+          <p>네 가지 모두 <b>모델을 최신 것으로 바꾸면</b> 눈에 띄게 줄어듭니다.</p>
         </div></details>
 
         <details data-h="err"><summary>그 밖의 오류</summary><div class="in">
@@ -2247,7 +2256,46 @@ const RULE_BASE = `[모든 글에 공통으로 지키는 규칙]
    ～させてほしい → ~하게 해줘        ～てもらう → 상황에 맞게 풀어 쓴다
    ～ておく → 미리 ~해두다            ～てしまう → ~해버리다
    ～ざるをえない → ~할 수밖에 없다
-   예: 好きでいさせてほしい → 좋아한 채로 있게 해줘 (X: 좋아하게 있어 줬으면 해)`;
+   예: 好きでいさせてほしい → 좋아한 채로 있게 해줘 (X: 좋아하게 있어 줬으면 해)
+15. 번역문에는 완성된 결과만 쓴다. 번역하는 과정을 글에 남기지 않는다.
+   · 후보를 여러 개 늘어놓거나, 썼다가 고쳐 나가는 과정을 보이지 않는다.
+     "~가 아니라", "아니, ~쪽이" 같은 자기수정 표현을 번역문에 쓰지 않는다.
+   · 원문과 뜻풀이를 나란히 적지 않는다. 둘 중 번역만 남긴다.
+   · 낱말 뒤에 괄호로 설명을 덧붙이지 않는다.
+   예: 腹を括った → 각오를 다졌다
+       (X: 배를 꼿꼿이 펴는(배를 꼿꼿이 펴는)…… 가 아니라 배를 짼다(배수의 진을 친다) 쪽이 빨랐다)
+       どこそこで → 여기저기서 (X: どこそこ(어디 저기)에서)
+16. 관용구는 글자 하나하나의 뜻이 아니라 관용적 의미로 통째로 옮긴다.
+   腹を括る → 각오를 다지다        気が置けない → 허물없다
+   手を焼く → 애먹다               腰が重い → 굼뜨다
+   目を疑う → 눈을 의심하다        口が滑る → 말이 헛나오다
+   気が置けない 처럼 글자만 보면 뜻이 뒤집히는 것이 있으니, 아는 관용구인지 먼저 살핀다.
+17. 소리나 한자 모양이 비슷한 한국어를 고르지 않는다. 반드시 문맥에서 그 말이 하는
+   역할을 보고 뜻으로 옮긴다. 한 낱말에 여러 뜻이 있으면 앞뒤 문장을 보고 고른다.
+   · 뜻이 여럿이라 특히 조심할 낱말
+     出す(내다·꺼내다·제출하다)      取る(집다·잡다·받다)
+     つける(붙이다·켜다)             かける(걸다·뿌리다·쏟다)
+     あげる(주다·올리다)             つく(붙다·닿다·묻다)
+   예: 後で半分出すよ → 나중에 반 낼게 (X: 나중에 반 내동댕이)
+       相手し過ぎる → 너무 잘 받아준다 (X: 상대 지나친다)
+   · 말을 고를 때 내는 군말(ええと・えぇっと・えーと)은 자리에 따라 나눠 옮긴다.
+     뒤에 무언가를 찾거나 확인하는 말이 이어지면 → 어디… / 어디 보자…
+     그냥 뜸을 들이는 자리면 → 음… / 그러니까… / 저기…
+     ※ "어라"로 옮기지 않는다. "어라"는 뜻밖의 것을 발견했을 때 쓰는 말이라 자리가 다르다.
+18. 가타카나로 적힌 단위는 한글 발음이 아니라 기호로 옮긴다.
+   ミリ → mm     センチ → cm     メートル → m      キロ(길이) → km
+   グラム → g    キロ(무게) → kg  リットル → L      パーセント → %
+   예: 一ミリも → 1mm도 (X: 1밀리도)
+19. 한자 숫자가 자릿수를 늘어놓은 표기(八〇二, 二〇二四)면 아라비아 숫자로 옮긴다.
+   다만 〇 는 0이 아니라 가려둔 자리를 뜻할 수 있으므로, 발음으로 읽지 말고
+   ○ 같은 표시를 그대로 살린다.
+   예: 八〇二 → 8○2 (X: 팔백이)
+   수량을 나타내는 한자 숫자(一つ, 三人)는 지금처럼 한글로 옮긴다.
+20. 첫 글자를 되풀이해 더듬음을 나타내는 표현은, 원문 발음이 아니라 "번역된 한국어
+   낱말"의 첫 글자를 되풀이한다. 번역을 먼저 끝낸 뒤 그 결과의 첫 글자를 딴다.
+   예: こ、今度 → 이, 이번 (X: 지, 이번)
+       ば、馬鹿か → 바, 바보야?
+       な、なんで → 어, 어째서`;
 
 const RULE_OUT = `[출력 형식 — 아래 두 구획을 정확히 이 표시와 함께 출력한다]
 <<<번역>>>
@@ -3393,6 +3441,7 @@ async function translate(){
   const onStatus = m => { if(/한도/.test(m)) hitLimit=true; say(m); };
 
   const done=[]; let gloss=TERMS.map(t=>({ko:t.ko,or:t.or,ty:t.ty||''}));
+  let leftCount=0;                 /* 다듬고도 원문 글자가 남은 줄 수 */
   try{
     const rawTitle=cleanText($('docTitle').value).trim();
     if(rawTitle){
@@ -3551,6 +3600,18 @@ async function translate(){
       const m=t.match(/[\u3040-\u30FF\u4E00-\u9FFF\u3400-\u4DBF]/g);
       return m ? m.length/t.length : 0;
     }
+    /* 몇 글자가 남았는지 그대로 셉니다.
+       비율로만 보면 "넷 중 셋을 고쳐 왔다"를 알아볼 수 없어서, 다듬기를 받아들일지
+       판단할 때는 이 개수가 줄었는지를 봅니다. */
+    function foreignCount(t){
+      const m=String(t||'').match(/[\u3040-\u30FF\u4E00-\u9FFF\u3400-\u4DBF]/g);
+      return m ? m.length : 0;
+    }
+    /* 번역문에 원문 글자가 남은 줄을 셉니다 (빈 줄·표시는 빼고).
+       끝난 뒤 "N군데에 원문 글자가 남았어요"를 알리는 데 씁니다. */
+    function leftoverLines(text){
+      return String(text||'').split(/\n/).filter(l=>l.trim() && FOREIGN.test(l)).length;
+    }
     const memoHead = (memo.trim()?`[작품·캐릭터 설정]\n${memo.trim()}\n\n`:'')
       + (TERMS.length?`[정해진 고유명사 표기]\n`+TERMS.slice(0,40).map(t=>`${t.or} = ${t.ko}`).join('\n')+`\n\n`:'');
 
@@ -3669,12 +3730,59 @@ async function translate(){
       {re:/(?:^|[^가-힣])무릇(?![가-힣])/, why:'"무릇"은 예스러운 말입니다. 빼거나 "대개"로 고치세요.'}
     ];
 
+    /* ── 단위를 발음으로 적은 자리 ───────────────────────────────
+       一ミリも 를 "1밀리도"로 옮기는 자리입니다. 기호(mm)로 적는 쪽이 읽기 편해요.
+       "밀리다"·"센티한" 같은 멀쩡한 말과 갈라야 하므로 앞에 숫자가 있을 때만 보고,
+       뒤는 조사까지만 허용한 뒤 막습니다. "5킬로 걸었다"처럼 한글로 써도 자연스러운
+       단위는 일부러 넣지 않았습니다 — 헛짚기가 더 손해입니다. */
+    const UNIT_JOSA='(?:도|만|은|는|이|가|을|를|의|에|과|와|랑|씩|나|쯤|짜리|조차|밖에)?';
+    const UNIT_WORDS=[
+      {re:new RegExp('\\d\\s*밀리(?:미터)?'+UNIT_JOSA+'(?![가-힣])'),
+       why:'단위 "밀리"는 기호로 적으세요. ミリ → mm. 예: 一ミリも → 1mm도'},
+      {re:new RegExp('\\d\\s*센티(?:미터)?'+UNIT_JOSA+'(?![가-힣])'),
+       why:'단위 "센티"는 기호로 적으세요. センチ → cm'},
+      {re:new RegExp('\\d\\s*그램'+UNIT_JOSA+'(?![가-힣])'),
+       why:'단위 "그램"은 기호로 적으세요. グラム → g'}
+    ];
+
+    /* ── 번역하다 만 흔적 ────────────────────────────────────────
+       결과만 있어야 할 자리에 작업 과정이 그대로 찍히는 경우입니다.
+         ① 원문과 뜻풀이를 나란히 씀 — "どこそこ(어디 저기)에서"
+         ② 앞말을 괄호 안에 그대로 되풀이 — "배를 꼿꼿이 펴는(배를 꼿꼿이 펴는)"
+         ③ 썼다가 고쳐 나가는 말 — "~가 아니라 … ~가 아니라"
+       ②는 앞말과 괄호 안을 맞대 봐야 해서 정규식 하나로는 안 됩니다. 그래서 함수예요.
+       ③은 짧은 거리(30자) 안에서 두 번 되풀이될 때만 봅니다 — 멀쩡한 문장에도
+       "A가 아니라 B다"는 흔하니까요. */
+    const PAREN_SRC=/[\u3040-\u30FF\u4E00-\u9FFF]\s*[(（][^)）]{1,24}[)）]/;
+    const SELF_FIX=/(?:이|가|게|것)\s*아니라[\s\S]{0,30}(?:이|가|게|것)\s*아니라/;
+    function parenEcho(line){
+      const re=/[(（]([^)）]{2,24})[)）]/g;
+      let m;
+      while((m=re.exec(line||''))){
+        const inner=m[1].trim();
+        if(!inner) continue;
+        const before=String(line).slice(0,m.index).replace(/\s+$/,'');
+        if(before.endsWith(inner)) return true;      /* 앞말을 그대로 되풀이했습니다 */
+      }
+      return false;
+    }
+    const TRACE_WHY=[
+      '번역문에는 완성된 결과만 남기세요. 후보를 늘어놓거나 고쳐 쓰는 과정("~가 아니라", "아니, ~쪽이")을 남기지 마세요.',
+      '원문과 뜻풀이를 나란히 적지 마세요. 둘 중 번역만 남깁니다. 예: どこそこ(어디 저기)에서 → 여기저기서',
+      '낱말 뒤에 괄호로 설명을 덧붙이지 마세요. 앞말을 괄호 안에 되풀이하지도 마세요.',
+      '관용구는 글자 뜻이 아니라 관용적 의미로 통째로 옮기세요. 예: 腹を括る → 각오를 다지다'
+    ];
+    const hasTrace = line =>
+      PAREN_SRC.test(line||'') || parenEcho(line) || SELF_FIX.test(line||'');
+
     /* 작품 메모에 사극·고전 말투를 쓰라고 적혀 있으면 옛말투·예스러운 낱말 검사를 건너뜁니다
        (그 글에서는 "~하시오"가 틀린 게 아니라 원하는 말투니까요) */
     const PERIOD_STYLE=/사극|시대극|무협|고전|옛말|고풍|예스러/;
     const periodOK=PERIOD_STYLE.test(memo);
-    /* 다시 다듬을 때 볼 표현 목록 — 여기에 한 줄 더 넣으면 바로 걸립니다 */
-    const WORDING = periodOK ? BAD_ADVERBS : BAD_ADVERBS.concat(OLD_STYLE, STIFF_WORDS);
+    /* 다시 다듬을 때 볼 표현 목록 — 여기에 한 줄 더 넣으면 바로 걸립니다.
+       단위 표기는 사극이든 아니든 똑같이 봅니다. */
+    const WORDING = (periodOK ? BAD_ADVERBS : BAD_ADVERBS.concat(OLD_STYLE, STIFF_WORDS))
+                    .concat(UNIT_WORDS);
     const wordingHits = line => WORDING.filter(b=>b.re.test(line||''));
     const hasWording  = line => WORDING.some(b=>b.re.test(line||''));
 
@@ -3729,6 +3837,9 @@ async function translate(){
          장면이 딱 그 경우라, 이제는 20줄씩 나눠서 끝까지 다듬습니다. */
       const BATCH=20, MAX_BATCH=6;
       const rounds=Math.min(Math.ceil(light.length/BATCH), MAX_BATCH);
+      /* 묶음 하나가 실패해도 나머지 묶음은 계속 갑니다. 예전엔 break 라서 뒤가 통째로
+         날아갔어요. 다만 연속으로 두 번 실패하면 그만둡니다 (키·모델 문제일 테니까요). */
+      let miss=0;
       for(let b=0; b<rounds; b++){
         const part=light.slice(b*BATCH, (b+1)*BATCH);
         if(!part.length) break;
@@ -3774,9 +3885,10 @@ async function translate(){
           part.forEach((i,k)=>{
             const got=map[k+1];
             if(got && !refusalLike(got, paras[i].length)
-               && foreignRatio(got)<foreignRatio(paras[i])){ paras[i]=polishPunct(got); changed=true; }
+               && foreignCount(got)<foreignCount(paras[i])){ paras[i]=polishPunct(got); changed=true; }
           });
-        }catch(e){ if(isAbort(e)) throw e; break; }
+          miss=0;
+        }catch(e){ if(isAbort(e)) throw e; if(++miss>=2) break; }
         await new Promise(r=>setTimeout(r,700));
       }
       if(light.length > BATCH*MAX_BATCH)
@@ -3786,8 +3898,12 @@ async function translate(){
          ②의 판정(원문 글자가 줄었는가)은 여기 쓸 수 없어요 — 이미 다 한글이라 둘 다 0 입니다.
          그래서 "고치려던 표현이 사라졌는가"(stillBad)로 봅니다.
          안 고쳐졌으면 원래 줄을 그대로 둡니다 — 멀쩡한 줄을 건드려 망치지 않으려고요. */
-      async function fixLines(idxs, doing, head, stillBad){
+      async function fixLines(idxs, doing, head, stillBad, opts){
+        /* loose 를 주면 "원문 글자가 하나라도 줄었으면" 받습니다.
+           넷 중 셋을 고쳐 온 답을 통째로 되돌리던 것이 원문 글자가 남는 큰 원인이었어요. */
+        const loose=!!(opts&&opts.loose);
         const rounds=Math.min(Math.ceil(idxs.length/BATCH), MAX_BATCH);
+        let fails=0;
         for(let b=0; b<rounds; b++){
           const part=idxs.slice(b*BATCH, (b+1)*BATCH);
           if(!part.length) break;
@@ -3803,10 +3919,14 @@ async function translate(){
             });
             part.forEach((i,k)=>{
               const got=map[k+1];
-              if(got && !refusalLike(got, paras[i].length) && !stillBad(got)
-                 && foreignRatio(got)<0.15){ paras[i]=polishPunct(got); changed=true; }
+              if(!got || refusalLike(got, paras[i].length)) return;
+              const okNow = loose
+                ? foreignCount(got)<foreignCount(paras[i])
+                : (!stillBad(got) && foreignRatio(got)<0.15);
+              if(okNow){ paras[i]=polishPunct(got); changed=true; }
             });
-          }catch(e){ if(isAbort(e)) throw e; break; }
+            fails=0;
+          }catch(e){ if(isAbort(e)) throw e; if(++fails>=2) break; }
           await new Promise(r=>setTimeout(r,700));
         }
       }
@@ -3826,12 +3946,50 @@ async function translate(){
         '  짧고 강한 놀람만 받침으로(あっ → 앗), 힘을 주는 ッッ 반복은 말줄임으로(ッッ！ → 읏…!).\n'+
         '- 늘어진 모음(ぇぇええ ーー)은 앞말의 모음을 늘여서 표현하세요. 예: くれぇぇええ → 줘어어어\n'+
         '- 말을 고를 때 내는 군말도 한국어로 옮기세요.\n'+
-        '  예: えぇっと → 음…·그러니까…   あのー → 저기…   なになに → 뭐야 뭐야·어디 보자   ほら → 봐·자\n'+
+        '  예: えぇっと・えーと → 뒤에 찾거나 확인하는 말이 이어지면 "어디…·어디 보자…",\n'+
+        '       그냥 뜸을 들이는 자리면 "음…·그러니까…·저기…" ("어라"로 옮기지 마세요)\n'+
+        '       あのー → 저기…   なになに → 뭐야 뭐야·어디 보자   ほら → 봐·자\n'+
+        '- 접속 표현도 한국어로 옮기세요. 예: どころか → ~은커녕   どこそこ → 여기저기\n'+
+        '- 가타카나 단위는 기호로 옮기세요. ミリ → mm  センチ → cm  メートル → m  キロ → km\n'+
+        '  グラム → g  リットル → L  パーセント → %   예: 一ミリも → 1mm도 (X: 1밀리도)\n'+
+        '- 한자 숫자가 자릿수를 늘어놓은 표기(八〇二)는 아라비아 숫자로 옮기고, 〇 는 발음으로\n'+
+        '  읽지 말고 가려둔 자리 표시(○)로 살리세요. 예: 八〇二 → 8○2 (X: 팔백이)\n'+
+        '- 한자 한 글자가 남았으면 그 낱말을 통째로 다시 옮기세요. 예: 無粋な → 눈치 없는 (X: 무粹한)\n'+
+        '- 원문과 뜻풀이를 나란히 적지 마세요. 번역만 남깁니다. 예: どこそこ(어디 저기)에서 → 여기저기서\n'+
         '- 대사를 감싸는 「」『』는 그대로 두세요. 꾸밈 기호와 물결표도 그대로 두세요.\n'+
         '- 나머지 부분은 손대지 마세요. 설명이나 인사말을 붙이지 마세요.\n\n',
-        got => FOREIGN.test(got));
+        got => FOREIGN.test(got), {loose:true});
 
-      /* ④ 인칭대명사를 발음 그대로 옮긴 줄 — 뜻으로 고쳐 씁니다 */
+      /* ④ 그래도 남은 줄 — 이제 한 줄씩 따로 물어봅니다.
+         ②③은 스무 줄을 한 번에 보내는 묶음 요청이라, 모델이 그중 한둘을 그대로
+         흘려보내기 쉽습니다. 그러면 예전에는 그대로 통과했어요. 여기서 그 줄만 떼어
+         다시 물으면 대개 해결됩니다. 요청이 늘어나니 열 줄까지만 봅니다. */
+      const ONE_MAX=10;
+      const stubborn=paras.map((t,i)=>FOREIGN.test(t)?i:-1).filter(i=>i>=0);
+      for(let k=0; k<Math.min(stubborn.length, ONE_MAX); k++){
+        const i=stubborn[k];
+        say(`${label} · 원문 글자가 남은 줄을 하나씩 보는 중 ${k+1}/${Math.min(stubborn.length,ONE_MAX)}`);
+        try{
+          const out=await askGemini(key,model,
+            memoHead+
+            '아래 한 줄에 일본어 글자가 남아 있습니다. 한 글자도 남기지 말고 한국어로 옮겨 주세요.\n'+
+            '- 남은 글자만 바꾸지 말고, 그 글자가 속한 낱말을 통째로 자연스러운 한국어로 옮기세요.\n'+
+            '  예: 일리どころか → 일 리는커녕   무粹한 → 눈치 없는   에에っと → 음…\n'+
+            '- 작은 가나(っ ッ ぁ ぃ ぅ ぇ ぉ)와 장음(ー)도 한글 표기로 살리세요.\n'+
+            '  말끝에서 숨이 끊기면 앞 모음을 늘이고(なにっ → 뭐라고오), 짧고 강한 놀람만 받침으로(あっ → 앗),\n'+
+            '  힘을 주는 ッッ 반복은 말줄임으로(ッッ！ → 읏…!).\n'+
+            '- 원문과 뜻풀이를 나란히 적지 말고 번역만 남기세요. 괄호로 설명을 덧붙이지 마세요.\n'+
+            '- 나머지 부분은 손대지 말고, 설명 없이 고친 줄 하나만 출력하세요.\n\n'+paras[i],
+            null, 2048, {fast:true, temp:0.2, onStatus, signal});
+          const got=(out||'').split('\n').map(x=>x.trim()).filter(Boolean)[0]||'';
+          if(got && !refusalLike(got, paras[i].length) && foreignCount(got)<foreignCount(paras[i])){
+            paras[i]=polishPunct(got); changed=true;
+          }
+        }catch(e){ if(isAbort(e)) throw e; break; }
+        await new Promise(r=>setTimeout(r,600));
+      }
+
+      /* ⑤ 인칭대명사를 발음 그대로 옮긴 줄 — 뜻으로 고쳐 씁니다 */
       if(roman.length) await fixLines(roman, '발음으로 옮겨진 말을 고치는 중',
         memoHead+
         '아래 줄에는 일본어 인칭대명사를 뜻이 아니라 발음 그대로 옮긴 말이 남아 있습니다. 뜻으로 고쳐 주세요.\n\n'+
@@ -3845,14 +4003,14 @@ async function translate(){
         '- 설명이나 인사말을 붙이지 마세요.\n\n',
         got => hasRomaji(got, hits));
 
-      /* ⑤ 굳어진 부사 오역·옛말투 어미 — 그 줄에 걸린 항목의 설명만 뽑아 함께 보냅니다.
+      /* ⑥ 굳어진 부사 오역·옛말투 어미·단위 표기 — 그 줄에 걸린 항목의 설명만 뽑아 함께 보냅니다.
          앞 단계에서 다시 쓴 줄에 새로 생겼을 수도 있으니 여기서 한 번 더 훑습니다. */
       const bad=paras.map((t,i)=>hasWording(t)?i:-1).filter(i=>i>=0);
       if(bad.length){
         const why=[...new Set(bad.flatMap(i=>wordingHits(paras[i]).map(b=>b.why)))];
         await fixLines(bad, '어색한 말투를 고치는 중',
           memoHead+
-          '아래 줄에는 부사나 어미가 어색하게 옮겨진 곳이 있습니다. 그 부분만 고쳐 주세요.\n\n'+
+          '아래 줄에는 말이 어색하게 옮겨진 곳이 있습니다. 그 부분만 고쳐 주세요.\n\n'+
           why.map(w=>'- '+w).join('\n')+'\n\n'+
           '지켜야 할 것\n'+
           '- 부사는 발음이 비슷한 한국어를 고르지 말고, 문맥에서 하는 역할(추측·강조·역접 등)에 맞는 말로 옮기세요.\n'+
@@ -3863,6 +4021,23 @@ async function translate(){
           '- 설명이나 인사말을 붙이지 마세요.\n\n',
           hasWording);
       }
+
+      /* ⑦ 번역하다 만 흔적 — 후보를 늘어놓거나, 원문과 뜻풀이를 나란히 남긴 줄.
+         결과만 있어야 할 자리에 작업 과정이 찍힌 것이라 앞 단계들과 성격이 다릅니다.
+         앞에서 줄을 다시 썼을 수 있으니 마지막에 봅니다. */
+      const traced=paras.map((t,i)=>hasTrace(t)?i:-1).filter(i=>i>=0);
+      if(traced.length) await fixLines(traced, '고쳐 쓴 흔적을 정리하는 중',
+        memoHead+
+        '아래 줄에는 번역하는 과정이 그대로 남아 있습니다. 완성된 번역문만 남도록 고쳐 주세요.\n\n'+
+        TRACE_WHY.map(w=>'- '+w).join('\n')+'\n\n'+
+        '지켜야 할 것\n'+
+        '- 줄 번호와 개수를 그대로 유지하고 "번호|| 내용" 형식으로만 답하세요.\n'+
+        '- 뜻이 가장 잘 맞는 표현 하나만 골라 남기고, 나머지 후보는 지우세요.\n'+
+        '- 원문 글자를 남기지 마세요.\n'+
+        '- 대사를 감싸는 「」『』와 꾸밈 기호는 그대로 두세요.\n'+
+        '- 설명이나 인사말을 붙이지 마세요.\n\n',
+        hasTrace);
+
       return changed ? paras.join('\n') : body;
     }
 
@@ -3890,6 +4065,9 @@ async function translate(){
       let body=await askPiece(chunks[i], label, true);
       body=polishPunct(body);                 /* 문장부호 먼저 정리 (요청 없이, 사용량 0) */
       body=await repairLeftovers(body, label, chunks[i]);
+      /* 다듬기를 다 거치고도 원문 글자가 남은 줄을 셉니다.
+         조용히 통과시키지 않으려고요 — 끝나고 결과 안내에 함께 알립니다. */
+      leftCount += leftoverLines(body);
       done.push({src:chunks[i],dst:body});
 
       const pairs=buildDoc(done);
@@ -3945,9 +4123,10 @@ async function translate(){
       /* 취소해도 그대로 덮어씁니다 (번역 결과를 잃지 않도록) */
     }
     saveArchive(true);
-    if(blockedCount || refusedCount || loopedCount || missCount || emptyCount){
+    if(blockedCount || refusedCount || loopedCount || missCount || emptyCount || leftCount){
       const w=document.createElement('div'); w.className='err';
       const lines=[];
+      const hasGap = !!(blockedCount || refusedCount || loopedCount || missCount || emptyCount);
       if(blockedCount)
         lines.push(`${blockedCount}군데가 안전 필터에 막혀 번역되지 않았어요.`);
       if(refusedCount)
@@ -3960,7 +4139,12 @@ async function translate(){
           +`설정에서 "한 번에 보낼 분량"을 줄이면 나아집니다.`);
       if(emptyCount)
         lines.push(`${emptyCount}개 문단이 번역되지 않았어요.`);
-      lines.push(`본문의 그 자리에서 [원문 보기 · 번역 넣기]를 누르면, 원문을 복사해 따로 번역한 뒤 그 자리에 채워 넣을 수 있어요.`);
+      /* 다듬기를 다 거치고도 원문 글자가 남은 줄 — 조용히 넘기지 않고 개수를 알립니다 */
+      if(leftCount)
+        lines.push(`${leftCount}군데에 원문 글자가 남았어요. 그 줄만 다시 옮기려 여러 번 요청했는데도 `
+          +`모델이 그대로 돌려줬어요. 낱말을 눌러 [번역]으로 그 자리만 고치거나, 다른 모델로 바꿔 보세요.`);
+      if(hasGap)
+        lines.push(`본문의 그 자리에서 [원문 보기 · 번역 넣기]를 누르면, 원문을 복사해 따로 번역한 뒤 그 자리에 채워 넣을 수 있어요.`);
       w.textContent=lines.join('\n');
       /* 왜 이런 일이 생기는지 바로 볼 수 있게 — 막힘/거절이면 blocked, 나머지는 cut 항목으로 */
       const a=document.createElement('a');
@@ -3975,6 +4159,7 @@ async function translate(){
       if(loopedCount) bits.push(`${loopedCount}군데는 되풀이`);
       if(missCount) bits.push(`${missCount}군데는 잘림`);
       if(emptyCount) bits.push(`${emptyCount}문단은 빈칸`);
+      if(leftCount) bits.push(`${leftCount}군데에 원문 글자`);
       toast(`다 옮겼어요 · ${bits.join(', ')} (${secs}초)`);
     } else {
       toast(`다 옮겼어요! (${secs}초)`);
@@ -4789,7 +4974,28 @@ $('wAuto').addEventListener('click',async ()=>{
    본문에서 선택 → 저장 / 부분 번역
    ════════════════════════════════════════════════════════════ */
 let selText='', selTimer=null, selPairIdx=-1;
+/* 탭으로 고른 낱말의 자리 {node,a,b} — 다시 누르면 풀리게(토글) 하는 데 씁니다.
+   손으로 끌어 고른 것과 구분하는 표시이기도 합니다. */
+let lastPick=null;
 function hideSelPop(){ $('selpop').classList.remove('show'); }
+
+/* 고른 범위에서 각주 번호를 걷어내고 글자만 읽습니다.
+   뜻 보기·원문 보기·단어장·번역이 모두 selText 하나를 쓰므로 여기서 한 번만 걸러 두면 됩니다. */
+function cleanSel(range){
+  try{
+    const f=range.cloneContents();
+    f.querySelectorAll('sup.fn').forEach(s=>s.remove());
+    return stripMarks(f.textContent||'').trim();
+  }catch(e){ return ''; }
+}
+
+/* 고른 것을 풀고 딸린 말풍선도 모두 닫습니다 (폰에서 빠져나갈 길) */
+function clearPick(){
+  const s=window.getSelection();
+  if(s) s.removeAllRanges();
+  lastPick=null;
+  hideSelPop(); hideMeanPop(); hideOrigPop();
+}
 
 /* 화면 안에 들어오도록 자리를 잡습니다 (좌표는 화면 기준) */
 function placeNode(p, cx, cy){
@@ -4825,7 +5031,9 @@ function updateSelPop(){
   /* ② 번역문에서 선택한 경우 */
   const sel=window.getSelection();
   if(!sel || sel.isCollapsed || !sel.rangeCount) return hideSelPop();
-  const t=sel.toString().trim();
+  /* 각주 번호가 딸려 들어가면 "상대1 지나친다"가 됩니다.
+     sel.toString() 은 <sup> 안 글자까지 그대로 주므로, 범위를 복제해 각주를 걷어내고 읽습니다. */
+  const t=cleanSel(sel.getRangeAt(0)) || sel.toString().trim();
   if(!t || t.length>200) return hideSelPop();
   const node=sel.anchorNode;
   const host=node && (node.nodeType===1 ? node : node.parentElement);
@@ -5018,6 +5226,8 @@ bindPop($('spSave'), ()=>{
 bindPop($('spTrans'), ()=>{
   const t=selText; hideSelPop(); quickTranslate(t);
 });
+/* 폰에서 선택을 확실히 빠져나갈 길 하나 */
+bindPop($('spClose'), ()=>{ clearPick(); });
 
 async function quickTranslate(text){
   const key=$('apikey').value.trim();
@@ -5530,17 +5740,49 @@ function pickWordAt(x,y){
 
   const rng=document.createRange();
   rng.setStart(pos.node,a); rng.setEnd(pos.node,b);
+
+  /* 누른 자리가 정말 그 낱말 위인지 봅니다.
+     caretPositionFromPoint 는 줄 끝 여백이나 줄 사이를 눌러도 가장 가까운 글자를
+     돌려주기 때문에, 이 확인이 없으면 빈 곳을 눌러도 낱말이 잡힙니다.
+     손가락이 조금 빗나가는 것은 받아 주려고 좌우 4px, 위아래 2px 여유를 둡니다. */
+  const rects=rng.getClientRects();
+  let on=false;
+  for(let k=0;k<rects.length;k++){
+    const q=rects[k];
+    if(x>=q.left-4 && x<=q.right+4 && y>=q.top-2 && y<=q.bottom+2){ on=true; break; }
+  }
+  if(!on) return false;
+
+  /* 이미 고른 낱말을 다시 누르면 풀립니다 (토글) */
+  if(samePick(lastPick, pos.node, a, b)){ clearPick(); return false; }
+
   const sel=window.getSelection();
   sel.removeAllRanges(); sel.addRange(rng);
+  lastPick={node:pos.node, a, b};
   return true;
+}
+/* 지금 고른 것이 우리가 탭으로 고른 그 낱말인지 */
+function samePick(p, node, a, b){
+  if(!p || p.node!==node || p.a!==a || p.b!==b) return false;
+  const s=window.getSelection();
+  if(!s || !s.rangeCount || s.isCollapsed) return false;
+  const c=s.getRangeAt(0);
+  return c.startContainer===node && c.startOffset===a
+      && c.endContainer===node   && c.endOffset===b;
 }
 $('output').addEventListener('click',e=>{
   if(!R.tap) return;
   if(e.target.closest('sup.fn')) return;
   if(e.target.closest('.gap')) return;   /* 막힌 문단 카드는 낱말 고르기 대상이 아닙니다 */
+  /* 손으로 끌어 고른 것은 그대로 둡니다. 탭으로 고른 것(lastPick)만 다시 고르거나 풉니다 —
+     그러지 않으면 데스크톱에서 드래그가 끝나는 순간 click 이 나면서 한 낱말로 줄어듭니다. */
   const sel=window.getSelection();
-  if(sel && !sel.isCollapsed && sel.toString().trim()) return;   /* 이미 고른 게 있으면 그대로 */
-  if(pickWordAt(e.clientX,e.clientY)) queueSelPop(30);
+  const mine=lastPick && samePick(lastPick, lastPick.node, lastPick.a, lastPick.b);
+  if(sel && !sel.isCollapsed && sel.toString().trim() && !mine) return;
+  if(pickWordAt(e.clientX,e.clientY)){ queueSelPop(30); return; }
+  /* 빈 곳을 눌렀거나 같은 낱말을 다시 누른 경우 — 선택을 풀고 말풍선을 닫습니다.
+     폰에서는 다른 곳을 눌러도 선택이 안 풀려서 계속 갇히던 자리입니다. */
+  clearPick();
 });
 
 /* ════════════════════════════════════════════════════════════
