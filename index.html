@@ -1017,7 +1017,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
 
   <header>
     <div class="avatar"><span class="mslot" id="headSlot" data-anim="bob" data-size="32"></span></div>
-    <div><h1 class="title">글결</h1><span class="subtitle">어떤 언어든 → 한국어 소설 번역</span></div>
+    <div><h1 class="title">글결</h1><span class="subtitle">어떤 언어든 → 한국어로</span></div>
     <div class="grow"></div>
     <button class="plain-btn" id="helpBtn" title="사용 설명" aria-label="사용 설명">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .8-1 1.5v.3"/><path d="M12 16.8h.01"/></svg>
@@ -1147,7 +1147,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
     </section>
 
     <footer>
-      <span class="ver">글결 v78</span>
+      <span class="ver">글결 v79</span>
       <span class="made">만든 이 · 야자</span>
       <span class="ask">문의나 건의는 편하게 알려주세요</span>
       <span class="contact">
@@ -1378,7 +1378,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
       <div class="hin">
 
         <details data-h="intro"><summary>이 앱이 뭐예요?</summary><div class="in">
-          <p>외국어로 된 글을 <b>한국어로 바꿔주는 앱</b>이에요. 소설·팬픽은 물론 게임 공략, 커뮤니티 썰, 뉴스 기사까지 갈래를 골라 옮길 수 있어요.</p>
+          <p>외국어로 된 글을 <b>한국어로 바꿔주는 앱</b>이에요. 소설·팬픽은 물론 게임 공략, 커뮤니티 썰, 노래 가사, 뉴스 기사까지 갈래를 골라 옮길 수 있어요.</p>
           <p>옮긴 글은 <b>서재</b>에 쌓이고, 모르는 낱말은 <b>단어장</b>에 모아둘 수 있습니다.</p>
         </div></details>
 
@@ -1438,7 +1438,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
 
         <details data-h="memo"><summary>작품·게임 메모는 뭘 적나요?</summary><div class="in">
           <p>번역할 때마다 함께 전달되는 <b>안내문</b>이에요. 갈래에 따라 적을 내용이 달라집니다.</p>
-          <p><b>소설</b>이면 인물 성격과 말투를, <b>게임 공략</b>이면 표기 기준(한국 서버 명칭을 쓸지 원문 발음을 쓸지)을 적어두세요.</p>
+          <p><b>소설</b>이면 인물 성격과 말투를, <b>게임 공략</b>이면 표기 기준(한국 서버 명칭을 쓸지 원문 발음을 쓸지)을, <b>노래 가사</b>면 곡의 분위기와 화자가 누구인지를 적어두세요.</p>
           <p>비워 두어도 번역은 됩니다. 다만 적어두면 여러 화를 옮길 때 <b>말투와 용어가 흔들리지 않아요.</b></p>
         </div></details>
 
@@ -2409,6 +2409,13 @@ const GENRES = {
     memoLabel:'작품·캐릭터 메모',
     memoHint:'작품 분위기, 인물 성격, 말투, 호칭 습관을 적어두면 대사가 그 결에 맞게 나옵니다. 비워 두면 평범한 소설 번역으로 처리해요.',
     memoPh:'예) 프로세카 원더랜즈×쇼타임 — 유원지 극단이라 전반적으로 밝고 과장된 쇼 톤.&#10;&#10;예) 이누마루 토우마 — 반말에 직설적이고 말투가 거칠지만 속은 다정한 편.',
+    sourcePh:'여기에 외국어 소설 본문을 붙여넣어 주세요.\n일본어든 영어든, 어떤 언어인지 몰라도 앱이 자동으로 알아냅니다.',
+    urlPh:'소설이 실린 페이지 주소',
+    titlePh:'작품 제목',
+    /* 링크에서 본문 가져오기·제목 번역·메모 프롬프트에 그대로 들어갑니다 */
+    srcWhat:'소설 본문',
+    titleWhat:'소설의 제목',
+    memoTag:'작품·캐릭터 설정',
     structure:false,
     who:'소설·팬픽 전문 번역가',
     rules:`[이 글에 더 지킬 것 — 소설]
@@ -2425,6 +2432,12 @@ const GENRES = {
     memoLabel:'게임·용어 메모',
     memoHint:'게임 이름과 표기 기준을 적어두면 용어가 그대로 맞춰집니다. 한국 서버 정식 명칭을 쓸지, 원문 발음을 쓸지 정해두면 매번 흔들리지 않아요.',
     memoPh:'예) 파이널판타지14. 한국 서버 정식 명칭을 우선 쓰고, 없는 용어만 원문 발음대로.&#10;&#10;예) 잡·스킬 이름은 한국 서버 표기로, 레이드 기믹 이름은 영문 그대로.',
+    sourcePh:'여기에 공략 글을 붙여넣어 주세요.\n소제목과 목록, 숫자를 그대로 살려서 옮깁니다.',
+    urlPh:'공략이 실린 페이지 주소',
+    titlePh:'공략 글 제목',
+    srcWhat:'공략 글 본문',
+    titleWhat:'공략 글의 제목',
+    memoTag:'작품·캐릭터 설정',
     structure:true,
     who:'게임 공략 전문 번역가',
     rules:`[이 글에 더 지킬 것 — 게임 공략]
@@ -2443,6 +2456,12 @@ const GENRES = {
     memoLabel:'글 배경 메모',
     memoHint:'어디에 올라온 글인지, 화자가 누구인지, 반말과 존댓말 중 무엇으로 할지 적어두세요. 말투가 글 전체에서 일정하게 유지됩니다.',
     memoPh:'예) 레딧 무서운 이야기. 화자는 20대 남성, 담담하게 서술하는 말투.&#10;&#10;예) 반말로, 커뮤니티에 올린 글처럼 편하게.',
+    sourcePh:'여기에 커뮤니티 글이나 썰을 붙여넣어 주세요.\n말투와 분위기를 살려서 옮깁니다.',
+    urlPh:'글이 올라온 페이지 주소',
+    titlePh:'글 제목',
+    srcWhat:'커뮤니티 글 본문',
+    titleWhat:'글의 제목',
+    memoTag:'작품·캐릭터 설정',
     structure:false,
     who:'커뮤니티 글 번역가',
     rules:`[이 글에 더 지킬 것 — 썰·커뮤니티]
@@ -2458,6 +2477,12 @@ const GENRES = {
     memoLabel:'곡·가수 메모',
     memoHint:'곡 제목과 가수, 곡의 분위기를 적어두면 말투와 어조가 그에 맞게 맞춰집니다. 화자가 누구인지(남성·여성·화자 불명) 적어두면 어미가 흔들리지 않아요.',
     memoPh:'예) 발라드. 이별 후 담담하게 회상하는 분위기. 화자는 여성.&#10;&#10;예) 밝은 록. 반말로, 외치는 느낌이 살아나게.',
+    sourcePh:'여기에 가사를 붙여넣어 주세요.\n줄바꿈을 그대로 살려서 옮기니, 원문의 줄 나눔대로 넣어 주세요.',
+    urlPh:'가사가 실린 페이지 주소',
+    titlePh:'곡 제목',
+    srcWhat:'노래 가사',
+    titleWhat:'노래 제목',
+    memoTag:'곡·가수 설정',
     structure:false,
     who:'노래 가사 전문 번역가',
     /* 가사는 줄이 짧고 후렴이 되풀이돼서 기본 검사들이 헛짚습니다 (아래 CHECK_DEFAULT 참고) */
@@ -2483,6 +2508,12 @@ const GENRES = {
     memoLabel:'글 배경 메모',
     memoHint:'글의 분야와 쓰임새를 적어두면 전문 용어를 그 분야에서 쓰는 표준 번역어로 맞춥니다.',
     memoPh:'예) 해외 뉴스 기사. 인용문은 따옴표를 살리고, 기관 이름은 정식 명칭으로.&#10;&#10;예) 제품 설명서. 전문 용어는 그 분야에서 쓰는 표준 번역어로.',
+    sourcePh:'여기에 기사나 설명글을 붙여넣어 주세요.\n숫자와 인용문을 원문 그대로 옮깁니다.',
+    urlPh:'글이 실린 페이지 주소',
+    titlePh:'글 제목',
+    srcWhat:'기사·설명글 본문',
+    titleWhat:'글의 제목',
+    memoTag:'작품·캐릭터 설정',
     structure:true,
     who:'전문 번역가',
     rules:`[이 글에 더 지킬 것 — 정보 글]
@@ -3758,6 +3789,9 @@ async function translate(){
   let leftCount=0;                 /* 다듬고도 원문 글자가 남은 줄 수 */
   let madeParas=0;                 /* 지어낸 내용을 걷어내고 원문으로 되돌린 문단 수 */
   const CK=checksFor(GENRE);       /* 이 갈래의 검사 기준 */
+  /* 메모를 프롬프트에 붙일 때 쓰는 이름표. 갈래마다 다릅니다
+     (가사에서 "작품·캐릭터 설정"이라고 하면 곡 분위기·화자 메모와 어긋납니다) */
+  const MEMO_TAG=(GENRES[GENRE]||GENRES.novel).memoTag||'작품·캐릭터 설정';
   try{
     const rawTitle=cleanText($('docTitle').value).trim();
     if(rawTitle){
@@ -3809,7 +3843,7 @@ async function translate(){
        통째로 포기하지 않고 반으로 쪼개 되는 부분만 살려냅니다. */
     async function askPiece(piece, label, live){
       let prompt='';
-      if(memo.trim()) prompt+=`[작품·캐릭터 설정]\n${memo.trim()}\n\n`;
+      if(memo.trim()) prompt+=`[${MEMO_TAG}]\n${memo.trim()}\n\n`;
       /* 표기집은 "이번 조각의 원문에 실제로 나오는 것"만 골라 보냅니다.
          목록을 통째로 보내면, 원문이 "* * *" 같은 장면 전환 표시뿐인 문단에서
          모델이 그 목록을 "여기 나와야 할 인물"로 읽고 장면을 만들어냅니다.
@@ -3960,7 +3994,7 @@ async function translate(){
     function leftoverLines(text){
       return String(text||'').split(/\n/).filter(l=>l.trim() && FOREIGN.test(l)).length;
     }
-    const memoHead = (memo.trim()?`[작품·캐릭터 설정]\n${memo.trim()}\n\n`:'')
+    const memoHead = (memo.trim()?`[${MEMO_TAG}]\n${memo.trim()}\n\n`:'')
       + (TERMS.length?`[정해진 고유명사 표기]\n`+TERMS.slice(0,40).map(t=>`${t.or} = ${t.ko}`).join('\n')+`\n\n`:'');
 
     /* ── 가타카나 인칭대명사를 발음 그대로 옮긴 자리 ──────────────
@@ -5008,9 +5042,12 @@ async function translateTitle(key,model,title,memo,signal){
   /* 이미 한국어로만 되어 있으면 그대로 둡니다 */
   if(!/[^\s가-힣0-9.,!?~·:;()\[\]{}<>'"\-–—]/.test(title)) return title;
   try{
+    /* 갈래에 맞는 말로 물어봅니다 — "소설의 제목"으로 고정하면
+       가사·공략 제목을 소설 제목처럼 꾸며 놓습니다 */
+    const what=(GENRES[GENRE]||GENRES.novel).titleWhat||'글의 제목';
     const t=await askGemini(key,model,
       (memo?`[작품 설정]\n${memo}\n\n`:'')+
-      `다음은 소설의 제목입니다. 자연스러운 한국어 제목으로 옮기세요. 설명 없이 제목 한 줄만 출력하세요.\n\n${title}`,
+      `다음은 ${what}입니다. 자연스러운 한국어 제목으로 옮기세요. 설명 없이 제목 한 줄만 출력하세요.\n\n${title}`,
       null, 1024, {fast:true, temp:0.4, signal});
     /* 거절문이 제목 자리에 들어가지 않게 합니다 */
     if(refusalLike(t, title.length)) return title;
@@ -5682,7 +5719,7 @@ async function quickTranslate(text){
   try{
     const memo=$('memo').value.trim();
     const t=await askGemini(key,$('model').value,
-      (memo?`[작품·캐릭터 설정]\n${memo}\n\n`:'')+
+      (memo?`[${(GENRES[GENRE]||GENRES.novel).memoTag||'작품·캐릭터 설정'}]\n${memo}\n\n`:'')+
       `아래 부분을 자연스러운 한국어로 번역하세요. 설명 없이 번역문만 출력하세요.\n\n${text}`,
       null, 4096, {fast:true});
     $('qDst').textContent=t;
@@ -5833,10 +5870,14 @@ $('fileInput').addEventListener('change',async e=>{
 /* ── 링크로 가져오기 ──
    브라우저는 다른 사이트 내용을 직접 못 가져오므로(보안 정책),
    제미나이의 URL 읽기 기능에 대신 부탁합니다. */
-const URL_SYSTEM = `당신은 웹페이지에서 소설 본문만 뽑아내는 도구입니다.
+/* 갈래에 맞는 말로 물어봅니다 — "소설 본문"으로 고정하면 가사 페이지나
+   공략 위키에서 "소설이 없다"며 NO_ACCESS 를 내놓거나 엉뚱한 데를 긁어옵니다. */
+const urlSystem = g => {
+  const what=(GENRES[g]||GENRES.novel).srcWhat||'글 본문';
+  return `당신은 웹페이지에서 ${what}만 뽑아내는 도구입니다.
 
 [해야 할 일]
-주어진 주소의 페이지를 읽고, 그 페이지에 실린 소설·글의 본문을 원문 언어 그대로 옮겨 적습니다.
+주어진 주소의 페이지를 읽고, 그 페이지에 실린 ${what}을 원문 언어 그대로 옮겨 적습니다.
 
 [규칙]
 1. 번역하지 않는다. 페이지에 적힌 언어 그대로 옮긴다.
@@ -5844,8 +5885,9 @@ const URL_SYSTEM = `당신은 웹페이지에서 소설 본문만 뽑아내는 �
 3. 메뉴·광고·댓글·추천·태그·작가의 다른 작품 목록 등 본문이 아닌 부분은 뺀다.
 4. 문단 나눔과 줄바꿈을 그대로 살린다.
 5. 설명·머리말·꼬리말·마크다운 기호를 붙이지 않는다. 본문만 출력한다.
-6. 페이지를 열 수 없거나(로그인 필요·접근 차단 등) 소설 본문이 없으면,
+6. 페이지를 열 수 없거나(로그인 필요·접근 차단 등) 옮길 본문이 없으면,
    다른 말 없이 정확히 이렇게만 출력한다: NO_ACCESS`;
+};
 
 async function fetchFromUrl(){
   const key=$('apikey').value.trim();
@@ -5860,9 +5902,10 @@ async function fetchFromUrl(){
   try{
     /* 여기서는 잘린 답도 쓸모가 있습니다 — 앞부분이라도 가져오면 나머지는 이어 붙이면 되니까요.
        번역과 달리 실패로 돌리면 아무것도 못 가져옵니다. 대신 잘렸다는 사실을 꼭 알려줍니다. */
+    const what=(GENRES[GENRE]||GENRES.novel).srcWhat||'글 본문';
     const t=await askGemini(key,$('model').value,
-      `아래 주소의 페이지에서 소설 본문을 그대로 옮겨 적어 주세요.\n\n${url}`,
-      URL_SYSTEM, 32768,
+      `아래 주소의 페이지에서 ${what}을 그대로 옮겨 적어 주세요.\n\n${url}`,
+      urlSystem(GENRE), 32768,
       {noThink:false, temp:0.1, tools:[{url_context:{}}], wantFull:false,
        onCut:()=>{ wasCut=true; },
        onStatus:m=>{$('busyS').textContent=m;}});
@@ -6402,6 +6445,14 @@ function renderGenre(){
   if(ph) ph.setAttribute('placeholder', G.memoPh.replace(/&#10;/g,'\n'));
   const mh=$('memoHint');
   if(mh) mh.textContent=G.memoHint||'';
+  /* 본문 칸·링크 칸 안내문도 갈래에 맞춰 바꿉니다.
+     메모 칸만 바뀌고 이 둘은 소설 문구로 굳어 있었습니다. */
+  const src=$('source');
+  if(src && G.sourcePh) src.setAttribute('placeholder', G.sourcePh);
+  const uin=$('urlIn');
+  if(uin && G.urlPh) uin.setAttribute('placeholder', G.urlPh);
+  const dt=$('docTitle');
+  if(dt && G.titlePh) dt.setAttribute('placeholder', G.titlePh);
 }
 $('genrebar').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b) return;
