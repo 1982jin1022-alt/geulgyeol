@@ -1147,7 +1147,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
     </section>
 
     <footer>
-      <span class="ver">글결 v80</span>
+      <span class="ver">글결 v81</span>
       <span class="made">만든 이 · 야자</span>
       <span class="ask">문의나 건의는 편하게 알려주세요</span>
       <span class="contact">
@@ -2248,8 +2248,14 @@ const RULE_BASE = `[모든 글에 공통으로 지키는 규칙]
    예: スヌーズ → 스누즈, コンビニ → 편의점
    · 비명·감탄사·의성어에 섞인 작은 가나(っ ぁ ぃ ぅ ぇ ぉ ゃ ゅ ょ), 장음 부호(ー),
      탁점(″ ゛)도 반드시 한글로 옮긴다. 소리 느낌은 한글 표기로 살린다.
-     예: あーっ → 아앗   ぁあ゛あ゛っ → 으아아앗   ふぇぇ → 흐에엥
+     예: あーっ → 아앗   ふぇぇ → 흐에엥
          ぐすっ → 훌쩍   ふぅ → 후우   ねーい → 네에
+   · 탁점(゛ ″)은 힘을 주거나 소리를 참을 때 목에서 눌려 나오는 소리를 나타낸다.
+     탁점을 글자 그대로 옮기지 않는다. "가·고·그" 같은 다른 소리나 억지 표기로 바꾸지 않는다.
+     신음·숨 참는 소리는 짧게 새는 소리로 옮긴다: 읏 · 흣 · 으읏 · 흐읏 · 하읏
+     예: ん゛っ → 읏   ん゛ん゛っ → 으읏…   ふ゛っ → 흣   あ゛っ → 하읏
+         お゛っ♡ → 오읏♡   ん゛ぅ゛ → 으읏   (X: 응그, 가앗, 오그)
+     크게 내지르는 비명이면 소리를 키워 옮긴다. 예: ぁあ゛あ゛あ゛っ！ → 으아아악!
    · 작은 모음(ぁ ぃ ぅ ぇ ぉ)은 앞 소리를 늘이는 표시다. 받침으로 옮기지 않는다.
      예: あぁ → 아아 (X: 아앗)   そんなぁ → 그런…   ふぇぇ → 흐에엥
      받침(앗, 엇)으로 옮기는 것은 짧고 강한 っ 뿐이다.
@@ -3106,28 +3112,93 @@ function cleanMeaning(raw){
 const WORD_MARKS=['ㄱ','ㄴ','ㄷ','ㄹ','ㅁ','ㅂ','ㅅ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
 const wordMark = n => WORD_MARKS[(n-1)%WORD_MARKS.length] + (n>WORD_MARKS.length ? Math.ceil(n/WORD_MARKS.length) : '');
 
+/* 각주 자리 — 낱말 한가운데("플레이" 안의 "레이")에 꽂히지 않도록 앞뒤를 봅니다.
+   뒤에 한글이 이어지면 호칭·조사일 때만 받습니다 ("루이는", "하루토군에게"). */
+const FN_WORD=/[가-힣A-Za-z0-9぀-ヿ一-鿿]/;
+const FN_TAIL=new RegExp('^(?:군|쿤|상|쨩|짱|님|씨|양|선배|사마|들)?'+
+  '(?:은|는|이|가|을|를|의|도|와|과|랑|이랑|하고|에게|한테|께|께서|에|에서|으로|로|만|씩|부터|까지|처럼|보다|'+
+  '이나|나|이야|야|아|여|이여|이란|란|이라|라|이라고|라고|조차|마저|밖에|뿐|인|이다|다|였다|이었다|이지|지|이고|고|이며|며){0,2}$');
+function fnAt(text, find, from, strict){
+  for(let at=text.indexOf(find,from); at>=0; at=text.indexOf(find,at+1)){
+    if(!strict) return at;
+    const end=at+find.length;
+    if(FN_WORD.test(find[0]) && at>0 && FN_WORD.test(text[at-1])) continue;
+    if(FN_WORD.test(find[find.length-1]) && end<text.length && FN_WORD.test(text[end])){
+      const run=text.slice(end).match(/^[가-힣]+/);
+      if(!run || !FN_TAIL.test(run[0])) continue;
+    }
+    return at;
+  }
+  return -1;
+}
+/* 찾아볼 꼴들. 인명은 목록에 "카미시로 루이"로 올라와도 본문에는 "루이"만 나오는 일이
+   흔해서, 통째로 못 찾으면 붙여 쓴 꼴과 성·이름 하나씩으로도 찾습니다. */
+function fnFinds(g){
+  const ko=String(g.ko).trim(), out=[ko];
+  if(/\s/.test(ko)){
+    out.push(ko.replace(/\s+/g,''));
+    if(/인명|인물/.test(g.ty||'')) ko.split(/\s+/).filter(p=>p.length>=2).forEach(p=>out.push(p));
+  }
+  return [...new Set(out)];
+}
+
 /* 고유명사는 숫자(1,2,3), 낱말 뜻풀이는 자음(ㄱ,ㄴ,ㄷ)으로 표시합니다 */
 function annotate(paras,gloss,words){
-  const pending=[
-    ...(gloss||[]).filter(g=>g.ko).map(g=>({g, find:g.ko, kind:'n'})),
-    ...(words||[]).filter(w=>w.term).map(w=>({g:w, find:w.term, kind:'w'}))
+  const seen=new Set();   /* 같은 표기가 두 번 올라오면 하나만 (번호가 두 번 꽂히지 않게) */
+  const ents=[
+    ...(gloss||[]).filter(g=>{
+      const k=g.ko&&String(g.ko).trim();
+      if(!k || seen.has(k)) return false;
+      seen.add(k); return true;
+    }).map(g=>({g, kind:'n', finds:fnFinds(g)})),
+    ...(words||[]).filter(w=>w.term).map(w=>({g:w, kind:'w', finds:[w.term]}))
   ];
-  const notes=[], wnotes=[];
-  const out=paras.map(text=>{
-    const hits=[];
-    for(let i=pending.length-1;i>=0;i--){
-      const e=pending[i], at=text.indexOf(e.find);
-      if(at>=0){ hits.push({e,at:at+e.find.length}); pending.splice(i,1); }
-    }
-    hits.sort((a,b)=>a.at-b.at);
+  /* 긴 이름이 나오는 자리는 모두 그 이름 몫으로 잡아 둡니다.
+     "카미시로 루이" 안의 "카미시로"에 다른 항목의 번호가 꽂히지 않게요. */
+  const owned=paras.map(()=>[]);
+  ents.forEach(e=>paras.forEach((t,i)=>{
+    const f=e.finds[0];
+    for(let at=fnAt(t,f,0,true); at>=0; at=fnAt(t,f,at+1,true)) owned[i].push({a:at,b:at+f.length,e});
+  }));
+  const used=paras.map(()=>[]);
+  const freeAt=(e,i,a,b)=>
+    owned[i].every(o=>o.e===e || b<=o.a || a>=o.b || (o.b-o.a)<=(b-a)) &&
+    used[i].every(u=>b<=u.a || a>=u.b);
+  const firstOf=(e,f,strict)=>{
+    for(let i=0;i<paras.length;i++)
+      for(let at=fnAt(paras[i],f,0,strict); at>=0; at=fnAt(paras[i],f,at+1,strict))
+        if(freeAt(e,i,at,at+f.length)) return {i,a:at,b:at+f.length};
+    return null;
+  };
+  const before=(x,y)=>!y || x.i<y.i || (x.i===y.i && x.a<y.a);
+  const place=(e,hit)=>{ e.hit=hit; used[hit.i].push(hit); };
+  /* 성이 같은 두 인물(카미시로 루이 · 카미시로 에무)이면 "카미시로"만으로는 누군지 모르니 뺍니다.
+     다른 항목 자체가 "루이"인 경우도 마찬가지로 그 항목에 양보합니다. */
+  const partCount={};
+  ents.forEach(e=>e.finds.forEach(f=>{ partCount[f]=(partCount[f]||0)+1; }));
+  ents.forEach(e=>{ e.finds=e.finds.filter((f,k)=>!k || partCount[f]===1); });
+  /* 긴 것부터 자리를 잡고, 여러 꼴 중 가장 먼저 나오는 자리(그 인물이 처음 나온 곳)를 고릅니다.
+     단어장 낱말은 사용자가 본문에서 직접 고른 것이라 마지막엔 글자만 맞아도 받습니다. */
+  [...ents].sort((x,y)=>y.finds[0].length-x.finds[0].length).forEach(e=>{
+    let best=null;
+    e.finds.forEach(f=>{ const h=firstOf(e,f,true); if(h && before(h,best)) best=h; });
+    if(!best && e.kind==='w') best=firstOf(e,e.finds[0],false);
+    if(best) place(e,best);
+  });
+
+  const hits=ents.filter(e=>e.hit).sort((x,y)=>before(x.hit,y.hit)?-1:1);
+  const notes=[], wnotes=[], marks=paras.map(()=>[]);
+  hits.forEach(e=>{
+    let mark;
+    if(e.kind==='n'){ notes.push(e.g); mark=`\u0001${notes.length}\u0002`; }
+    else { wnotes.push(e.g); mark=`\u0003${wnotes.length}\u0004`; }
+    marks[e.hit.i].push({at:e.hit.b, mark});
+  });
+  /* 본문에서 못 찾은 고유명사도 각주 목록에는 남깁니다 (번호 표시만 없이) */
+  ents.forEach(e=>{ if(!e.hit && e.kind==='n') notes.push(e.g); });
+  const out=paras.map((text,i)=>{
     let s='',prev=0;
-    hits.forEach(h=>{
-      let mark;
-      if(h.e.kind==='n'){ notes.push(h.e.g); mark=`\u0001${notes.length}\u0002`; }
-      else { wnotes.push(h.e.g); mark=`\u0003${wnotes.length}\u0004`; }
-      s+=text.slice(prev,h.at)+mark;
-      prev=h.at;
-    });
+    marks[i].sort((x,y)=>x.at-y.at).forEach(m=>{ s+=text.slice(prev,m.at)+m.mark; prev=m.at; });
     return s+text.slice(prev);
   });
   return {paras:out,notes,wnotes};
@@ -3179,6 +3250,7 @@ let viewMode = store.get('view','only');
 /* 서재 글을 "읽기"로 열어둔 동안 작업하던 번역을 넣어둡니다.
    이게 차 있는 동안에는 gg_doc 를 건드리지 않습니다 — 덮어쓰면 작업분이 사라져요. */
 let readSnap=null;
+let arcY=0;   /* 읽기로 들어가기 전 서재 목록의 스크롤 위치 */
 
 /* ════════════════════════════════════════════════════════════
    원문 문단 ↔ 번역 문단 짝짓기
@@ -4282,7 +4354,9 @@ async function translate(){
             '지켜야 할 것\n'+
             '- 줄 번호와 개수를 그대로 유지하고 "번호|| 내용" 형식으로만 답하세요.\n'+
             '- 작은 가나(っ ぁ ぃ ぅ ぇ ぉ ゃ ゅ ょ)와 장음(ー), 탁점(″ ゛)이 섞인 비명·감탄사도 한글로 옮기세요.\n'+
-            '  예: あーっ → 아앗   ぁあ゛あ゛っ → 으아아앗   ふぇぇ → 흐에엥   ねーい → 네에\n'+
+            '  예: あーっ → 아앗   ふぇぇ → 흐에엥   ねーい → 네에\n'+
+            '- 탁점(゛)이 붙은 신음·숨 참는 소리는 "가·고·그" 같은 억지 표기 말고 짧게 새는 소리로 옮기세요.\n'+
+            '  예: ん゛っ → 읏   ふ゛っ → 흣   あ゛っ → 하읏   ん゛ん゛っ → 으읏…   (크게 내지르는 비명은 ぁあ゛あ゛っ！ → 으아아악!)\n'+
             '- 가타카나로 적힌 낱말은 발음이 아니라 뜻으로 옮기세요. 예: オレノカミ → 내 머리\n'+
             '  인칭대명사도 마찬가지입니다. オレ・俺 → 나 / アタシ・ワタシ・私 → 나(저) / ボク・僕 → 나\n'+
             '  キミ・君 → 너 / アンタ・オマエ・お前 → 너.\n'+
@@ -4755,6 +4829,8 @@ function readArchive(id){
      아래에서 readSnap 을 채워 놓고 읽기 모드에 못 들어가면, 그 뒤로 저장이 막혀요. */
   if(!(d.pairs||[]).length) return toast('읽을 번역이 없어요');
   const rec=ARC.find(x=>x.id===id)||{};
+  /* 서재에서 보던 자리 — 읽기를 마치고 돌아오면 여기로 되돌립니다 */
+  if(!$('tab-ar').hidden) arcY=window.scrollY;
   if(!readSnap){
     readSnap={ doc: DOC ? JSON.parse(JSON.stringify(DOC)) : null,
                arc: curArc, titleKo: curTitleKo };
@@ -6321,7 +6397,11 @@ function exitReader(toArchive){
     if(DOC && DOC.pairs && DOC.pairs.length) renderDoc(); else showEmpty();
     renderArc(); updateTitleKo();
   }
-  if(toArchive) gotoTab('ar'); else window.scrollTo({top:0});
+  if(toArchive){
+    gotoTab('ar');
+    /* 맨 위로 올라가면 읽던 글을 다시 찾아 내려가야 해서, 보던 자리로 돌려놓습니다 */
+    if(arcY) window.scrollTo({top:arcY});
+  } else window.scrollTo({top:0});
 }
 $('readerOn').addEventListener('click',enterReader);
 $('readerBack').addEventListener('click',()=>exitReader(true));
