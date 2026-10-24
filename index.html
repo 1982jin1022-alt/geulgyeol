@@ -1147,7 +1147,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
     </section>
 
     <footer>
-      <span class="ver">글결 v82</span>
+      <span class="ver">글결 v83</span>
       <span class="made">만든 이 · 야자</span>
       <span class="ask">문의나 건의는 편하게 알려주세요</span>
       <span class="contact">
@@ -2734,13 +2734,15 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
   const headers=()=>({'Content-Type':'application/json','x-goog-api-key':useKey});
 
   /* ① 한도에 걸리면 먼저 "다른 모델"로 갈아탑니다.
-        한도는 모델마다 따로 걸려 있어서, 대개 이것만으로 그냥 이어집니다. */
+        한도는 모델마다 따로 걸려 있어서, 대개 이것만으로 그냥 이어집니다.
+        목록 맨 위(최신)로 뛰지 않고 지금 모델 "바로 다음"으로 내려갑니다 —
+        -latest·실험판·pro 는 느리고 오류가 잦아서 맨 끝에 둡니다. */
   function tryNextModel(){
     if(opts.keepModel) return false;
-    const pool=(MODELS.length?MODELS:FALLBACK_MODELS).filter(m=>!tried.has(m));
-    if(!pool.length) return false;
-    pool.sort((a,b)=>modelScore(b)-modelScore(a));
-    curModel=pool[0]; tried.add(curModel);
+    const order=fallbackOrder(curModel);
+    const next=order.find(m=>!tried.has(m));
+    if(!next) return false;
+    curModel=next; tried.add(curModel);
     /* 바뀐 모델을 설정에도 반영해 다음 조각부터 바로 쓰게 합니다 */
     try{ $('model').value=curModel; store.set('model',curModel); }catch(e){}
     say(`한도에 걸려 ${curModel} 로 바꿔 이어가는 중`);
@@ -6074,6 +6076,16 @@ function modelScore(id){
   if(m) s += Math.min(parseFloat(m[1]), 9);
   return s;
 }
+/* 한도에 걸렸을 때 갈아탈 차례 — 목록 순서대로 지금 모델 다음부터, 끝에 닿으면 위로 돌아옵니다.
+   느리거나 불안정한 것(-latest·실험판·pro)은 다른 걸 다 써본 뒤에만 */
+const SHAKY_MODEL = /latest|preview|exp|pro/;
+function fallbackOrder(cur){
+  const list = (MODELS.length ? MODELS : FALLBACK_MODELS).slice()
+    .sort((a,b)=>modelScore(b)-modelScore(a));
+  const i = list.indexOf(cur);
+  const ring = i<0 ? list : list.slice(i+1).concat(list.slice(0,i));
+  return ring.filter(m=>!SHAKY_MODEL.test(m)).concat(ring.filter(m=>SHAKY_MODEL.test(m)));
+}
 function labelFor(id){
   if(/flash-lite/.test(id)) return id + ' · 가장 빠름';
   if(/latest/.test(id))     return id + ' · 항상 최신';
@@ -6377,14 +6389,21 @@ $('output').addEventListener('click',e=>{
 /* ════════════════════════════════════════════════════════════
    읽기 모드 — 서재에서 연 글을 본문만 크게 보여줍니다
    ════════════════════════════════════════════════════════════ */
+/* 폰 자체 뒤로가기로 읽기 모드를 빠져나오게, 들어올 때 기록을 한 칸 쌓아 둡니다.
+   이게 없으면 홈 화면 앱(단독 실행)에서는 뒤로가기에 앱이 그냥 닫힙니다. */
+let readerHist=false;
+try{ history.scrollRestoration='manual'; }catch(e){}   /* 서재 자리는 arcY 로 직접 돌려놓습니다 */
 function enterReader(){
   if(!DOC || !DOC.pairs.length) return toast('읽을 번역이 없어요');
   document.body.classList.add('reading');
   $('readerTitle').textContent = curTitleKo || $('docTitle').value.trim() || '무제';
   hideSelPop(); hideFnPop();
+  if(!readerHist){ try{ history.pushState({gg:'reader'},''); readerHist=true; }catch(e){} }
   window.scrollTo({top:0});
 }
 function exitReader(toArchive){
+  /* [뒤로] 단추로 나갈 때는 쌓아 둔 기록도 걷어 냅니다 (popstate 쪽은 readerHist 가 false 라 무시) */
+  if(readerHist){ readerHist=false; try{ history.back(); }catch(e){} }
   document.body.classList.remove('reading');
   closeFnPanel();
   /* 읽기용으로 열었던 거라면 작업 중이던 내용으로 되돌립니다 */
@@ -6405,6 +6424,11 @@ function exitReader(toArchive){
 }
 $('readerOn').addEventListener('click',enterReader);
 $('readerBack').addEventListener('click',()=>exitReader(true));
+window.addEventListener('popstate',()=>{
+  if(!readerHist) return;
+  readerHist=false;
+  if(document.body.classList.contains('reading')) exitReader(true);
+});
 $('readerFont').addEventListener('click',()=>openS('sheet','backdrop'));
 
 /* ════════════════════════════════════════════════════════════
