@@ -216,7 +216,7 @@ header{display:flex;align-items:center;gap:12px;padding:24px 4px 14px}
   border:1px solid color-mix(in srgb,var(--line) 78%,transparent);
   border-radius:var(--r-card);padding:17px;margin-bottom:13px;box-shadow:var(--shadow)
 }
-#result-card{background:var(--card);background:color-mix(in srgb,var(--card) calc(var(--glass-strong)*100%),transparent)}
+#result-card{margin-top:14px;background:var(--card);background:color-mix(in srgb,var(--card) calc(var(--glass-strong)*100%),transparent)}
 .card-head{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
 .badge{
   width:30px;height:30px;flex:none;border-radius:10px;display:grid;place-items:center;color:var(--accent);
@@ -319,7 +319,6 @@ button{font-family:inherit}
 @keyframes sheen{to{transform:translateX(220%)}}
 
 /* ════════ 결과 · 대조 ════════ */
-#result-card{margin-top:14px}
 .result-top{display:flex;align-items:center;gap:10px;margin-bottom:13px}
 .viewbar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:15px}
 .seg{display:flex;gap:3px;padding:3px;border-radius:12px;
@@ -471,13 +470,13 @@ button{font-family:inherit}
   padding:4px 0 2px;word-break:break-word
 }
 #origpop .op-hit:empty{display:none}
-#origpop .op-body{display:none}
 #origpop.full .op-body{display:block}
 #origpop mark{
   background:color-mix(in srgb,var(--pop) 55%,transparent);
   color:inherit;border-radius:4px;padding:0 2px
 }
 #origpop .op-body{
+  display:none;
   font-size:14px;line-height:1.85;color:var(--soft);white-space:pre-line;
   max-height:36vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
   padding-top:8px;border-top:1px dashed color-mix(in srgb,var(--line) 90%,transparent)
@@ -553,10 +552,6 @@ sup.fn.wn{color:var(--pop);font-size:.66em}
 .fnp-x:active{background:var(--weak)}
 .fnp-body{overflow-y:auto;padding:0 16px calc(18px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}
 
-/* ════════════════════════════════════════════════════════════
-   홈 화면 아이콘 만들기
-   ── 사진을 규격(192·512)에 맞춰 잘라 파일로 내려줍니다.
-   ════════════════════════════════════════════════════════════ */
 /* ════════ 읽기 모드 — 블로그 글처럼 본문만 ════════ */
 #readerBar{
   display:none;position:sticky;top:0;z-index:40;
@@ -721,8 +716,6 @@ sup.fn:active{opacity:.5}
   margin-left:2px;border-left:1px solid color-mix(in srgb,var(--line) 80%,transparent)
 }
 
-/* ════════ 단어장 ════════ */
-/* ════════ 서재 ════════ */
 /* ════════ 도움말 아코디언 ════════ */
 .help{margin-top:12px;display:flex;flex-direction:column;gap:7px}
 /* 도움말 큰 갈래 */
@@ -787,8 +780,6 @@ sup.fn:active{opacity:.5}
 .acard .atop{display:flex;align-items:flex-start;gap:9px}
 .acard .atitle{font-size:16px;font-weight:700;line-height:1.4;letter-spacing:-.01em;flex:1}
 .acard .aorig{font-size:12px;color:var(--soft);margin:3px 0 0;line-height:1.5}
-.acard .aprev{font-size:12.5px;color:var(--soft);margin:9px 0 0;line-height:1.6;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .acard .ameta{font-size:10.5px;color:var(--soft);opacity:.65;margin-top:9px}
 .acard .del{flex:none;border:none;background:transparent;color:var(--soft);
   font-size:15px;cursor:pointer;opacity:.5;padding:2px 4px;border-radius:8px}
@@ -938,7 +929,6 @@ input[type=url]{font-size:14px;letter-spacing:-.01em}
 .crow .cuse{flex:none;display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--soft);cursor:pointer}
 .crow .cuse input{width:16px;height:16px;accent-color:var(--accent);margin:0}
 
-.covers{display:block}
 .cover{border:none;border-radius:16px;padding:0;overflow:hidden;cursor:pointer;
   background:color-mix(in srgb,var(--card) 60%,transparent);
   box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--line) 90%,transparent);transition:.16s}
@@ -1162,7 +1152,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
     </section>
 
     <footer>
-      <span class="ver">글결 v89</span>
+      <span class="ver">글결 v90</span>
       <span class="made">만든 이 · 야자</span>
       <span class="ask">문의나 건의는 편하게 알려주세요</span>
       <span class="contact">
@@ -2300,7 +2290,7 @@ const RULE_BASE = `[모든 글에 공통으로 지키는 규칙]
    예: スヌーズ → 스누즈, コンビニ → 편의점
    · 비명·감탄사·의성어에 섞인 작은 가나(っ ぁ ぃ ぅ ぇ ぉ ゃ ゅ ょ), 장음 부호(ー),
      탁점(″ ゛)도 반드시 한글로 옮긴다. 소리 느낌은 한글 표기로 살린다.
-     예: あーっ → 아앗   ふぇぇ → 흐에엥
+     예: あーっ → 아앗
          ぐすっ → 훌쩍   ふぅ → 후우   ねーい → 네에
    · 탁점(゛ ″)은 힘을 주거나 소리를 참을 때 목에서 눌려 나오는 소리를 나타낸다.
      뜻이 있는 말이나 다른 감탄사로 바꾸지 말고, 원문의 소리 느낌을 그대로 살린다.
@@ -2321,9 +2311,8 @@ const RULE_BASE = `[모든 글에 공통으로 지키는 규칙]
    · 늘어진 모음(ぇぇええ, ーー, ぁあ)은 앞말의 모음을 늘여서 옮긴다.
      어미 뒤에 소리만 덧붙이지 않는다.
      예: くれぇぇええ → 줘어어어 (X: 다오오오오오)   だめぇぇ → 안 돼애애
-   · 말을 고를 때 내는 군말도 한국어 군말로 옮긴다. 원문 글자를 남기지 않는다.
-     えぇっと・えーと・ええと → 음… / 그러니까…      あのー・そのー → 저기…
-     なになに → 뭐야 뭐야 / 어디 보자              ほら → 봐 / 자      さあ → 자 / 글쎄
+   · 말을 고를 때 내는 군말도 한국어 군말로 옮긴다. 원문 글자를 남기지 않는다. (ええと 는 17번)
+     あのー・そのー → 저기…      なになに → 뭐야 뭐야 / 어디 보자      さあ → 자 / 글쎄
    · 가타카나로 적혔더라도 일본어 낱말이면 반드시 뜻으로 옮긴다. 발음 그대로 적는 것은
      인명·작품명·상표 같은 고유명사뿐이다.
      예: オレノカミ → 내 머리   ヤバイ → 큰일이야   ダメ → 안 돼
@@ -2361,8 +2350,7 @@ const RULE_BASE = `[모든 글에 공통으로 지키는 규칙]
    全く → 문장 첫머리 감탄이면 "정말이지…" "참나…", 부정문과 함께면 "전혀"
 10. 종조사와 명령·요청 어미는 형태를 기계적으로 대응시키지 말고, 그 인물의 말투와
    상황에 맞는 한국어 어미로 옮긴다.
-   ※ "~다오", "~하시오", "~구려", "~이오" 같은 옛말투는 실제로 나이 든 인물이거나
-     사극체가 필요한 경우가 아니면 절대 쓰지 않는다.
+   ※ 옛말투(~다오, ~하시오 …)는 11번 규칙을 따른다.
    ～ぞ → ~다 / ~어 / ~라고 (다짐·선언에 힘을 주는 말)
    ～ぜ → ~자 / ~어 / ~라고        ～てくれ → ~해 줘 / ~해 달라고
    ～てくれよ → ~해 달라니까        ～な → ~하지 마(금지) / ~구나(감탄) — 문맥으로 구분
@@ -2450,8 +2438,7 @@ const RULE_BASE = `[모든 글에 공통으로 지키는 규칙]
    なあ    → 있잖아 / 저기        ねえ → 있잖아 / 저기
    さ、    → 자, / 그래서         ほら → 봐 / 자
    まあ    → 뭐 / 글쎄
-   ええと  → 어디… / 어디 보자… / 음… / 그러니까…
-     ※ "어라"로 옮기지 않는다. "어라"는 뜻밖의 것을 발견했을 때 쓰는 말이다.`;
+   ええと 같은 군말은 17번 규칙을 따른다.`;
 
 const RULE_OUT = `[출력 형식 — 아래 두 구획을 정확히 이 표시와 함께 출력한다]
 <<<번역>>>
@@ -5153,10 +5140,6 @@ $('fdClose').addEventListener('click',()=>closeS('fdSheet','fdBackdrop'));
 $('fdBackdrop').addEventListener('click',()=>closeS('fdSheet','fdBackdrop'));
 $('folderEdit').addEventListener('click',()=>{ renderFdRows(); openS('fdSheet','fdBackdrop'); });
 
-function arcSize(id){
-  try{ return ((localStorage.getItem('gg_arc_'+id)||'').length*2)/1024; }catch(e){ return 0; }
-}
-
 /* 지금 화면에 보이는 글만 골라냅니다 — 전체 선택도 이 목록만 대상으로 합니다 */
 function visibleArc(){
   const q=arQuery.trim().toLowerCase();
@@ -5191,7 +5174,6 @@ function renderArc(){
   $('arList').innerHTML = list.length ? list.map(a=>{
     const main=a.titleKo || a.title || '무제';
     const sub=(a.titleKo && a.title && a.titleKo!==a.title) ? a.title : '';
-    const kb=arcSize(a.id);
     return `<div class="acard ${a.id===curArc?'cur':''}">
       <div class="atop">
         ${arTidy?`<input type="checkbox" class="pick" data-act="pick" data-id="${a.id}" ${arSel.has(a.id)?'checked':''}>`:''}
@@ -6792,7 +6774,7 @@ function renderGenre(){
     `<button data-g="${k}" class="${k===GENRE?'on':''}">${esc(g.name)}</button>`).join('');
   $('genreNote').textContent=GENRE_NOTE[GENRE]||'';
   const G=GENRES[GENRE];
-  const lbl=document.querySelector('label[for="memo"]') || document.querySelector('#memoCard .card-head h2');
+  const lbl=document.querySelector('#memoCard .card-head h2');
   if(lbl) lbl.textContent=G.memoLabel;
   const ph=$('memo');
   if(ph) ph.setAttribute('placeholder', G.memoPh.replace(/&#10;/g,'\n'));
