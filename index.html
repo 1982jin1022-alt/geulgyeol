@@ -1147,7 +1147,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
     </section>
 
     <footer>
-      <span class="ver">글결 v83</span>
+      <span class="ver">글결 v84</span>
       <span class="made">만든 이 · 야자</span>
       <span class="ask">문의나 건의는 편하게 알려주세요</span>
       <span class="contact">
@@ -2579,8 +2579,11 @@ function splitText(text,limit){
    번역문 한가운데에 찍혔습니다. 이제 표시를 느슨하게 알아보고,
    그래도 새어 나온 목록 줄은 본문에서 걷어내 목록 쪽으로 옮깁니다. */
 const GLOSS_MARK='<<<고유명사>>>';
-const GLOSS_RE=/<{2,3}\s*(?:고유\s*명사(?:\s*표기)?|용어집?)\s*>{2,3}/;
-const TRANS_RE=/<{2,3}\s*번역\s*>{2,3}/g;
+/* 모델에 따라 여는 꺾쇠를 빼먹거나("번역>>>") 전각(＜＜번역＞＞)으로 쓰기도 해서
+   여는 쪽은 없어도 받고, 닫는 ">>"만 꼭 있어야 표시로 봅니다 (본문 낱말 뒤에 ">>"가 붙을 일은 거의 없어서).
+   《번역》 같은 겹낫표는 본문의 책 제목일 수 있어 받지 않습니다. */
+const GLOSS_RE=/[<＜]{0,3}\s*(?:고유\s*명사(?:\s*표기)?|용어집?)\s*[>＞]{2,3}/;
+const TRANS_RE=/[*_]*[<＜]{0,3}\s*번역(?:문)?\s*[>＞]{2,3}[*_]*/g;
 const MARK_RE=/^\s*<{2,3}[^<>\n]{0,20}>{2,3}\s*$/;      /* 홀로 남은 구획 표시 줄 */
 /* "카미시로 루이 | 神代 類 | 인명" — 세로선 2개로 3칸인 줄입니다. */
 const LIST_RE=/^\s*[^|\n]{1,40}\|[^|\n]{1,40}\|[^|\n]{1,30}\s*$/;
@@ -3145,7 +3148,7 @@ function fnFinds(g){
 }
 
 /* 고유명사는 숫자(1,2,3), 낱말 뜻풀이는 자음(ㄱ,ㄴ,ㄷ)으로 표시합니다 */
-function annotate(paras,gloss,words){
+function annotate(paras,gloss,words,keep){
   const seen=new Set();   /* 같은 표기가 두 번 올라오면 하나만 (번호가 두 번 꽂히지 않게) */
   const ents=[
     ...(gloss||[]).filter(g=>{
@@ -3196,8 +3199,10 @@ function annotate(paras,gloss,words){
     else { wnotes.push(e.g); mark=`\u0003${wnotes.length}\u0004`; }
     marks[e.hit.i].push({at:e.hit.b, mark});
   });
-  /* 본문에서 못 찾은 고유명사도 각주 목록에는 남깁니다 (번호 표시만 없이) */
-  ents.forEach(e=>{ if(!e.hit && e.kind==='n') notes.push(e.g); });
+  /* 본문에서 못 찾은 고유명사도 각주 목록에는 남깁니다 (번호 표시만 없이).
+     다만 keep 을 주면 그걸 통과한 것만 — 번역할 때는 표기집 전체가 후보로 들어오므로,
+     이 글 원문에 나오지 않는 예전 표기까지 남기면 각주 창이 여태 모든 각주로 가득 찹니다. */
+  ents.forEach(e=>{ if(!e.hit && e.kind==='n' && (!keep || keep(e.g))) notes.push(e.g); });
   const out=paras.map((text,i)=>{
     let s='',prev=0;
     marks[i].sort((x,y)=>x.at-y.at).forEach(m=>{ s+=text.slice(prev,m.at)+m.mark; prev=m.at; });
@@ -3206,11 +3211,26 @@ function annotate(paras,gloss,words){
   return {paras:out,notes,wnotes};
 }
 
+/* 원문에 이 표기가 나오는지 (띄어쓰기 없이 붙여 쓴 꼴도) */
+function srcHas(src, or){
+  const s=String(or||'').trim();
+  return !!s && (src.includes(s) || src.includes(s.replace(/[\s　]+/g,'')));
+}
+/* v81~v83 에서 번역한 글에는 원문과 상관없는 예전 표기가 번호 없이 목록 끝에 붙어 있습니다.
+   번호가 붙은 앞쪽은 그대로 두고, 끝에 붙은 것 중 원문에 없는 것만 걷어냅니다 (본문 번호는 안 밀림). */
+function pruneNotes(doc){
+  if(!doc || !(doc.notes||[]).length) return;
+  let top=0;
+  (doc.pairs||[]).forEach(p=>String(p.d||'').replace(/\u0001(\d+)\u0002/g,(_,n)=>{ top=Math.max(top,+n); return ''; }));
+  const src=(doc.pairs||[]).map(x=>x.s||'').join('\n');
+  doc.notes=doc.notes.filter((g,i)=>i<top || srcHas(src,g.or));
+}
 /* 표시를 지우고 다시 매기기 (낱말을 추가하거나 표기를 고쳤을 때) */
 function reannotate(){
   if(!DOC) return;
   const raw=DOC.pairs.map(x=>stripMarks(x.d));
-  const a=annotate(raw, DOC.notes||[], DOC.wnotes||[]);
+  const src=DOC.pairs.map(x=>x.s||'').join('\n');
+  const a=annotate(raw, DOC.notes||[], DOC.wnotes||[], g=>srcHas(src,g.or));
   DOC.pairs=DOC.pairs.map((x,i)=>({s:x.s,d:a.paras[i],t:x.t||0}));
   /* DOC.st 는 그대로 둡니다 */
   DOC.notes=a.notes; DOC.wnotes=a.wnotes;
@@ -3860,6 +3880,7 @@ async function translate(){
   const onStatus = m => { if(/한도/.test(m)) hitLimit=true; say(m); };
 
   const done=[]; let gloss=TERMS.map(t=>({ko:t.ko,or:t.or,ty:t.ty||''}));
+  const fromTerms=new Set(gloss);   /* 표기집에서 미리 넣어 둔 항목 — 이 글과 상관없을 수 있음 */
   let leftCount=0;                 /* 다듬고도 원문 글자가 남은 줄 수 */
   let madeParas=0;                 /* 지어낸 내용을 걷어내고 원문으로 되돌린 문단 수 */
   const CK=checksFor(GENRE);       /* 이 갈래의 검사 기준 */
@@ -3955,7 +3976,7 @@ async function translate(){
           if(t){ opt.temp=0.3; opt.noThink=false; }
           if(box) opt.onChunk=(full)=>{
             const cut=full.indexOf('<<<고유명사>>>');
-            box.textContent=(cut>=0?full.slice(0,cut):full).replace(/<<<번역>>>/g,'').trimStart();
+            box.textContent=(cut>=0?full.slice(0,cut):full).replace(TRANS_RE,'').trimStart();
           };
           const raw=await askGemini(key,model,prompt,rulesFor(GENRE),16384,opt);
           const {body,gloss:g,badFormat}=parseReply(raw);
@@ -4603,7 +4624,10 @@ async function translate(){
       madeParas = dropInvented(pairs);
       /* 제목도 본문과 같은 흐름에 넣어 각주가 붙게 합니다 */
       if(curTitleKo || rawTitle) pairs.unshift({s:rawTitle||'', d:curTitleKo||rawTitle||'', t:1});
-      const ann=annotate(pairs.map(p=>p.d),gloss,(DOC&&DOC.wnotes)||[]);
+      /* 표기집에서 온 항목은 이 글 원문에 나올 때만 (못 찾아도) 목록에 남깁니다 */
+      const srcSoFar=done.map(x=>x.src).join('\n');
+      const ann=annotate(pairs.map(p=>p.d),gloss,(DOC&&DOC.wnotes)||[],
+        g=>!fromTerms.has(g) || srcHas(srcSoFar,g.or));
       DOC={pairs:pairs.map((p,k)=>({s:p.s,d:ann.paras[k],t:p.t||0})),notes:ann.notes,wnotes:ann.wnotes||[],
            st:!!(GENRES[GENRE]&&GENRES[GENRE].structure),
            /* 줄 단위로 다루는 글(가사)인지 — 그리기·복사에서 빈 줄과 줄바꿈을 살리는 데 씁니다 */
@@ -4838,6 +4862,7 @@ function readArchive(id){
                arc: curArc, titleKo: curTitleKo };
   }
   DOC={pairs:d.pairs||[], notes:d.notes||[], wnotes:d.wnotes||[], st:!!d.st};
+  pruneNotes(DOC);
   curArc=id;
   curTitleKo = d.titleKo || rec.titleKo || d.title || rec.title || '';
   renderDoc(); renderArc();
@@ -4865,6 +4890,7 @@ async function loadArchive(id){
   if(d.genre && GENRES[d.genre]){ GENRE=d.genre; store.set('genre',GENRE); renderGenre(); }
   curTitleKo = d.titleKo || rec.titleKo || '';
   DOC={pairs:d.pairs||[], notes:d.notes||[], wnotes:d.wnotes||[], st:!!d.st};
+  pruneNotes(DOC);
   curArc=id;
   store.set('curarc',id); store.set('title',$('docTitle').value);
   store.set('source',$('source').value); store.set('memo',$('memo').value);
@@ -6694,6 +6720,7 @@ if(!VV){ const kg=$('kbGo'); if(kg) kg.remove(); }
   if(isPhone() && viewMode==='side'){ viewMode='alt'; sideParked=true; }
   syncViewSeg();
   try{ DOC=JSON.parse(store.get('doc','')) || null; }catch(e){ DOC=null; }
+  pruneNotes(DOC);
   if(DOC && !DOC.wnotes) DOC.wnotes=[];
   if(DOC && DOC.pairs && DOC.pairs.length){
     renderDoc();
