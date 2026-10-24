@@ -98,6 +98,9 @@
   --g1:rgba(122,100,224,.34); --g2:rgba(202,110,172,.24); --g3:rgba(70,112,192,.28);
   --glass:.72; --glass-strong:.90;
 }
+/* 어두운 테마의 강조색은 밝아서 흰 글씨가 묻힙니다(명암비 2:1 남짓) — 바탕색(짙은 색)으로 */
+[data-theme="midnight"],[data-theme="forest"],[data-theme="cocoa"],
+[data-theme="amethyst"],[data-theme="night"],[data-theme="ink"]{ --on-accent:var(--paper) }
 [data-theme="ink"]{
   --paper:#0A0A0D; --card:#16161A; --ink:#D9D6CF; --soft:#88847D;
   --line:#26262D; --accent:#CDB47C; --weak:#221F19; --pop:#9FB8A8; --warn:#E08B7C;
@@ -105,6 +108,7 @@
   --glass:.74; --glass-strong:.92;
 }
 :root{
+  --on-accent:#fff;          /* 강조색 위의 글씨 — 어두운 테마는 아래에서 바탕색으로 바꿉니다 */
   --r-card:22px;
   --shadow:0 1px 2px rgba(60,45,95,.05), 0 12px 30px -12px rgba(60,45,95,.18);
   --read-font:'Pretendard Variable',Pretendard,sans-serif;
@@ -201,17 +205,18 @@ header{display:flex;align-items:center;gap:12px;padding:24px 4px 14px}
   flex:1;border:none;background:transparent;border-radius:12px;padding:10px 8px;
   font-family:var(--cute);font-size:15px;color:var(--soft);cursor:pointer;transition:.18s
 }
-.tabs button.on{background:var(--accent);color:#fff;box-shadow:0 6px 14px -6px color-mix(in srgb,var(--accent) 90%,transparent)}
+.tabs button.on{background:var(--accent);color:var(--on-accent);box-shadow:0 6px 14px -6px color-mix(in srgb,var(--accent) 90%,transparent)}
 .tabs button b{font-weight:400;opacity:.7;font-size:12px;margin-left:3px}
 
 /* ════════ 카드 ════════ */
 .card{
+  background:var(--card);
   background:color-mix(in srgb,var(--card) calc(var(--glass)*100%),transparent);
   -webkit-backdrop-filter:blur(18px) saturate(1.5);backdrop-filter:blur(18px) saturate(1.5);
   border:1px solid color-mix(in srgb,var(--line) 78%,transparent);
   border-radius:var(--r-card);padding:17px;margin-bottom:13px;box-shadow:var(--shadow)
 }
-#result-card{background:color-mix(in srgb,var(--card) calc(var(--glass-strong)*100%),transparent)}
+#result-card{background:var(--card);background:color-mix(in srgb,var(--card) calc(var(--glass-strong)*100%),transparent)}
 .card-head{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
 .badge{
   width:30px;height:30px;flex:none;border-radius:10px;display:grid;place-items:center;color:var(--accent);
@@ -238,10 +243,13 @@ label.field:first-child{margin-top:0}
 /* 안내 글씨는 살짝 작게 — 긴 문구도 잘리지 않도록 */
 input::placeholder,textarea::placeholder{font-size:13.5px;opacity:.75}
 input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=color]),select,textarea{
-  width:100%;background:color-mix(in srgb,var(--paper) 60%,transparent);color:var(--ink);
+  width:100%;background:var(--paper);background:color-mix(in srgb,var(--paper) 60%,transparent);color:var(--ink);
   border:1px solid color-mix(in srgb,var(--line) 85%,transparent);border-radius:13px;
   padding:12px 13px;font-size:15px;font-family:inherit;line-height:1.55;outline:none;
   transition:border-color .16s,box-shadow .16s,background .16s
+}
+@supports(-webkit-touch-callout:none){
+  input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=color]),select,textarea{font-size:16px}
 }
 input:focus,select:focus,textarea:focus{
   border-color:color-mix(in srgb,var(--accent) 55%,transparent);
@@ -267,7 +275,7 @@ button{font-family:inherit}
 .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px;align-items:center}
 .btn-main{
   position:relative;width:100%;border:none;border-radius:999px;padding:17px;
-  font-family:var(--cute);font-size:19px;color:#fff;cursor:pointer;
+  font-family:var(--cute);font-size:19px;color:var(--on-accent);cursor:pointer;
   background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 58%,var(--pop)));
   box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 3px 0 color-mix(in srgb,var(--accent) 62%,#000 28%),
     0 16px 30px -14px color-mix(in srgb,var(--accent) 90%,transparent);
@@ -440,6 +448,7 @@ button{font-family:inherit}
 #busy .busy-box{
   display:flex;flex-direction:column;align-items:center;gap:10px;
   padding:28px 34px;border-radius:24px;text-align:center;
+  background:var(--card);
   background:color-mix(in srgb,var(--card) 96%,transparent);
   box-shadow:0 18px 50px -12px rgba(0,0,0,.45)
 }
@@ -449,6 +458,7 @@ button{font-family:inherit}
 #origpop{
   position:fixed;z-index:68;display:none;flex-direction:column;gap:9px;
   padding:13px 15px;border-radius:16px;max-width:min(92vw,420px);
+  background:var(--card);
   background:color-mix(in srgb,var(--card) 97%,transparent);
   -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
   box-shadow:0 12px 34px -8px rgba(0,0,0,.4),inset 0 0 0 1px color-mix(in srgb,var(--line) 90%,transparent)
@@ -476,6 +486,7 @@ button{font-family:inherit}
 #meanpop{
   position:fixed;z-index:68;display:none;flex-direction:column;gap:8px;
   padding:12px 14px;border-radius:16px;max-width:min(90vw,340px);
+  background:var(--card);
   background:color-mix(in srgb,var(--card) 97%,transparent);
   -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
   box-shadow:0 12px 34px -8px rgba(0,0,0,.4),inset 0 0 0 1px color-mix(in srgb,var(--line) 90%,transparent)
@@ -499,13 +510,14 @@ sup.fn.wn{color:var(--pop);font-size:.66em}
 #fnpop{
   position:fixed;z-index:66;display:none;align-items:center;gap:9px;
   padding:9px 11px;border-radius:14px;max-width:min(88vw,360px);
+  background:var(--card);
   background:color-mix(in srgb,var(--card) 96%,transparent);
   -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
   box-shadow:0 10px 30px -8px rgba(0,0,0,.35),inset 0 0 0 1px color-mix(in srgb,var(--line) 90%,transparent)
 }
 #fnpop.show{display:flex}
 #fnpop .p-num{flex:none;width:20px;height:20px;border-radius:7px;display:grid;place-items:center;
-  font-size:10.5px;font-weight:700;background:var(--accent);color:#fff}
+  font-size:10.5px;font-weight:700;background:var(--accent);color:var(--on-accent)}
 #fnpop .p-ko{font-size:14px;font-weight:700;white-space:nowrap}
 #fnpop .p-or{font-size:14px;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #fnpop .p-ty{flex:none;font-size:10.5px;color:var(--soft);padding:2px 7px;border-radius:999px;
@@ -604,7 +616,7 @@ body.fn-open #navBtns{bottom:calc(48vh + 16px)}
 #fnFab{
   position:fixed;right:16px;bottom:calc(20px + env(safe-area-inset-bottom));z-index:54;display:none;
   align-items:center;gap:7px;padding:12px 17px;border:none;border-radius:999px;cursor:pointer;
-  font-family:var(--cute);font-size:14px;color:#fff;
+  font-family:var(--cute);font-size:14px;color:var(--on-accent);
   background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 58%,var(--pop)));
   box-shadow:0 10px 26px -8px color-mix(in srgb,var(--accent) 90%,transparent),inset 0 1px 0 rgba(255,255,255,.3);
   transition:transform .14s
@@ -630,7 +642,7 @@ body.keyboard-up .sheet{
   position:fixed;left:50%;transform:translateX(-50%);z-index:58;
   display:none;align-items:center;gap:6px;
   padding:11px 22px;border:none;border-radius:999px;cursor:pointer;
-  font-family:var(--cute);font-size:14px;color:#fff;white-space:nowrap;
+  font-family:var(--cute);font-size:14px;color:var(--on-accent);white-space:nowrap;
   background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 58%,var(--pop)));
   box-shadow:0 10px 26px -8px color-mix(in srgb,var(--accent) 90%,transparent),inset 0 1px 0 rgba(255,255,255,.3)
 }
@@ -654,7 +666,7 @@ sup.fn:active{opacity:.5}
   border-top:1px solid color-mix(in srgb,var(--line) 60%,transparent)}
 .notes li:first-of-type{border-top:none}
 .notes .num{flex:none;width:20px;height:20px;border-radius:7px;display:grid;place-items:center;
-  font-size:10.5px;font-weight:700;background:var(--accent);color:#fff}
+  font-size:10.5px;font-weight:700;background:var(--accent);color:var(--on-accent)}
 .notes .ko{font-weight:700}
 .notes .or{color:var(--soft)}
 .notes .ty{font-size:10.5px;color:var(--soft);opacity:.8;
@@ -718,14 +730,15 @@ sup.fn:active{opacity:.5}
   border-radius:16px;margin-bottom:9px;overflow:hidden;background:transparent!important;
   box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--accent) 22%,transparent)!important
 }
-.hcat>summary{
+.help .hcat>summary{
   list-style:none;cursor:pointer;padding:14px 15px;
   font-family:var(--cute);font-size:15px;color:var(--accent);
   display:flex;align-items:center;gap:8px
 }
-.hcat>summary::-webkit-details-marker{display:none}
-.hcat>summary::after{content:'▾';margin-left:auto;font-size:11px;opacity:.7;transition:transform .2s}
-.hcat[open]>summary::after{transform:rotate(180deg)}
+.help .hcat>summary::-webkit-details-marker{display:none}
+.help .hcat>summary::after{content:'▾';margin-left:auto;font-size:11px;opacity:.7;transition:transform .2s}
+.help .hcat[open]>summary::after{content:'▾';transform:rotate(180deg)}
+.help .hcat>summary{font-weight:400}
 .hin{padding:0 11px 11px;display:flex;flex-direction:column;gap:7px}
 
 .help details{
@@ -817,7 +830,7 @@ input[type=url]{font-size:14px;letter-spacing:-.01em}
   background:color-mix(in srgb,var(--weak) 70%,transparent);color:var(--soft);cursor:pointer;
   box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--line) 85%,transparent);transition:.16s
 }
-.catbar button.on{background:var(--accent);color:#fff;box-shadow:none}
+.catbar button.on{background:var(--accent);color:var(--on-accent);box-shadow:none}
 .wlist{display:flex;flex-direction:column;gap:9px}
 .wcard{
   padding:13px 15px;border-radius:16px;
@@ -851,10 +864,11 @@ input[type=url]{font-size:14px;letter-spacing:-.01em}
 /* ════════ 시트 · 대화상자 ════════ */
 .backdrop{position:fixed;inset:0;background:rgba(24,16,42,.4);
   -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
-  opacity:0;pointer-events:none;transition:opacity .28s;z-index:50}
+  opacity:0;pointer-events:none;transition:opacity .28s;z-index:59}   /* 떠 있는 단추들(54~58)보다 위, 시트(60)보다 아래 */
 .backdrop.show{opacity:1;pointer-events:auto}
 .sheet{
   position:fixed;left:0;right:0;bottom:0;z-index:60;
+  background:var(--card);
   background:color-mix(in srgb,var(--card) 94%,transparent);
   -webkit-backdrop-filter:blur(24px) saturate(1.6);backdrop-filter:blur(24px) saturate(1.6);
   border:1px solid color-mix(in srgb,var(--line) 80%,transparent);border-bottom:none;
@@ -972,9 +986,10 @@ input[type=url]{font-size:14px;letter-spacing:-.01em}
 .catpick button{border:none;border-radius:999px;padding:8px 13px;font-size:12.5px;font-weight:700;
   background:color-mix(in srgb,var(--weak) 70%,transparent);color:var(--soft);cursor:pointer;
   box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--line) 85%,transparent)}
-.catpick button.on{background:var(--accent);color:#fff;box-shadow:none}
+.catpick button.on{background:var(--accent);color:var(--on-accent);box-shadow:none}
 
 .toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,22px);
+  background:var(--ink);
   background:color-mix(in srgb,var(--ink) 92%,transparent);color:var(--card);
   -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
   font-family:var(--cute);font-size:15px;padding:11px 22px;border-radius:999px;
@@ -1001,7 +1016,7 @@ footer .contact a,footer .contact .tw{
   transition:transform .14s
 }
 footer .contact a{
-  color:#fff;background:var(--accent);
+  color:var(--on-accent);background:var(--accent);
   box-shadow:0 4px 12px -5px color-mix(in srgb,var(--accent) 90%,transparent)
 }
 footer .contact .tw{
@@ -1127,7 +1142,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
         <span class="badge"><svg viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M18.5 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/></svg></span>
         <h2 class="sec-title">번역</h2><div class="grow"></div>
         <button class="btn ghost" id="readerOn">읽기 모드</button>
-        <button class="btn ghost" id="readBtn2">가a</button>
+        <button class="btn ghost" id="readBtn2" aria-label="읽기 설정" title="읽기 설정">가a</button>
         <button class="btn" id="copyBtn">복사</button>
       </div>
       <div class="viewbar" id="viewbar" style="display:none">
@@ -1147,7 +1162,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
     </section>
 
     <footer>
-      <span class="ver">글결 v88</span>
+      <span class="ver">글결 v89</span>
       <span class="made">만든 이 · 야자</span>
       <span class="ask">문의나 건의는 편하게 알려주세요</span>
       <span class="contact">
@@ -1176,7 +1191,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
       <p class="hint" id="arSpace" style="margin-top:10px"></p>
     </section>
     <footer>
-      번역이 끝나면 자동으로 여기에 담겨요
+      번역이 끝나면 자동으로 여기에 담겨요 (멈추거나 오류로 끊긴 번역은 [서재에 저장]을 눌러야 담겨요)
       <span class="made">만든 이 · 야자</span>
       <span class="contact">
         <a href="https://open.kakao.com/o/sIzw8Nzb" target="_blank" rel="noopener">카카오톡 오픈채팅</a>
@@ -1223,7 +1238,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
 
 <!-- 원문 보기 말풍선 -->
 <div id="origpop">
-  <div class="op-head"><span id="opPick"></span> 의 원문</div>
+  <div class="op-head">「<span id="opPick"></span>」의 원문</div>
   <div class="op-hit" id="opHit"></div>
   <div class="op-body" id="opBody"></div>
   <div class="mp-row">
@@ -1268,11 +1283,11 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
 <button id="kbGo">번역하기</button>
 <div id="fnPanel">
   <div class="fnp-head">
-    <span class="fnp-title">고유명사</span>
+    <span class="fnp-title">각주</span>
     <span class="fnp-count" id="fnCount"></span>
     <div class="grow"></div>
     <button class="btn ghost" id="fnAll">전부 단어장에</button>
-    <button class="fnp-x" id="fnClose">✕</button>
+    <button class="fnp-x" id="fnClose" aria-label="각주 창 닫기" title="닫기">✕</button>
   </div>
   <div class="fnp-body"><ul class="notes" id="fnList" style="margin:0;background:transparent;box-shadow:none;padding:0"></ul></div>
 </div>
@@ -1405,7 +1420,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
         </div></details>
 
         <details data-h="safe"><summary>키를 넣어도 안전한가요?</summary><div class="in">
-          <p>네. 키는 <b>지금 쓰는 이 기기 안에만</b> 저장돼요. 다른 누구에게도 전송되지 않습니다.</p>
+          <p>네. 키는 <b>지금 쓰는 이 기기 안에만</b> 저장돼요. 번역을 부탁할 때 <b>구글에만</b> 보내지고, 그 밖에는 밖으로 나가지 않아요. (설정에서 "키·토큰도 함께 저장"을 켜고 백업하면 백업 파일에도 들어가요)</p>
           <p>다만 <b>남에게 키를 알려주지는 마세요.</b> 남이 내 몫을 대신 써버릴 수 있어요.</p>
         </div></details>
 
@@ -1424,6 +1439,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
             <li><b>번역하기</b>를 누르고 기다려요.</li>
           </ol>
           <p>글이 아주 길어도 괜찮아요. 앱이 알아서 여러 조각으로 나눠 옮긴 뒤 이어붙입니다.</p>
+          <p>중간에 <b>멈추기</b>를 누르면 거기까지 옮긴 건 화면에 남아요. 다만 끝까지 못 옮긴 글은 서재에 자동으로 담기지 않으니, 남기려면 <b>서재에 저장</b>을 눌러 주세요.</p>
         </div></details>
 
         <details data-h="genre"><summary>글 갈래 — 이게 왜 중요한가요?</summary><div class="in">
@@ -1473,9 +1489,10 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
       <summary>읽기</summary>
       <div class="hin">
 
-        <details data-h="compare"><summary>원문 대조 — 세 가지 보기</summary><div class="in">
+        <details data-h="compare"><summary>원문 대조 — 네 가지 보기</summary><div class="in">
           <p>번역 결과 위의 단추로 바꿉니다.</p>
-          <p><b>번역만</b> — 평소 읽기. <b>번갈아</b> — 문단마다 원문(작고 흐리게) 다음에 번역. <b>나란히</b> — 좌우 두 단.</p>
+          <p><b>번역만</b> — 평소 읽기. <b>번갈아</b> — 문단마다 원문(작고 흐리게) 다음에 번역. <b>펼쳐보기</b> — 번역만 보이다가 문단을 누르면 그 문단의 원문이 아래로 펼쳐져요. <b>나란히</b> — 좌우 두 단.</p>
+          <p>폰처럼 화면이 좁으면 <b>나란히</b>는 한 칸이 너무 좁아져서 보이지 않아요.</p>
           <p>번역문에서 낱말을 고르고 <b>원문</b>을 누르면, 그 자리에 해당하는 <b>원문 조각만</b> 작게 떠요.</p>
         </div></details>
 
@@ -1496,8 +1513,8 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
         </div></details>
 
         <details data-h="reader"><summary>읽기 모드 · 이어읽기</summary><div class="in">
-          <p>서재에서 <b>읽기</b>를 누르면 설정·본문 칸이 사라지고 <b>글만 남습니다.</b> 블로그 글처럼요.</p>
-          <p>위쪽 얇은 막대의 <b>←</b> 로 서재로 돌아가고, 폰의 뒤로 단추도 같은 역할을 해요.</p>
+          <p>서재에서 <b>읽기</b>를 누르면 설정·본문 칸이 사라지고 <b>글만 남습니다.</b> 블로그 글처럼요. 번역 결과 위의 <b>읽기 모드</b>로도 들어갈 수 있어요.</p>
+          <p>위쪽 얇은 막대의 <b>←</b> 로 들어오기 전 화면(서재나 번역)으로 돌아가고, 폰의 뒤로 단추도 같은 역할을 해요. 뒤로 단추는 열려 있는 설정·도움말 창도 닫아요.</p>
           <p>읽던 위치는 글마다 기억됩니다. 다시 열면 <b>이어읽기</b> 안내가 잠깐 떠요.</p>
           <p>왼쪽 아래 <b>↑ ↓</b> 로 맨 위·맨 아래로 한 번에 갈 수 있습니다.</p>
         </div></details>
@@ -1517,7 +1534,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
       <div class="hin">
 
         <details data-h="library"><summary>서재 — 번역한 글 보관</summary><div class="in">
-          <p>번역이 끝나면 <b>자동으로 서재에 담깁니다.</b> 따로 누르실 필요 없어요.</p>
+          <p>번역이 끝나면 <b>자동으로 서재에 담깁니다.</b> 따로 누르실 필요 없어요. 다만 <b>멈추거나 오류로 끊긴 번역</b>은 담기지 않으니, 남기려면 <b>서재에 저장</b>을 직접 눌러 주세요.</p>
           <p>글마다 단추가 넷입니다.</p>
           <p><b>읽기</b> — 읽기 모드로 봅니다. 번역 화면은 건드리지 않아요.<br>
              <b>불러오기</b> — 번역 화면으로 가져옵니다. 고치거나 다시 옮길 때 써요.<br>
@@ -1565,7 +1582,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
         <details data-h="backup"><summary>백업 — 꼭 해두세요</summary><div class="in">
           <p>설정의 <b>전체 내보내기</b>로 설정·서재·단어장·표기집이 담긴 파일 하나를 받습니다. <b>불러오기</b>로 되돌릴 수 있어요.</p>
           <div class="box">브라우저 저장소는 영구적이지 않아요. 캐시를 지우거나 폰을 바꾸면 사라집니다. 가끔 백업해 두세요.</div>
-          <p>백업 파일에는 <b>API 키도 들어 있으니</b> 남에게 주지 마세요.</p>
+          <p>"키·토큰도 함께 저장"을 켜고 내보냈다면 백업 파일에 <b>API 키가 들어 있으니</b> 남에게 주지 마세요. (기본은 꺼져 있어 키가 빠져요. 깃허브에 올릴 때는 깃허브 토큰을 늘 뺍니다)</p>
         </div></details>
 
         <details data-h="github"><summary>깃허브로 폰과 컴퓨터 잇기</summary><div class="in">
@@ -1590,6 +1607,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
         <details data-h="quota"><summary>"한도에 걸렸어요"가 떠요</summary><div class="in">
           <div class="box"><b>대부분은 그냥 두시면 됩니다.</b> 한도에 걸리면 앱이 알아서 <b>다른 모델로 갈아타고 이어갑니다.</b></div>
           <p>한도는 <b>모델마다 따로</b> 걸려 있어요. A 모델을 다 썼어도 B 모델 몫은 남아 있어서, 바꾸기만 하면 이어집니다.</p>
+          <p>갈아탈 때는 설정의 모델 목록에서 <b>지금 모델 바로 아래</b> 모델로 넘어가요. "항상 최신"(latest)·실험판·pro 는 느리고 오류가 잦아서 맨 마지막에 시도합니다. 넘어간 모델로 번역이 되면 <b>설정에도 그 모델로 바뀌어 남아요</b> — 모델이 바뀌어 있어도 놀라지 마세요.</p>
           <p>"쓸 수 있는 모델을 모두 다 썼어요"가 뜨면 이렇게 하세요.</p>
           <ol>
             <li>설정에서 <b>목록 새로고침</b></li>
@@ -1853,7 +1871,7 @@ function sparkle(el){
    ════════════════════════════════════════════════════════════ */
 const TABS=['tr','ar','wd'];
 function gotoTab(name){
-  if(name!=='tr') document.body.classList.remove('reading');
+  if(name!=='tr'){ document.body.classList.remove('reading'); try{ histSync(); }catch(e){} }
   document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on', x.dataset.tab===name));
   TABS.forEach(t=>$('tab-'+t).hidden = (t!==name));
   hideSelPop(); hideFnPop();
@@ -2221,8 +2239,42 @@ $('cIndent').addEventListener('change',e=>{R.indent=e.target.checked?1:0;applyRe
 $('cTap').addEventListener('change',e=>{R.tap=e.target.checked?1:0;applyRead();});
 $('resetRead').addEventListener('click',()=>{R={...DEFAULTS};applyRead();toast('처음 모습으로 돌아왔어요');});
 
-function openS(sh,bd){$(sh).classList.add('show');$(bd).classList.add('show');}
-function closeS(sh,bd){$(sh).classList.remove('show');$(bd).classList.remove('show');}
+/* ── 폰 뒤로가기 ──
+   시트·대화 상자·읽기 모드 중 하나라도 열려 있으면 기록을 한 칸 쌓아 두고,
+   뒤로가기를 누르면 맨 위의 것부터 닫습니다. 이게 없으면 홈 화면 앱(단독 실행)에서는
+   설정 창이 열린 채로 뒤로가기를 눌러도 앱이 그냥 닫혀요. */
+const OPEN_SHEETS=[];           /* 열린 순서대로 [시트 id, 막 id] */
+let ggHist=false, ggSkip=false;
+function openS(sh,bd){
+  $(sh).classList.add('show');$(bd).classList.add('show');
+  if(!OPEN_SHEETS.some(x=>x[0]===sh)) OPEN_SHEETS.push([sh,bd]);
+  histSync();
+}
+function closeS(sh,bd){
+  $(sh).classList.remove('show');$(bd).classList.remove('show');
+  const i=OPEN_SHEETS.findIndex(x=>x[0]===sh);
+  if(i>=0){ OPEN_SHEETS.splice(i,1); histSync(); }
+}
+function histSync(){
+  const open = OPEN_SHEETS.length>0 || document.body.classList.contains('reading');
+  if(open && !ggHist){ try{ history.pushState({gg:1},''); ggHist=true; }catch(e){} }
+  else if(!open && ggHist){
+    /* 앱 안의 단추로 닫았으면 쌓아 둔 기록도 걷어 냅니다 (그때 오는 popstate 는 건너뜀) */
+    ggHist=false; ggSkip=true;
+    try{ history.back(); }catch(e){ ggSkip=false; }
+  }
+}
+window.addEventListener('popstate',()=>{
+  if(ggSkip){ ggSkip=false; return; }
+  if(!ggHist) return;
+  ggHist=false;
+  const top=OPEN_SHEETS[OPEN_SHEETS.length-1];
+  if(top){ if(top[0]==='dlgSheet') dlgClose(null); else closeS(top[0],top[1]); }
+  else if(document.body.classList.contains('reading')) $('readerBack').click();
+  histSync();                   /* 아직 열린 게 남았으면 다시 한 칸 쌓습니다 */
+});
+/* 읽기 모드에서 새로고침하면 쌓아 둔 기록만 남아 뒤로가기 한 번이 헛돕니다 — 걷어 냅니다 */
+if(history.state && history.state.gg){ ggSkip=true; try{ history.back(); }catch(e){ ggSkip=false; } }
 $('readBtn').addEventListener('click',()=>openS('sheet','backdrop'));
 $('readBtn2').addEventListener('click',()=>openS('sheet','backdrop'));
 $('backdrop').addEventListener('click',()=>closeS('sheet','backdrop'));
@@ -4800,8 +4852,10 @@ async function translate(){
       return;                       /* finally 는 그대로 실행됩니다 */
     }
 
+    /* 한 조각도 못 옮겼으면 출력 칸이 빈 채로 끝나지 않게 원래 보던 글을 다시 그립니다 */
+    if(!done.length && DOC && DOC.pairs && DOC.pairs.length) renderDoc();
     const box=document.createElement('div'); box.className='err';
-    box.textContent=(done.length?`${done.length}개 부분까지는 옮겼어요.\n\n`:'')+err.message;
+    box.textContent=(done.length?`${done.length}개 부분까지는 옮겼어요. 끝까지 못 옮겨서 서재에는 담지 않았어요 — 남기려면 [서재에 저장]을 눌러 주세요.\n\n`:'')+err.message;
     $('output').appendChild(box);
     /* 하루 한도면 그 자리에서 모델을 바꿀 수 있게 해줍니다 */
     if(/쓸 수 있는 모델을 모두 다 썼어요/.test(err.message)){
@@ -4952,8 +5006,9 @@ async function loadArchive(id){
   const d=arcGet(id);
   if(!d) return toast('내용을 불러오지 못했어요');
   if($('source').value.trim()){
+    const lose = DOC && DOC.partial ? '\n\n지금 번역은 끝까지 옮기지 못해 서재에 안 담겨 있어요. 불러오면 사라져요.' : '';
     if(!await askConfirm('번역 화면으로 불러올까요?',
-        '지금 번역 화면에 적어둔 제목·본문·메모가 이 글의 내용으로 바뀝니다.','불러오기')) return;
+        '지금 번역 화면에 적어둔 제목·본문·메모가 이 글의 내용으로 바뀝니다.'+lose,'불러오기',!!lose)) return;
   }
   readSnap=null;
   /* 예전에 저장된 글은 일부 항목이 비어 있을 수 있어 목록 쪽 기록으로 메웁니다.
@@ -4980,8 +5035,9 @@ async function loadArchive(id){
 
 async function newDoc(){
   if(busyRun()) return;
-  if($('source').value.trim() &&
-     !await askConfirm('새 글로 시작할까요?','지금 화면의 제목·본문·번역이 비워집니다.\n서재에 저장한 내용은 그대로 남아요.','새로 시작')) return;
+  const lose = DOC && DOC.partial ? '\n\n지금 번역은 끝까지 옮기지 못해 서재에 안 담겨 있어요. 비우면 사라져요.' : '';
+  if(($('source').value.trim() || lose) &&
+     !await askConfirm('새 글로 시작할까요?','지금 화면의 제목·본문·번역이 비워집니다.\n서재에 저장한 내용은 그대로 남아요.'+lose,'새로 시작',!!lose)) return;
   curArc=''; curTitleKo='';
   $('docTitle').value=''; $('source').value=''; $('urlIn').value=''; $('srcUrl').value='';
   store.set('url',''); store.set('srcurl','');
@@ -5211,8 +5267,13 @@ $('arList').addEventListener('click',async e=>{
     const v=n.trim();
     if(!v) return toast('제목을 적어 주세요');
     a.titleKo=v;
-    const d=arcGet(id); if(d){ d.titleKo=v; arcPut(id,d); }
-    if(id===curArc){ curTitleKo=v; store.set('titleko',curTitleKo); updateTitleKo(); }
+    /* 본문 맨 위 제목 줄(t)도 같이 — 안 그러면 읽기 화면에 옛 제목이 남아요 */
+    const d=arcGet(id); if(d){ d.titleKo=v; const tp=(d.pairs||[]).find(p=>p.t); if(tp) tp.d=v; arcPut(id,d); }
+    if(id===curArc){
+      curTitleKo=v; store.set('titleko',curTitleKo); updateTitleKo();
+      const tp=DOC && (DOC.pairs||[]).find(p=>p.t);
+      if(tp){ tp.d=v; renderDoc(); if(!readSnap) store.set('doc',JSON.stringify(DOC)); }
+    }
     saveArcIdx(); renderArc(); toast('제목을 바꿨어요');
   }
 });
@@ -5782,23 +5843,27 @@ function bindPop(btn, fn){
     if(!fired) fn();
   });
 }
-let mpTermTxt='', mpMeanTxt='', mpCat='';
+let mpTermTxt='', mpMeanTxt='', mpCat='', lookSeq=0;
 function hideMeanPop(){ $('meanpop').classList.remove('show'); }
 
 async function lookupMeaning(word, x, y){
   const key=$('apikey').value.trim();
   if(!key) return toast('API 키가 필요해요');
-  mpTermTxt=word; mpMeanTxt='';
+  /* A 를 찾다가 바로 B 를 찾으면, 늦게 온 A 의 답이 B 자리에 들어가 그대로 저장될 수 있었어요 */
+  const my=++lookSeq;
+  mpTermTxt=word; mpMeanTxt=''; mpCat='';
   $('mpTerm').textContent=word;
   $('mpBody').textContent='찾는 중...';
   placeNode($('meanpop'), x, y);
   try{
     const raw=await askGemini(key,$('model').value, word, DICT_SYSTEM, 2048, {fast:true, temp:0.3});
+    if(my!==lookSeq) return;
     const {mean,cat}=splitMeaning(cleanMeaning(raw));
     mpMeanTxt = mean.length>1 ? mean : '뜻을 찾지 못했어요';
     mpCat = cat||'';
     $('mpBody').textContent=mpMeanTxt;
   }catch(err){
+    if(my!==lookSeq) return;
     $('mpBody').textContent=err.message;
   }
 }
@@ -5809,6 +5874,7 @@ $('mpSave').addEventListener('click',()=>{
 $('mpFoot').addEventListener('click',()=>{
   if(!DOC) return toast('번역문이 있어야 각주를 달 수 있어요');
   if(!mpTermTxt) return;
+  if(!mpMeanTxt) return toast('뜻이 아직 없어요');   /* "찾는 중..."일 때 누르면 빈 각주가 붙던 것 */
   DOC.wnotes = DOC.wnotes || [];
   if(DOC.wnotes.some(w=>w.term===mpTermTxt)) { hideMeanPop(); return toast('이미 각주에 있어요'); }
   DOC.wnotes.push({term:mpTermTxt, mean:mpMeanTxt});
@@ -5854,6 +5920,7 @@ const MATCH_SYSTEM = `당신은 원문과 번역문을 대조해 주는 도구�
 - 대응하는 부분을 찾을 수 없으면 NONE 이라고만 출력한다.`;
 
 const origCache={};
+let origSeq=0;
 function paintOrig(pick, hit, full){
   $('opPick').textContent = pick;
   $('opHit').textContent = hit || '';
@@ -5880,6 +5947,7 @@ bindPop($('spOrig'), async ()=>{
   if(!pr || !(pr.s||'').trim()) return toast('이 문단은 원문이 없어요');
 
   const pick=selText.trim(), full=pr.s;
+  const my=++origSeq;
   const r=$('selpop').getBoundingClientRect();
   hideSelPop(); hideMeanPop();
 
@@ -5912,8 +5980,11 @@ bindPop($('spOrig'), async ()=>{
     /* 지어낸 답을 걸러냅니다 — 원문에 실제로 있어야 인정 */
     if(!hit || /^NONE$/i.test(hit) || full.indexOf(hit)<0) hit='';
     origCache[cacheKey]=hit;
+    /* 기다리는 사이 스크롤로 닫혔거나 다른 문단을 골랐으면 옛 자리에 다시 띄우지 않습니다 */
+    if(my!==origSeq || !$('origpop').classList.contains('show')) return;
     paintOrig(pick, hit, full);
   }catch(err){
+    if(my!==origSeq || !$('origpop').classList.contains('show')) return;
     paintOrig(pick, '', full);
   }
   placeNode($('origpop'), r.left+r.width/2, r.top);
@@ -5936,10 +6007,12 @@ bindPop($('spTrans'), ()=>{
 /* 폰에서 선택을 확실히 빠져나갈 길 하나 */
 bindPop($('spClose'), ()=>{ clearPick(); });
 
+let qSeq=0, qOk=false;
 async function quickTranslate(text){
   const key=$('apikey').value.trim();
   if(!key) return toast('API 키가 필요해요');
   if(!text) return;
+  const my=++qSeq; qOk=false;
   $('qSrc').textContent=text; $('qDst').textContent='옮기는 중...';
   openS('qSheet','qBackdrop');
   try{
@@ -5948,14 +6021,16 @@ async function quickTranslate(text){
       (memo?`[${(GENRES[GENRE]||GENRES.novel).memoTag||'작품·캐릭터 설정'}]\n${memo}\n\n`:'')+
       `아래 부분을 자연스러운 한국어로 번역하세요. 설명 없이 번역문만 출력하세요.\n\n${text}`,
       null, 4096, {fast:true});
-    $('qDst').textContent=t;
-  }catch(err){ $('qDst').textContent=err.message; }
+    if(my!==qSeq) return;
+    $('qDst').textContent=t; qOk=true;
+  }catch(err){ if(my===qSeq) $('qDst').textContent=err.message; }
 }
 $('qClose').addEventListener('click',()=>closeS('qSheet','qBackdrop'));
 $('qBackdrop').addEventListener('click',()=>closeS('qSheet','qBackdrop'));
 $('qSaveWord').addEventListener('click',()=>{
   closeS('qSheet','qBackdrop');
-  openWordSheet({term:$('qSrc').textContent, mean:$('qDst').textContent});
+  /* 실패했거나 아직 옮기는 중이면 오류 문장·"옮기는 중..."이 '뜻'으로 저장되지 않게 */
+  openWordSheet({term:$('qSrc').textContent, mean:qOk ? $('qDst').textContent : ''});
 });
 
 /* ════════════════════════════════════════════════════════════
@@ -6045,12 +6120,24 @@ $('saveCfg').addEventListener('click',()=>{
 /* ════════════════════════════════════════════════════════════
    txt 파일 불러오기 · 링크로 가져오기
    ════════════════════════════════════════════════════════════ */
-const readTextFile = f => new Promise((res,rej)=>{
+const readAs = (f,enc) => new Promise((res,rej)=>{
   const r=new FileReader();
   r.onerror=()=>rej(new Error('파일을 읽지 못했어요'));
   r.onload=()=>res(r.result);
-  r.readAsText(f,'utf-8');
+  r.readAsText(f,enc);
 });
+/* 일본 소설 txt(아오조라 문고 등)는 Shift_JIS 가 흔해서 UTF-8 로 읽으면 글자가 깨집니다.
+   깨진 글자(U+FFFD)가 많으면 다른 인코딩으로 다시 읽어 가장 덜 깨진 것을 씁니다. */
+async function readTextFile(f){
+  const broken = s => (String(s).match(/\uFFFD/g)||[]).length;
+  let t=await readAs(f,'utf-8');
+  if(broken(t) <= Math.max(3, t.length*0.01)) return t;
+  for(const enc of ['shift_jis','euc-kr','gbk']){
+    try{ const u=await readAs(f,enc); if(broken(u)<broken(t)) t=u; }catch(e){}
+    if(!broken(t)) break;
+  }
+  return t;
+}
 function srcNote(msg,warn){
   const n=$('srcNote');
   n.innerHTML=msg;
@@ -6116,6 +6203,7 @@ const urlSystem = g => {
 };
 
 async function fetchFromUrl(){
+  if($('urlGet').disabled) return;       /* 폰에서 [이동]을 두 번 누르면 본문이 두 번 붙던 것 */
   const key=$('apikey').value.trim();
   const url=$('urlIn').value.trim();
   if(!key){ openCfg(); return toast('API 키를 먼저 넣어 주세요'); }
@@ -6280,6 +6368,7 @@ async function refreshModels(quiet){
 
     MODELS = [...new Set(ids)];
     store.set('models', JSON.stringify(MODELS));
+    store.set('models_at', String(Date.now()));
 
     const cur = store.get('model');
     const stillOk = MODELS.includes(cur);
@@ -6337,7 +6426,13 @@ $('teSave').addEventListener('click',()=>{
 
   if(next!==old && old){
     /* 본문에 있는 옛 표기를 전부 새 표기로 바꿉니다 (제목 표시 t 는 그대로 둡니다) */
-    DOC.pairs=DOC.pairs.map(x=>({s:x.s, d:x.d.split(old).join(next), t:x.t||0}));
+    /* 1~2글자 표기("린")는 다른 낱말("기린") 안까지 바뀌지 않게 낱말 경계를 봅니다 */
+    const swap = old.length<=2
+      ? s=>{ let out='', from=0;
+             for(let at=fnAt(s,old,0,true); at>=0; at=fnAt(s,old,at+old.length,true)){ out+=s.slice(from,at)+next; from=at+old.length; }
+             return out+s.slice(from); }
+      : s=>s.split(old).join(next);
+    DOC.pairs=DOC.pairs.map(x=>({s:x.s, d:swap(x.d), t:x.t||0}));
   }
   n.ko=next;
   if($('teKeep').checked) putTerm(n.or, next, n.ty);
@@ -6362,7 +6457,10 @@ $('dlgChoices').addEventListener('click',e=>{
   const b=e.target.closest('.dlg-opt'); if(b) dlgClose(b.dataset.k);
 });
 
-function dlgOpen({title,body,input,label,value,choices,ok,danger,cancel}){
+async function dlgOpen({title,body,input,label,value,choices,ok,danger,cancel}){
+  /* 다른 창이 떠 있으면 닫힐 때까지 기다립니다 — 덮어 띄우면 앞 창의 답이 영영 안 오고,
+     번역이 끝나 뜬 "어떻게 담을까요"를 앞 창의 단추로 잘못 누를 수 있어요 */
+  while(dlgResolve) await new Promise(r=>setTimeout(r,150));
   $('dlgTitle').textContent=title||'확인';
   $('dlgBody').textContent=body||'';
   $('dlgBody').style.display=body?'':'none';
@@ -6543,22 +6641,23 @@ $('output').addEventListener('click',e=>{
 /* ════════════════════════════════════════════════════════════
    읽기 모드 — 서재에서 연 글을 본문만 크게 보여줍니다
    ════════════════════════════════════════════════════════════ */
-/* 폰 자체 뒤로가기로 읽기 모드를 빠져나오게, 들어올 때 기록을 한 칸 쌓아 둡니다.
-   이게 없으면 홈 화면 앱(단독 실행)에서는 뒤로가기에 앱이 그냥 닫힙니다. */
-let readerHist=false;
+/* 폰 뒤로가기는 위쪽 histSync 가 맡습니다 (읽기 모드도 "열린 것" 하나로 셉니다) */
 try{ history.scrollRestoration='manual'; }catch(e){}   /* 서재 자리는 arcY 로 직접 돌려놓습니다 */
+/* 어디서 들어왔는지 — 번역 화면의 [읽기 모드]로 들어왔으면 나갈 때도 번역 화면으로 */
+let readFrom='tr', trY=0;
 function enterReader(){
   if(!DOC || !DOC.pairs.length) return toast('읽을 번역이 없어요');
+  readFrom = readSnap ? 'ar' : 'tr';
+  if(readFrom==='tr') trY=window.scrollY;
   document.body.classList.add('reading');
   $('readerTitle').textContent = curTitleKo || $('docTitle').value.trim() || '무제';
   hideSelPop(); hideFnPop();
-  if(!readerHist){ try{ history.pushState({gg:'reader'},''); readerHist=true; }catch(e){} }
   window.scrollTo({top:0});
+  histSync();
 }
 function exitReader(toArchive){
-  /* [뒤로] 단추로 나갈 때는 쌓아 둔 기록도 걷어 냅니다 (popstate 쪽은 readerHist 가 false 라 무시) */
-  if(readerHist){ readerHist=false; try{ history.back(); }catch(e){} }
   document.body.classList.remove('reading');
+  histSync();
   closeFnPanel();
   /* 읽기용으로 열었던 거라면 작업 중이던 내용으로 되돌립니다 */
   if(readSnap){
@@ -6574,15 +6673,10 @@ function exitReader(toArchive){
     gotoTab('ar');
     /* 맨 위로 올라가면 읽던 글을 다시 찾아 내려가야 해서, 보던 자리로 돌려놓습니다 */
     if(arcY) window.scrollTo({top:arcY});
-  } else window.scrollTo({top:0});
+  } else window.scrollTo({top:trY||0});
 }
 $('readerOn').addEventListener('click',enterReader);
-$('readerBack').addEventListener('click',()=>exitReader(true));
-window.addEventListener('popstate',()=>{
-  if(!readerHist) return;
-  readerHist=false;
-  if(document.body.classList.contains('reading')) exitReader(true);
-});
+$('readerBack').addEventListener('click',()=>exitReader(readFrom==='ar'));
 $('readerFont').addEventListener('click',()=>openS('sheet','backdrop'));
 
 /* ════════════════════════════════════════════════════════════
@@ -6590,7 +6684,8 @@ $('readerFont').addEventListener('click',()=>openS('sheet','backdrop'));
    ════════════════════════════════════════════════════════════ */
 let posTimer=null;
 window.addEventListener('scroll',()=>{
-  if(!curArc || $('tab-tr').hidden || !DOC) return;
+  /* 번역 화면(머리·원문 칸이 위에 있음)의 위치를 저장하면 [이어읽기]가 엉뚱한 곳으로 가요 */
+  if(!curArc || $('tab-tr').hidden || !DOC || !document.body.classList.contains('reading')) return;
   clearTimeout(posTimer);
   posTimer=setTimeout(()=>{ store.set('pos_'+curArc, String(Math.round(window.scrollY))); }, 500);
 },{passive:true});
@@ -6829,7 +6924,9 @@ if(!VV){ const kg=$('kbGo'); if(kg) kg.remove(); }
   if(ghat) $('ghState').textContent='마지막 올림 '+new Date(+ghat).toLocaleDateString('ko-KR');
   renderModelSelect(store.get('model'));
   /* 저장된 목록이 없으면 조용히 한 번 받아옵니다 */
-  if(!MODELS.length && $('apikey').value.trim()) setTimeout(()=>refreshModels(true), 800);
+  /* 처음이거나 7일이 지났으면 조용히 새로 받습니다 — 구글이 모델을 내려도 404 가 날 때까지 모르던 것 */
+  const modelsOld = Date.now() - (+store.get('models_at','0')||0) > 7*864e5;
+  if((!MODELS.length || modelsOld) && $('apikey').value.trim()) setTimeout(()=>refreshModels(true), 800);
   const c=store.get('chunk'); if(c) $('chunk').value=c;
   const sp=store.get('speed'); if(sp) $('speed').value=sp;
   updateTitleKo();
