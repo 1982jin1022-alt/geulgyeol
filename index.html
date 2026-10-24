@@ -1147,7 +1147,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
     </section>
 
     <footer>
-      <span class="ver">글결 v86</span>
+      <span class="ver">글결 v87</span>
       <span class="made">만든 이 · 야자</span>
       <span class="ask">문의나 건의는 편하게 알려주세요</span>
       <span class="contact">
@@ -2740,16 +2740,35 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
         한도는 모델마다 따로 걸려 있어서, 대개 이것만으로 그냥 이어집니다.
         목록 맨 위(최신)로 뛰지 않고 지금 모델 "바로 다음"으로 내려갑니다 —
         -latest·실험판·pro 는 느리고 오류가 잦아서 맨 끝에 둡니다. */
+  const noThink0=noThink, maxTok0=maxTok;
   function tryNextModel(){
     if(opts.keepModel) return false;
     const order=fallbackOrder(curModel);
     const next=order.find(m=>!tried.has(m));
     if(!next) return false;
     curModel=next; tried.add(curModel);
-    /* 바뀐 모델을 설정에도 반영해 다음 조각부터 바로 쓰게 합니다 */
-    try{ $('model').value=curModel; store.set('model',curModel); }catch(e){}
+    /* 앞 모델 때문에 물러났던 설정은 새 모델에서 처음부터 다시 */
+    safeLv=SAFE_STEPS[0]; noThink=noThink0; maxTok=maxTok0;
     say(`한도에 걸려 ${curModel} 로 바꿔 이어가는 중`);
     return true;
+  }
+  /* 바뀐 모델은 "실제로 답을 받았을 때만" 설정에 남깁니다 — 다음 조각부터 바로 쓰게.
+     넘어간 모델이 거절(400·404)하면 설정에 엉뚱한 모델이 남지 않도록요. */
+  const settle=t=>{
+    if(curModel!==model){ try{ $('model').value=curModel; store.set('model',curModel); }catch(e){} }
+    return t;
+  };
+  /* 하루 한도(PerDay)는 기다려도 안 풀립니다. 분당 한도면 구글이 알려 준 시간만큼만 기다립니다. */
+  const DAY_LIMIT=/PerDay|per\s*day|daily/i;
+  const waitFor=t=>{
+    const m=String(t||'').match(/"retryDelay"\s*:\s*"(\d+(?:\.\d+)?)s"/);
+    return m ? Math.min(60, Math.max(3, Math.ceil(+m[1]))) : 20;
+  };
+  async function waitOrQuit(res){
+    const t=await res.text().catch(()=>'');
+    if(res.status===429 && DAY_LIMIT.test(t))
+      throw new Error(errMsg(429,{error:{message:'PerDay'}}));
+    await waitVisibly(res.status===429?waitFor(t):6, res.status===429?'사용량 한도에 걸렸어요':'서버가 바빠요');
   }
 
   /* ② 쓸 모델을 다 써버렸을 때만 예비 키로 넘어갑니다 */
@@ -2828,17 +2847,18 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
       try{
         const res=await fetch(base()+':streamGenerateContent?alt=sse',
           {method:'POST',headers:headers(),body:JSON.stringify(makeBody()),signal:ac.signal});
+        /* 모델·키를 바꿔 다시 하는 건 시도 횟수(a)를 쓰지 않습니다 —
+           모델이 많으면 바꾸다가 횟수가 바닥나 예비 키까지 못 가던 것 */
         if(res.status===400){
           const t=await res.text();
           if(retry400()) continue;
+          if(curModel!==model && tryNextModel()){ a--; continue; }
           throw new Error(errMsg(400, safeJson(t)));
         }
-        if(res.status===429 && (tryNextModel() || tryAltKey())) continue;
-        if(res.status===403 && tryAltKey()) continue;
-        if((res.status===429||res.status>=500) && a<5){
-          await waitVisibly(res.status===429?20:6, res.status===429?'사용량 한도에 걸렸어요':'서버가 바빠요');
-          continue;
-        }
+        if(res.status===404 && curModel!==model && tryNextModel()){ a--; continue; }
+        if(res.status===429 && (tryNextModel() || tryAltKey())){ a--; continue; }
+        if(res.status===403 && tryAltKey()){ a--; continue; }
+        if((res.status===429||res.status>=500) && a<5){ await waitOrQuit(res); continue; }
         if(!res.ok) throw new Error(errMsg(res.status, safeJson(await res.text())));
         if(!res.body) throw new Error('__nostream__');
 
@@ -2906,7 +2926,7 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
         if(wantFull && blocked && CUT_REASONS.test(blocked))
           throw blockedError(bmsg(blocked,bWhere,bRat));
         if(fin==='MAX_TOKENS' && full.trim() && opts.onCut) opts.onCut();
-        if(full.trim()) return full.trim();
+        if(full.trim()) return settle(full.trim());
         if(blocked) throw blockedError(bmsg(blocked,bWhere,bRat));
         throw new Error('__nostream__');
       }catch(e){
@@ -2936,15 +2956,14 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
       throw new Error('인터넷 연결에 실패했어요. 웹 주소(https)로 열었는지 확인해 주세요.');
     }
 
-    if(res.status===429 && (tryNextModel() || tryAltKey())) continue;
-    if(res.status===403 && tryAltKey()) continue;
-    if((res.status===429||res.status>=500)&&a<5){
-      await waitVisibly(res.status===429?20:6, res.status===429?'사용량 한도에 걸렸어요':'서버가 바빠요');
-      continue;
-    }
+    if(res.status===404 && curModel!==model && tryNextModel()){ a--; continue; }
+    if(res.status===429 && (tryNextModel() || tryAltKey())){ a--; continue; }
+    if(res.status===403 && tryAltKey()){ a--; continue; }
+    if((res.status===429||res.status>=500)&&a<5){ await waitOrQuit(res); continue; }
     const data=await res.json().catch(()=>null);
     if(!res.ok){
       if(res.status===400 && retry400()) continue;
+      if(res.status===400 && curModel!==model && tryNextModel()){ a--; continue; }
       throw new Error(errMsg(res.status,data));
     }
     const cand=data?.candidates?.[0];
@@ -2976,7 +2995,7 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
       if(retryLoop()) continue;
       throw loopError();
     }
-    return text.trim();
+    return settle(text.trim());
   }
   throw new Error('서버가 계속 응답하지 않아요. 잠시 뒤 다시 해주세요.');
 }
@@ -3881,6 +3900,9 @@ async function translate(){
 
   const done=[]; let gloss=TERMS.map(t=>({ko:t.ko,or:t.or,ty:t.ty||''}));
   const fromTerms=new Set(gloss);   /* 표기집에서 미리 넣어 둔 항목 — 이 글과 상관없을 수 있음 */
+  /* 단어장 각주는 시작할 때 한 번만 잡아 둡니다. 매 조각 DOC.wnotes 를 넘기면
+     첫 조각에서 못 찾은 낱말이 걸러진 채 다음 조각으로 넘어가 뒤쪽 낱말 각주가 사라집니다. */
+  const wn0=((DOC&&DOC.wnotes)||[]).slice();
   let leftCount=0;                 /* 다듬고도 원문 글자가 남은 줄 수 */
   let madeParas=0;                 /* 지어낸 내용을 걷어내고 원문으로 되돌린 문단 수 */
   const CK=checksFor(GENRE);       /* 이 갈래의 검사 기준 */
@@ -4626,7 +4648,7 @@ async function translate(){
       if(curTitleKo || rawTitle) pairs.unshift({s:rawTitle||'', d:curTitleKo||rawTitle||'', t:1});
       /* 표기집에서 온 항목은 이 글 원문에 나올 때만 (못 찾아도) 목록에 남깁니다 */
       const srcSoFar=done.map(x=>x.src).join('\n');
-      const ann=annotate(pairs.map(p=>p.d),gloss,(DOC&&DOC.wnotes)||[],
+      const ann=annotate(pairs.map(p=>p.d),gloss,wn0,
         g=>!fromTerms.has(g) || srcHas(srcSoFar,g.or));
       DOC={pairs:pairs.map((p,k)=>({s:p.s,d:ann.paras[k],t:p.t||0})),notes:ann.notes,wnotes:ann.wnotes||[],
            st:!!(GENRES[GENRE]&&GENRES[GENRE].structure),
@@ -4676,10 +4698,10 @@ async function translate(){
           $('source').value = merged; store.set('source', merged); updateCount();
         }
         reannotate(); renderDoc();
-      } else if(pick==='new'){
+      } else if(pick!=='over'){
+        /* 창 바깥을 눌러 닫은 경우(null)도 새 글로 — 실수 한 번에 예전 번역이 사라지지 않게 */
         curArc=''; store.set('curarc','');
       }
-      /* 취소해도 그대로 덮어씁니다 (번역 결과를 잃지 않도록) */
     }
     saveArchive(true, true);
     if(blockedCount || refusedCount || loopedCount || missCount || madeCount || emptyCount || leftCount || madeParas){
@@ -4808,6 +4830,7 @@ function arcWipe(id){
   try{ localStorage.removeItem('gg_pos_'+id); }catch(e){}
 }
 function arcDel(id){
+  if(id===curArc && busyRun()) return;
   arcWipe(id);
   ARC=ARC.filter(a=>a.id!==id);
   if(curArc===id){ curArc=''; store.set('curarc',''); }
@@ -4818,13 +4841,18 @@ function arcDel(id){
    멈추거나 오류로 끊긴 글(DOC.partial)은 자동으로는 담지 않습니다. [서재에 저장]을 직접 누르면 담아요. */
 function saveArchive(auto, translated){
   if(!DOC || !DOC.pairs.length){ if(!auto) toast('저장할 번역이 없어요'); return null; }
-  if(DOC.partial){ if(auto) return null; delete DOC.partial; }
+  if(DOC.partial){
+    if(auto) return null;
+    delete DOC.partial;
+    if(!readSnap) store.set('doc', JSON.stringify(DOC));   /* 다시 켜도 "덜 된 글"로 되살아나지 않게 */
+  }
   const title=$('docTitle').value.trim();
   const id=curArc || ('a'+Date.now().toString(36)+Math.random().toString(36).slice(2,5));
   const at=Date.now();
   const prev=ARC.find(a=>a.id===id);
   const titleKo=curTitleKo;
-  const made=(!translated && prev && prev.made) || at;
+  /* 예전 글(made 없음)은 마지막 저장일(at)을 번역한 날로 이어받습니다 — 고칠 때마다 오늘로 바뀌지 않게 */
+  const made=translated ? at : ((prev && (prev.made||prev.at)) || at);
   const ok=arcPut(id,{title, titleKo, memo:$('memo').value, srcUrl:$('srcUrl').value.trim(), genre:GENRE,
     src:$('source').value, pairs:DOC.pairs, notes:DOC.notes, wnotes:DOC.wnotes||[], st:!!DOC.st, at, made});
   if(!ok){ toast('저장 공간이 부족해요. 서재에서 오래된 글을 지워 주세요'); return null; }
@@ -4863,7 +4891,10 @@ function saveDocPairs(){
 
 /* ── 읽기: 작업 중이던 번역 화면을 건드리지 않습니다 ──
    읽기를 끝내면 원래 보던 내용으로 되돌아갑니다. (readSnap 은 위쪽에 선언돼 있어요) */
+/* 번역이 도는 동안 서재 글을 열거나 지우면, 끝날 때 그 글이 지금 번역으로 덮어써집니다 */
+function busyRun(){ if(running){ toast('번역이 끝난 뒤에 해 주세요'); return true; } return false; }
 function readArchive(id){
+  if(busyRun()) return;
   const d=arcGet(id);
   if(!d) return toast('내용을 불러오지 못했어요');
   /* 읽을 내용이 없으면 여기서 멈춥니다.
@@ -4888,6 +4919,7 @@ function readArchive(id){
 
 /* ── 불러오기: 번역 화면으로 통째로 가져옵니다 (수정·재번역용) ── */
 async function loadArchive(id){
+  if(busyRun()) return;
   const d=arcGet(id);
   if(!d) return toast('내용을 불러오지 못했어요');
   if($('source').value.trim()){
@@ -4918,6 +4950,7 @@ async function loadArchive(id){
 }
 
 async function newDoc(){
+  if(busyRun()) return;
   if($('source').value.trim() &&
      !await askConfirm('새 글로 시작할까요?','지금 화면의 제목·본문·번역이 비워집니다.\n서재에 저장한 내용은 그대로 남아요.','새로 시작')) return;
   curArc=''; curTitleKo='';
@@ -4931,7 +4964,20 @@ async function newDoc(){
   gotoTab('tr'); toast('새 글로 시작해요');
 }
 $('newDoc').addEventListener('click',newDoc);
-$('arSave').addEventListener('click',()=>saveArchive(false));
+$('arSave').addEventListener('click',async ()=>{
+  if(busyRun()) return;
+  /* 덜 된 번역을 이미 서재에 있는 글 위에 담으려 하면 물어봅니다 (불러온 1화 위에 2화 일부가 덮이지 않게) */
+  const old = DOC && DOC.partial && curArc ? arcGet(curArc) : null;
+  if(old && (old.pairs||[]).length){
+    const pick = await askChoice('서재에 어떻게 담을까요?',
+      `"${old.titleKo||old.title||'무제'}"에 이미 저장된 번역이 있어요. 지금 번역은 끝까지 옮기지 못한 상태예요.`,
+      [ {key:'new',  label:'새 글로 따로 저장', desc:'예전 번역은 그대로 두고 따로 담습니다.'},
+        {key:'over', label:'덮어쓰기', desc:'예전 번역을 지우고 지금 것으로 바꿉니다.'} ]);
+    if(!pick) return;
+    if(pick==='new'){ curArc=''; store.set('curarc',''); }
+  }
+  saveArchive(false);
+});
 
 let arTidy=false, arSel=new Set();
 
@@ -5195,16 +5241,27 @@ function makeDump(withSecrets = bkSecOn()){
   ARC.forEach(a=>{ const d=arcGet(a.id); if(d) dump.arcs[a.id]=d; });
   return dump;
 }
+/* 번역 화면에 지금 떠 있는 글의 상태 — 백업으로 덮으면 화면의 글(doc·원문은 이 기기 것)과
+   "지금 보는 서재 글"(curarc)이 서로 다른 글을 가리키게 되어, 문단 하나만 고쳐도 엉뚱한 서재 글이 덮입니다 */
+const SCREEN_KEYS = ['title','titleko','curarc','memo','url','srcurl'];
 function applyDump(d){
   if(!d || !d.settings) throw new Error('백업 내용이 아니에요');
   const hadSecrets = SECRET_KEYS.some(k=>d.settings[k]);
-  Object.entries(d.settings||{}).forEach(([k,v])=>{ if(v!=null) store.set(k,v); });
+  Object.entries(d.settings||{}).forEach(([k,v])=>{ if(v!=null && !SCREEN_KEYS.includes(k)) store.set(k,v); });
   if(d.words) store.set('words',JSON.stringify(d.words));
   if(d.cats)  store.set('cats',JSON.stringify(d.cats));
-  if(d.arcidx) store.set('arcidx',JSON.stringify(d.arcidx));
-  Object.entries(d.arcs||{}).forEach(([id,v])=>arcPut(id,v));
-  return { hadSecrets };
+  /* 서재 목록은 합칩니다 — 백업 뒤에 이 기기에서 만든 글이 목록에서만 사라지고
+     본문은 지울 수도 없이 저장 공간에 남던 것 */
+  let failed=0;
+  Object.entries(d.arcs||{}).forEach(([id,v])=>{ if(!arcPut(id,v)) failed++; });
+  if(d.arcidx){
+    const ids=new Set(d.arcidx.map(a=>a.id));
+    const mine=ARC.filter(a=>!ids.has(a.id));
+    store.set('arcidx',JSON.stringify(d.arcidx.concat(mine)));
+  }
+  return { hadSecrets, failed };
 }
+const dumpDone = info => (info.failed ? `저장 공간이 부족해 ${info.failed}편은 못 담았어요. ` : '');
 
 $('bkSec').addEventListener('change',e=>store.set('bksec', e.target.checked?'1':'0'));
 
@@ -5220,11 +5277,11 @@ $('impFile').addEventListener('change',e=>{
   const r=new FileReader();
   r.onload=async ()=>{
     let d; try{ d=JSON.parse(r.result); }catch(err){ return toast('백업 파일이 아니에요'); }
-    if(!await askConfirm('백업으로 되돌릴까요?','지금 이 기기의 설정·서재·단어장이 백업 내용으로 바뀝니다.','되돌리기',true)) return;
+    if(!await askConfirm('백업으로 되돌릴까요?','지금 이 기기의 설정·서재·단어장이 백업 내용으로 바뀝니다.\n백업에 없는 이 기기의 글은 서재에 그대로 남아요.','되돌리기',true)) return;
     try{
       const info=applyDump(d);
-      toast(info.hadSecrets ? '복원했어요. 앱을 다시 엽니다' : '복원했어요 (키는 이 기기 것 그대로). 앱을 다시 엽니다');
-      setTimeout(()=>location.reload(),900);
+      toast(dumpDone(info)+(info.hadSecrets ? '복원했어요. 앱을 다시 엽니다' : '복원했어요 (키는 이 기기 것 그대로). 앱을 다시 엽니다'));
+      setTimeout(()=>location.reload(), info.failed?2500:900);
     }
     catch(err){ toast(err.message); }
   };
@@ -5237,12 +5294,6 @@ function b64enc(str){
   let bin=''; const CH=0x8000;
   for(let i=0;i<bytes.length;i+=CH) bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+CH));
   return btoa(bin);
-}
-function b64dec(b64){
-  const bin=atob(String(b64).replace(/\s/g,''));
-  const bytes=new Uint8Array(bin.length);
-  for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
-  return new TextDecoder().decode(bytes);
 }
 function ghCfg(){
   return {
@@ -5279,26 +5330,41 @@ const ghUrl = () => {
 };
 function ghNote(msg){ $('ghState').textContent=msg; }
 
+/* 올려 둔 파일의 sha — 1MB 가 넘으면 기본 형식으로는 403(too_large)이 나서 object 형식으로 묻습니다 */
+async function ghSha(){
+  const got=await ghFetch(ghUrl(),{headers:{'Accept':'application/vnd.github.object+json'}});
+  if(got.ok){ const j=await got.json(); return j.sha||null; }
+  if(got.status===404) return null;
+  throw new Error(ghErr(got, await got.json().catch(()=>null)));
+}
 $('ghUp').addEventListener('click',async ()=>{
   const {tok,repo}=ghCfg();
   if(!tok||!repo) return toast('토큰과 저장소를 먼저 적어 주세요');
   const btn=$('ghUp'); btn.disabled=true; ghNote('올리는 중...');
   try{
-    let sha=null;
-    const got=await ghFetch(ghUrl());
-    if(got.ok){ const j=await got.json(); sha=j.sha; }
-    else if(got.status!==404){ throw new Error(ghErr(got, await got.json().catch(()=>null))); }
-
+    const sha=await ghSha();
+    /* 이 기기가 마지막으로 올리거나 받은 뒤에 다른 기기가 올렸으면, 말없이 덮지 않고 묻습니다 */
+    if(sha && sha!==store.get('ghsha','')){
+      ghNote('');
+      if(!await askConfirm('깃허브의 백업을 덮어쓸까요?',
+          '이 기기가 마지막으로 올리거나 내려받은 뒤에 다른 곳에서 올린 백업이 있어요.\n덮어쓰면 그쪽에만 있는 글은 이 백업에서 빠집니다 (깃허브 기록에는 남아요).\n먼저 [내려받기]를 하면 합쳐집니다.',
+          '덮어쓰기',true)) return;
+      ghNote('올리는 중...');
+    }
+    /* 깃허브 토큰은 늘 뺍니다 — 내려받으려면 어차피 토큰이 있어야 해서 쓸모가 없고, 저장소 기록에 영영 남아요 */
+    const dump=makeDump(); delete dump.settings.ghtok;
     const put=await ghFetch(ghUrl(),{
       method:'PUT',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         message:'글결 백업 '+new Date().toISOString(),
-        content:b64enc(JSON.stringify(makeDump())),
+        content:b64enc(JSON.stringify(dump)),
         sha:sha||undefined
       })
     });
     if(!put.ok) throw new Error(ghErr(put, await put.json().catch(()=>null)));
+    const pj=await put.json().catch(()=>null);
+    store.set('ghsha', (pj&&pj.content&&pj.content.sha)||'');
     store.set('ghat',String(Date.now()));
     ghNote('방금 올렸어요');
     toast('깃허브에 올렸어요!');
@@ -5309,16 +5375,19 @@ $('ghUp').addEventListener('click',async ()=>{
 $('ghDown').addEventListener('click',async ()=>{
   const {tok,repo}=ghCfg();
   if(!tok||!repo) return toast('토큰과 저장소를 먼저 적어 주세요');
-  if(!await askConfirm('깃허브에서 내려받을까요?','이 기기의 설정·서재·단어장이 깃허브에 올려둔 내용으로 바뀝니다.','내려받기',true)) return;
+  if(!await askConfirm('깃허브에서 내려받을까요?','이 기기의 설정·서재·단어장이 깃허브에 올려둔 내용으로 바뀝니다.\n깃허브에 없는 이 기기의 글은 서재에 그대로 남아요.','내려받기',true)) return;
   const btn=$('ghDown'); btn.disabled=true; ghNote('내려받는 중...');
   try{
-    const got=await ghFetch(ghUrl());
+    const sha=await ghSha();
+    if(!sha) throw new Error('저장소나 파일을 찾지 못했어요. 저장소 이름(계정/저장소)을 확인해 주세요.');
+    /* raw 형식으로 받습니다 — 기본 형식은 1MB 가 넘으면 내용(content)이 비어 와서 내려받기가 아예 안 됐어요 */
+    const got=await ghFetch(ghUrl(),{headers:{'Accept':'application/vnd.github.raw+json'}});
     if(!got.ok) throw new Error(ghErr(got, await got.json().catch(()=>null)));
-    const j=await got.json();
-    const d=JSON.parse(b64dec(j.content||''));
+    let d; try{ d=JSON.parse(await got.text()); }catch(e){ throw new Error('백업 내용이 아니에요'); }
     const info=applyDump(d);
-    toast(info.hadSecrets ? '내려받았어요. 앱을 다시 엽니다' : '내려받았어요 (키는 이 기기 것 그대로). 앱을 다시 엽니다');
-    setTimeout(()=>location.reload(),900);
+    store.set('ghsha', sha);
+    toast(dumpDone(info)+(info.hadSecrets ? '내려받았어요. 앱을 다시 엽니다' : '내려받았어요 (키는 이 기기 것 그대로). 앱을 다시 엽니다'));
+    setTimeout(()=>location.reload(), info.failed?2500:900);
   }catch(err){ ghNote(''); toast(err.message); }
   finally{ btn.disabled=false; }
 });
@@ -6114,7 +6183,9 @@ const FALLBACK_MODELS = [
 let MODELS = (()=>{ try{ return JSON.parse(store.get('models','')) || []; }catch(e){ return []; } })();
 
 /* 번역에 쓸 수 없는 것들(그림·음성·임베딩 등)은 걸러냅니다 */
-const BAD_MODEL = /embedding|imagen|image|veo|tts|audio|live|native|aqa|learnlm/i;
+/* gemma 는 systemInstruction 을 받지 않아 번역 요청이 400 으로 거절되고,
+   computer-use·robotics 는 번역용이 아닙니다 */
+const BAD_MODEL = /embedding|imagen|image|veo|tts|audio|live|native|aqa|learnlm|gemma|computer-use|robotics/i;
 
 function modelScore(id){
   let s = 0;
@@ -6130,7 +6201,8 @@ function modelScore(id){
    느리거나 불안정한 것(-latest·실험판·pro)은 다른 걸 다 써본 뒤에만 */
 const SHAKY_MODEL = /latest|preview|exp|pro/;
 function fallbackOrder(cur){
-  const list = (MODELS.length ? MODELS : FALLBACK_MODELS).slice()
+  /* 예전에 받아 둔 목록에는 gemma 같은 번역 못 하는 모델이 남아 있을 수 있어 여기서도 거릅니다 */
+  const list = (MODELS.length ? MODELS : FALLBACK_MODELS).filter(m=>!BAD_MODEL.test(m))
     .sort((a,b)=>modelScore(b)-modelScore(a));
   const i = list.indexOf(cur);
   const ring = i<0 ? list : list.slice(i+1).concat(list.slice(0,i));
@@ -6143,9 +6215,12 @@ function labelFor(id){
   return id;
 }
 function renderModelSelect(keep){
-  const list = (MODELS.length ? MODELS : FALLBACK_MODELS).slice()
+  const list = (MODELS.length ? MODELS : FALLBACK_MODELS).filter(m=>!BAD_MODEL.test(m))
     .sort((a,b)=>modelScore(b)-modelScore(a));
   const want = keep || store.get('model') || list[0];
+  /* 아직 목록을 못 받았을 때(예비 목록)는 저장해 둔 모델을 함부로 바꾸지 않습니다 —
+     예비 목록에 없을 뿐 실제로는 쓸 수 있는 모델일 수 있어요 */
+  if(!MODELS.length && want && !list.includes(want) && !BAD_MODEL.test(want)) list.unshift(want);
   $('model').innerHTML = list.map(id=>
     `<option value="${esc(id)}"${id===want?' selected':''}>${esc(labelFor(id))}</option>`).join('');
   if(!list.includes(want) && list.length){
