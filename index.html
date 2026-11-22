@@ -1152,7 +1152,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
     </section>
 
     <footer>
-      <span class="ver">글결 v92</span>
+      <span class="ver">글결 v93</span>
       <span class="made">만든 이 · 야자</span>
       <span class="ask">문의나 건의는 편하게 알려주세요</span>
       <span class="contact">
@@ -1823,8 +1823,16 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
 const $ = id => document.getElementById(id);
 const store = {
   get:(k,d='')=>{try{return localStorage.getItem('gg_'+k) ?? d}catch(e){return d}},
-  set:(k,v)=>{try{localStorage.setItem('gg_'+k,v)}catch(e){}}
+  /* 저장 공간이 차서 실패하면 false — 조용히 넘어가면 "저장했어요"가 떠도 새로고침하면 사라집니다 */
+  set:(k,v)=>{try{localStorage.setItem('gg_'+k,v);return true}catch(e){quotaWarn();return false}}
 };
+let quotaAt=0;
+function quotaWarn(){
+  if(Date.now()-quotaAt<3000) return;
+  quotaAt=Date.now();
+  /* 바로 뒤에 뜨는 "저장했어요"에 덮이지 않게 한 박자 늦게 띄웁니다 */
+  setTimeout(()=>toast('저장 공간이 부족해 저장하지 못했어요. 서재에서 오래된 글을 지워 주세요'),80);
+}
 let toastTimer;
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');
   clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),1900);}
@@ -4897,12 +4905,29 @@ let curArc=store.get('curarc','');
 let curTitleKo=store.get('titleko','');
 let arQuery='';
 
-const saveArcIdx=()=>{ store.set('arcidx',JSON.stringify(ARC)); $('arCount').textContent=ARC.length||''; };
+const saveArcIdx=()=>{ const ok=store.set('arcidx',JSON.stringify(ARC)); $('arCount').textContent=ARC.length||''; return ok; };
 function arcGet(id){ try{ return JSON.parse(store.get('arc_'+id,'')) || null; }catch(e){ return null; } }
 function arcPut(id,data){
   try{ localStorage.setItem('gg_arc_'+id, JSON.stringify(data)); return true; }
   catch(e){ return false; }
 }
+/* 본문은 저장됐는데 목록 저장이 실패하면(저장 공간 부족) 목록에 없는 글이 남습니다.
+   지우지 않고 목록에 되살려 둡니다 — 사용자가 보고 직접 지울 수 있게 */
+(function adoptOrphans(){
+  const known=new Set(ARC.map(a=>a.id)); let n=0;
+  try{
+    Object.keys(localStorage).forEach(k=>{
+      if(!k.startsWith('gg_arc_')) return;
+      const id=k.slice(7); if(known.has(id)) return;
+      const d=arcGet(id); if(!d || !Array.isArray(d.pairs)) return;
+      const plain=d.pairs.filter(p=>!p.t).map(p=>p.d||'').join('\n');
+      ARC.push({id, title:d.title||'', titleKo:d.titleKo||'', at:d.at||Date.now(), made:d.made||d.at||Date.now(),
+                chars:plain.length, preview:plain.slice(0,90)});
+      n++;
+    });
+  }catch(e){}
+  if(n) store.set('arcidx',JSON.stringify(ARC));
+})();
 /* 글 하나에 딸린 저장물을 모두 치웁니다 (본문 + 읽던 위치) */
 function arcWipe(id){
   try{ localStorage.removeItem('gg_arc_'+id); }catch(e){}
@@ -5257,9 +5282,14 @@ $('arList').addEventListener('click',async e=>{
     if(n===null) return;
     const v=n.trim();
     if(!v) return toast('제목을 적어 주세요');
-    a.titleKo=v;
     /* 본문 맨 위 제목 줄(t)도 같이 — 안 그러면 읽기 화면에 옛 제목이 남아요 */
-    const d=arcGet(id); if(d){ d.titleKo=v; const tp=(d.pairs||[]).find(p=>p.t); if(tp) tp.d=v; arcPut(id,d); }
+    /* ed — 고친 때. 복원할 때 이 기기 글이 더 새로운지 견주는 데 씁니다 */
+    const d=arcGet(id);
+    if(d){
+      d.titleKo=v; d.ed=Date.now(); const tp=(d.pairs||[]).find(p=>p.t); if(tp) tp.d=v;
+      if(!arcPut(id,d)) return toast('저장 공간이 부족해요. 서재에서 오래된 글을 지워 주세요');
+    }
+    a.titleKo=v;
     if(id===curArc){
       curTitleKo=v; store.set('titleko',curTitleKo); updateTitleKo();
       const tp=DOC && (DOC.pairs||[]).find(p=>p.t);
@@ -5328,18 +5358,48 @@ const SCREEN_KEYS = ['title','titleko','curarc','memo','url','srcurl'];
 function applyDump(d){
   if(!d || !d.settings) throw new Error('백업 내용이 아니에요');
   const hadSecrets = SECRET_KEYS.some(k=>d.settings[k]);
-  Object.entries(d.settings||{}).forEach(([k,v])=>{ if(v!=null && !SCREEN_KEYS.includes(k)) store.set(k,v); });
-  if(d.words) store.set('words',JSON.stringify(d.words));
-  if(d.cats)  store.set('cats',JSON.stringify(d.cats));
-  /* 서재 목록은 합칩니다 — 백업 뒤에 이 기기에서 만든 글이 목록에서만 사라지고
-     본문은 지울 수도 없이 저장 공간에 남던 것 */
+  /* 합쳐야 하는 것(표기집·폴더)은 아래에서 따로 — 통째로 덮으면 이 기기에서 만든 것이 사라집니다.
+     비밀값이 빈칸이면 덮지 않습니다 (키 하나만 있는 기기에서 올린 백업이 이 기기 예비 키를 지우던 것) */
+  const MERGED=['terms','folders'];
+  Object.entries(d.settings||{}).forEach(([k,v])=>{
+    if(v==null || SCREEN_KEYS.includes(k) || MERGED.includes(k)) return;
+    if(SECRET_KEYS.includes(k) && !String(v).trim()) return;
+    store.set(k,v);
+  });
+  const parse=(s,def)=>{ try{ return (typeof s==='string' ? JSON.parse(s) : s) || def; }catch(e){ return def; } };
+  /* 같은 열쇠(id·원어)면 백업 쪽, 이 기기에만 있는 것은 뒤에 붙입니다 */
+  const unionBy=(theirs,mine,key)=>{
+    const seen=new Set(theirs.map(key));
+    return theirs.concat(mine.filter(x=>!seen.has(key(x))));
+  };
+  if(Array.isArray(d.words)) store.set('words',JSON.stringify(unionBy(d.words, WORDS, w=>w.id)));
+  if(Array.isArray(d.cats))  store.set('cats', JSON.stringify(unionBy(d.cats, CATS, c=>c)));
+  if(d.settings.terms!=null) store.set('terms',JSON.stringify(unionBy(parse(d.settings.terms,[]), TERMS, t=>t.or)));
+
+  /* 서재 — 같은 글은 고친 때가 더 늦은 쪽을 남깁니다 (내려받기로 이 기기에서 고친 글이 옛 버전으로 돌아가던 것) */
+  const stamp=x=>Math.max((x&&x.at)||0,(x&&x.ed)||0);
+  const keepMine=new Set(), lost=new Set();
   let failed=0;
-  Object.entries(d.arcs||{}).forEach(([id,v])=>{ if(!arcPut(id,v)) failed++; });
-  if(d.arcidx){
+  Object.entries(d.arcs||{}).forEach(([id,v])=>{
+    const mine=arcGet(id);
+    if(mine && stamp(mine)>stamp(v)){ keepMine.add(id); return; }
+    if(arcPut(id,v)) return;
+    failed++;
+    if(mine) keepMine.add(id); else lost.add(id);   /* 본문 없는 글을 목록에 올리지 않습니다 */
+  });
+  let idx=ARC;
+  if(Array.isArray(d.arcidx)){
     const ids=new Set(d.arcidx.map(a=>a.id));
-    const mine=ARC.filter(a=>!ids.has(a.id));
-    store.set('arcidx',JSON.stringify(d.arcidx.concat(mine)));
+    const has=id=>!!(d.arcs||{})[id];
+    idx=d.arcidx.filter(a=>!lost.has(a.id) && (has(a.id) || arcGet(a.id)))
+      .map(a=>(keepMine.has(a.id) || !has(a.id)) ? (ARC.find(m=>m.id===a.id)||a) : a)
+      .concat(ARC.filter(a=>!ids.has(a.id)));
+    store.set('arcidx',JSON.stringify(idx));
   }
+  /* 폴더 — 양쪽 것을 합치고, 서재 글이 쓰는데 목록에 없는 폴더도 채웁니다 */
+  const fds=unionBy(parse(d.settings.folders,[]), FOLDERS, f=>f);
+  idx.forEach(a=>{ if(a.folder && !fds.includes(a.folder)) fds.push(a.folder); });
+  store.set('folders',JSON.stringify(fds));
   return { hadSecrets, failed };
 }
 const dumpDone = info => (info.failed ? `저장 공간이 부족해 ${info.failed}편은 못 담았어요. ` : '');
@@ -5497,7 +5557,7 @@ $('wGenrebar').addEventListener('click',e=>{
   wgFilter=b.dataset.g; store.set('wgfilter',wgFilter); renderWords();
 });
 
-const saveWords=()=>{ store.set('words',JSON.stringify(WORDS)); $('wdCount').textContent=WORDS.length?WORDS.length:''; };
+const saveWords=()=>{ const ok=store.set('words',JSON.stringify(WORDS)); $('wdCount').textContent=WORDS.length?WORDS.length:''; return ok; };
 const saveCats =()=> store.set('cats',JSON.stringify(CATS));
 
 function renderCatbar(){
@@ -5680,7 +5740,8 @@ $('wSave').addEventListener('click',()=>{
   const g = gOn ? gOn.dataset.g : wPickGenre;
   WORDS.push({id:String(Date.now())+Math.random().toString(36).slice(2,6),
     term, mean:$('wMean').value.trim(), cat, g, note:$('wNote').value.trim(), at:Date.now()});
-  saveWords(); renderWords(); closeS('wSheet','wBackdrop'); toast('단어장에 넣었어요!');
+  if(!saveWords()){ WORDS.pop(); $('wdCount').textContent=WORDS.length||''; return; }   /* 안내는 quotaWarn 이 띄웁니다 */
+  renderWords(); closeS('wSheet','wBackdrop'); toast('단어장에 넣었어요!');
 });
 /* 형식 지시는 시스템 쪽에만 두고, 사용자 메시지에는 단어만 보냅니다.
    그래야 모델이 지시문을 답변 내용으로 착각하지 않습니다. */
