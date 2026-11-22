@@ -588,6 +588,8 @@ body.reading .viewbar{
   opacity:0;transition:opacity .25s,transform .25s;max-width:calc(100vw - 24px)
 }
 #resume.show{display:flex;opacity:1;transform:translate(-50%,0)}
+/* 읽기 모드에선 머리 막대의 [뒤로]·[가a] 를 가리지 않게 그 아래로 */
+body.reading #resume{top:calc(64px + env(safe-area-inset-top))}
 #resume span{font-size:13px;color:var(--ink);white-space:nowrap}
 #resume .rx{border:none;background:transparent;color:var(--soft);font-size:14px;cursor:pointer;padding:4px 6px}
 
@@ -627,10 +629,12 @@ body.fn-open{padding-bottom:calc(48vh + 20px)}
 body.keyboard-up #navBtns,
 body.keyboard-up #fnFab,
 body.keyboard-up #resume{display:none !important}
-/* 시트는 남은 높이에 맞추고, 아래로 키보드만큼 여백을 둡니다 */
-body.keyboard-up .sheet{
+/* 열린 시트를 키보드 위로 올리고 남은 높이에 맞춥니다.
+   예전엔 높이에서도 빼고 아래 여백으로도 더해 키보드 높이를 두 번 빼서, 긴 시트는 보이는 칸이 거의 없었어요 */
+body.keyboard-up .sheet.show{
+  bottom:var(--kb, 0px);
   max-height:calc(100vh - var(--kb, 0px) - 12px);
-  padding-bottom:calc(18px + var(--kb, 0px))
+  padding-bottom:18px
 }
 /* 키보드 바로 위에 뜨는 작은 "번역하기" — visualViewport 가 있을 때만 만듭니다 */
 #kbGo{
@@ -1152,7 +1156,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
     </section>
 
     <footer>
-      <span class="ver">글결 v94</span>
+      <span class="ver">글결 v95</span>
       <span class="made">만든 이 · 야자</span>
       <span class="ask">문의나 건의는 편하게 알려주세요</span>
       <span class="contact">
@@ -5040,6 +5044,7 @@ function readArchive(id){
   curTitleKo = d.titleKo || rec.titleKo || d.title || rec.title || '';
   renderDoc(); renderArc();
   gotoTab('tr');
+  posArmed=false;          /* 글을 열 때 맨 위로 옮기는 스크롤이 읽던 위치를 0 으로 덮지 않게 */
   enterReader();
   setTimeout(()=>offerResume(id), 400);
 }
@@ -6764,10 +6769,14 @@ $('readerFont').addEventListener('click',()=>openS('sheet','backdrop'));
 /* ════════════════════════════════════════════════════════════
    이어읽기 — 서재 글마다 읽던 위치를 기억합니다
    ════════════════════════════════════════════════════════════ */
-let posTimer=null;
+let posTimer=null, posArmed=true;
+/* 글을 연 뒤 사용자가 직접 만지기 전까지는 위치를 저장하지 않습니다 —
+   열자마자 닫으면 "맨 위(0)"가 저장돼 다음에 이어읽기가 안 뜨던 것 */
+['touchstart','pointerdown','wheel','keydown'].forEach(ev=>
+  window.addEventListener(ev,()=>{ posArmed=true; },{passive:true}));
 window.addEventListener('scroll',()=>{
   /* 번역 화면(머리·원문 칸이 위에 있음)의 위치를 저장하면 [이어읽기]가 엉뚱한 곳으로 가요 */
-  if(!curArc || $('tab-tr').hidden || !DOC || !document.body.classList.contains('reading')) return;
+  if(!posArmed || !curArc || $('tab-tr').hidden || !DOC || !document.body.classList.contains('reading')) return;
   clearTimeout(posTimer);
   posTimer=setTimeout(()=>{ store.set('pos_'+curArc, String(Math.round(window.scrollY))); }, 500);
 },{passive:true});

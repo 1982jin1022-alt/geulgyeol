@@ -45,13 +45,21 @@ self.addEventListener('fetch', (e) => {
   // 깃허브 페이지가 max-age=600 을 보내서, 그냥 fetch 하면 푸시한 뒤에도 최대 10분 동안 옛 버전이 열렸어요.
   const isPage = req.mode === 'navigate' || /\.html$|\/$/.test(url.pathname);
 
+  // 새로 받은 것을 저장하는 일은 여기서 "바로" waitUntil 에 걸어 둡니다.
+  // 예전엔 받은 뒤에야 걸었는데, 4초가 지나 저장본을 먼저 내준 경우엔 이미 늦어서(InvalidStateError)
+  // 새 버전이 저장되지 않았어요 — 신호가 약한 곳에선 계속 옛 앱이 떴습니다.
+  let putDone;
+  const stored = new Promise(res => { putDone = res; });
+  e.waitUntil(stored);
   const fromNet = (async () => {
-    const fresh = await fetch(req, isPage ? { cache: 'no-cache' } : undefined);
-    if (fresh && fresh.ok) {
-      const copy = fresh.clone();
-      e.waitUntil(caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {}));
-    }
-    return fresh;
+    try {
+      const fresh = await fetch(req, isPage ? { cache: 'no-cache' } : undefined);
+      if (fresh && fresh.ok) {
+        const copy = fresh.clone();
+        putDone(caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {}));
+      } else putDone();
+      return fresh;
+    } catch (err) { putDone(); throw err; }
   })();
   fromNet.catch(() => {});     // 저장본을 먼저 내준 뒤 실패해도 오류로 남지 않게
 
