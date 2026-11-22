@@ -1152,7 +1152,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
     </section>
 
     <footer>
-      <span class="ver">글결 v93</span>
+      <span class="ver">글결 v94</span>
       <span class="made">만든 이 · 야자</span>
       <span class="ask">문의나 건의는 편하게 알려주세요</span>
       <span class="contact">
@@ -2767,10 +2767,26 @@ const checksFor = g => Object.assign({}, CHECK_DEFAULT, (GENRES[g]||{}).checks||
    opts.wantFull= true  → 답이 잘리면(MAX_TOKENS) 실패로 봅니다. 기본값은 fast 의 반대.
    opts.srcLen          → 원문 길이. 폭주(원문의 3배 넘김)를 가려내는 데 씁니다.
    opts.onStatus(msg)   → 기다리는 중일 때 화면에 상황을 알려줍니다. */
+/* 모델 세대별 설정 (2026-11 구글 문서 기준)
+   · 생각 끄기: 2.x 는 thinkingBudget:0, 3 이상은 thinkingLevel 로 가장 낮은 단계.
+     4·3.8 은 minimal 을 받지 않아 low 가 가장 낮습니다. -latest 는 무엇을 가리킬지 몰라 low.
+   · 온도: 3.6 이상·4·-latest 는 무시하므로 보내지 않습니다 */
+function modelVer(id){
+  const m=String(id).match(/gemini-(\d+)(?:\.(\d+))?/);
+  return m ? (+m[1]) + (m[2] ? +('0.'+m[2]) : 0) : 0;
+}
+function newSampling(id){ return /latest/.test(id) || modelVer(id)>=3.6; }
+function thinkCfg(id, off, deep){
+  const v=modelVer(id);
+  if(v && v<3) return off ? {thinkingBudget:0} : null;
+  if(!off) return deep ? {thinkingLevel:'high'} : null;
+  return {thinkingLevel: (/latest/.test(id) || v>=3.8) ? 'low' : 'minimal'};
+}
 async function askGemini(key,model,prompt,system,maxTok,opts){
   opts=opts||{};
   let noThink = opts.noThink!=null ? !!opts.noThink : !!opts.fast;
   let temp = opts.temp!=null ? opts.temp : 0.8;
+  let deep = !!opts.deep;     /* 다시 받을 때 — 생각을 깊게 (새 모델은 온도를 무시해서 이것만 효과가 있어요) */
   const wantFull = opts.wantFull!=null ? !!opts.wantFull : !opts.fast;
   /* 폭주 감시는 원문 길이를 준 요청 — 곧 번역 — 에서만 합니다.
      링크에서 본문 가져오기 같은 건 "-=-=-=-=" 같은 구분선이 그대로 실려 오는데,
@@ -2792,7 +2808,6 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
     const b={
       contents:[{role:'user',parts}],
       generationConfig:{
-        temperature:temp, topP:0.95,
         maxOutputTokens:maxTok||16384
       },
       safetySettings:['HARM_CATEGORY_HARASSMENT','HARM_CATEGORY_HATE_SPEECH',
@@ -2801,7 +2816,10 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
     };
     if(system) b.systemInstruction={parts:[{text:system}]};
     if(opts.tools) b.tools=opts.tools;
-    if(noThink) b.generationConfig.thinkingConfig={thinkingBudget:0};
+    /* Gemini 3.6 이상·4 는 직접 정한 온도를 무시하고 경고만 보냅니다 — 그 모델에는 빼고 보냅니다 */
+    if(!newSampling(curModel)){ b.generationConfig.temperature=temp; b.generationConfig.topP=0.95; }
+    const tc=thinkCfg(curModel, noThink, deep);
+    if(tc) b.generationConfig.thinkingConfig=tc;
     return b;
   };
 
@@ -2822,7 +2840,7 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
     if(!next) return false;
     curModel=next; tried.add(curModel);
     /* 앞 모델 때문에 물러났던 설정은 새 모델에서 처음부터 다시 */
-    safeLv=SAFE_STEPS[0]; noThink=noThink0; maxTok=maxTok0;
+    safeLv=SAFE_STEPS[0]; noThink=noThink0; maxTok=maxTok0; deep=!!opts.deep;
     say(`한도에 걸려 ${curModel} 로 바꿔 이어가는 중`);
     return true;
   }
@@ -2881,6 +2899,7 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
      구글이 한국어로 오류를 보내도 되도록, 메시지 글자에 의존하지 않습니다. */
   function retry400(){
     if(noThink){ noThink=false; say('설정을 바꿔 다시 시도하는 중'); return true; }
+    if(deep){ deep=false; say('설정을 바꿔 다시 시도하는 중'); return true; }
     /* 안전 설정을 거절당했을 때만 한 칸 물러납니다 (OFF → BLOCK_NONE → BLOCK_ONLY_HIGH) */
     const si=SAFE_STEPS.indexOf(safeLv);
     if(si>=0 && si<SAFE_STEPS.length-1){ safeLv=SAFE_STEPS[si+1]; say('설정을 바꿔 다시 시도하는 중'); return true; }
@@ -2905,7 +2924,7 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
   /* 폭주는 온도가 높을수록 잘 납니다. 온도를 낮추고 생각 과정을 켜서 한 번 다시 받습니다. */
   function retryLoop(){
     if(loopTries++>0) return false;
-    temp=0.3; noThink=false;
+    temp=0.3; noThink=false; deep=true;
     say('같은 말이 되풀이돼서 설정을 바꿔 다시 받는 중');
     return true;
   }
@@ -3054,7 +3073,8 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
     }
     const text=(cand.content?.parts||[]).filter(p=>p.text&&!p.thought).map(p=>p.text).join('');
     if(cand.finishReason==='MAX_TOKENS'){
-      if(opts.fast && a<5){ maxTok=(maxTok||2048)*2; noThink=true; continue; }
+      /* 짧은 요청이 잘리면 한 번만 넉넉히 늘려 다시 — 예전엔 두 배씩 다섯 번까지, 상한도 없이 보냈어요 */
+      if(opts.fast && cutTries++<1){ maxTok=Math.min((maxTok||2048)*4, 65536); noThink=true; deep=false; continue; }
       /* 잘린 답을 그대로 돌려주지 않습니다. 분량을 늘려 한 번 다시 받고, 그래도 잘리면 알립니다 */
       if(wantFull){
         if(retryCut()) continue;
@@ -3391,7 +3411,8 @@ function alignParas(sp, dp){
   const n=sp.length, m=dp.length;
   if(!n) return dp.map(d=>({s:'',d}));
   if(!m) return sp.map(s=>({s,d:''}));
-  if(n*m > 40000){                       /* 너무 크면 예전 방식으로 */
+  /* 너무 크면 예전 방식으로. 대사가 짧은 웹소설은 조각 하나에 200~300줄이라 40000 으론 자주 꺼졌어요 (500×500 ≈ 2MB) */
+  if(n*m > 250000){
     const k=Math.max(n,m), out=[];
     for(let i=0;i<k;i++) out.push({s:sp[i]||'', d:dp[i]||''});
     return out;
@@ -4066,7 +4087,9 @@ async function translate(){
           seen.map(g=>`${g.or} = ${g.ko}`).join('\n')+`\n\n`;
       }
       if(chunks.length>1) prompt+=`[안내] 긴 작품의 한 부분입니다. 인사말 없이 이 부분만 이어서 번역하세요.\n\n`;
-      if(done.length) prompt+=`[직전 번역의 끝부분 — 문체를 이어가기 위한 참고용. 다시 출력하지 마세요]\n${done[done.length-1].dst.slice(-400)}\n\n`;
+      /* 앞 조각이 막혔으면 끝부분이 "⟪번역하지 못했어요⟫" 표시뿐이라, 그 표시는 걷어내고 넣습니다 */
+      const prevTail=done.length ? done[done.length-1].dst.replace(/⟪[^⟫]*⟫/g,'').trim().slice(-400) : '';
+      if(prevTail) prompt+=`[직전 번역의 끝부분 — 문체를 이어가기 위한 참고용. 다시 출력하지 마세요]\n${prevTail}\n\n`;
       prompt+=`[번역할 원문]\n${piece}`;
 
       const box=live ? $('streamBox') : null;
@@ -4079,7 +4102,7 @@ async function translate(){
           if(box) box.textContent='';
           const opt={noThink, onStatus, signal, wantFull:true, srcLen:piece.length, src:piece,
                      loopTimes:CK.loopTimes};
-          if(t){ opt.temp=0.3; opt.noThink=false; }
+          if(t){ opt.temp=0.3; opt.noThink=false; opt.deep=true; }
           if(box) opt.onChunk=(full)=>{
             /* 목록 표시가 조금 달라도("고유명사>>>") 미리보기에 목록이 비치지 않게 */
             const gm=full.match(GLOSS_RE);
