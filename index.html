@@ -1152,7 +1152,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
     </section>
 
     <footer>
-      <span class="ver">글결 v90</span>
+      <span class="ver">글결 v91</span>
       <span class="made">만든 이 · 야자</span>
       <span class="ask">문의나 건의는 편하게 알려주세요</span>
       <span class="contact">
@@ -1727,7 +1727,8 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
           <option value="3000" selected>3,000자 (기본)</option>
           <option value="5000">5,000자 (빠름)</option>
         </select>
-        <div class="btn-row"><button class="btn" id="saveCfg">설정 저장</button></div>
+        <p class="hint">설정은 바꾸는 즉시 저장돼요.</p>
+        <div class="btn-row"><button class="btn" id="saveCfg">닫기</button></div>
         <label class="field">백업</label>
         <p class="hint" style="margin:0 0 9px">브라우저 데이터를 지우면 저장한 내용이 함께 사라져요. 가끔 백업해 두시면 다른 기기로 옮길 때도 편합니다.</p>
         <label class="toggle" style="padding:2px 0 6px"><input type="checkbox" id="bkSec"><span>API 키·토큰도 함께 저장</span></label>
@@ -2051,7 +2052,7 @@ function fitOn(h,s,l,bg,target,dark){
 
 const DEFAULT_CUSTOM={c1:'#7A69E2', c2:'#F09FC2', c3:'#F6F3FC', useC2:false, useC3:false, mode:'light'};
 const CUSTOM_VARS=['--paper','--card','--ink','--soft','--line','--accent','--weak','--pop','--warn',
-                   '--g1','--g2','--g3','--glass','--glass-strong'];
+                   '--g1','--g2','--g3','--glass','--glass-strong','--on-accent'];
 
 function buildCustom(c){
   c = Object.assign({}, DEFAULT_CUSTOM, c||{});
@@ -2071,14 +2072,18 @@ function buildCustom(c){
   const paperHex = hsl2hex(B.h, paperS, paperL);
   /* 강조색은 배경 위에서 4.5:1 이상 보이도록 맞춥니다 (노랑·연두 대비 문제 해결) */
   const accL   = fitOn(A.h, accS, dark?clamp(A.l,58,80):clamp(A.l,34,58), paperHex, 4.5, dark);
+  const accHex = hsl2hex(A.h, accS, accL);
+  /* 강조색 바탕 위 글씨 — 흰색과 바탕색 중 더 잘 보이는 쪽 */
+  const onAcc  = contrastOf('#ffffff', accHex) >= contrastOf(paperHex, accHex) ? '#ffffff' : paperHex;
 
   return {
+    '--on-accent': onAcc,
     '--paper': paperHex,
     '--card' : hsl2hex(B.h, dark?paperS*0.9:paperS*0.5, dark?paperL+6:clamp(paperL+2.5,0,100)),
     '--ink'  : hsl2hex(B.h, dark?12:22, dark?90:20),
     '--soft' : hsl2hex(B.h, dark?12:18, dark?64:46),
     '--line' : hsl2hex(B.h, dark?18:25, dark?22:89),
-    '--accent': hsl2hex(A.h, accS, accL),
+    '--accent': accHex,
     '--weak' : hsl2hex(A.h, dark?24:clamp(accS*0.5,10,45), dark?17:94),
     '--pop'  : hsl2hex(P.h, clamp(P.s,30,85), dark?clamp(P.l,58,78):clamp(P.l,58,80)),
     '--warn' : dark ? hsl2hex(355,75,74) : hsl2hex(355,62,52),
@@ -2215,7 +2220,11 @@ $('fonts').innerHTML=[...new Set(Object.values(FONTS).map(f=>f.group))].map(g=>{
   return `<div class="fgroup"><div class="fgroup-title">${g}${GROUP_NOTE[g]?`<em>${GROUP_NOTE[g]}</em>`:''}</div>
     <div class="fgrid">${items}</div></div>`;
 }).join('');
-Object.keys(FONTS).forEach(loadFont);
+/* 웹 글꼴 8개는 무거워서, 글꼴 목록을 처음 펼칠 때 미리보기용으로 한꺼번에 불러옵니다
+   (지금 쓰는 글꼴은 applyRead 가 따로 불러옵니다) */
+$('fonts').closest('details').addEventListener('toggle',e=>{
+  if(e.target.open) Object.keys(FONTS).forEach(loadFont);
+});
 
 $('covers').addEventListener('click',e=>{
   const b=e.target.closest('.cover');
@@ -6093,12 +6102,8 @@ $('apikey2').addEventListener('input',()=>{
   store.set('key2',$('apikey2').value.trim());
   refreshStart();
 });
-$('saveCfg').addEventListener('click',()=>{
-  store.set('key',$('apikey').value.trim());
-  store.set('model',$('model').value);
-  store.set('chunk',$('chunk').value);
-  closeS('cfgSheet','cfgBackdrop'); toast('저장했어요');
-});
+/* 설정은 바꾸는 즉시 저장되므로 이 단추는 창만 닫습니다 */
+$('saveCfg').addEventListener('click',()=>closeS('cfgSheet','cfgBackdrop'));
 /* ════════════════════════════════════════════════════════════
    txt 파일 불러오기 · 링크로 가져오기
    ════════════════════════════════════════════════════════════ */
