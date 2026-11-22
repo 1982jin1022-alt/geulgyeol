@@ -1156,7 +1156,7 @@ footer .contact a:active,footer .contact .tw:active{transform:scale(.94)}
     </section>
 
     <footer>
-      <span class="ver">글결 v95</span>
+      <span class="ver">글결 v96</span>
       <span class="made">만든 이 · 야자</span>
       <span class="ask">문의나 건의는 편하게 알려주세요</span>
       <span class="contact">
@@ -2786,6 +2786,16 @@ function thinkCfg(id, off, deep){
   if(!off) return deep ? {thinkingLevel:'high'} : null;
   return {thinkingLevel: (/latest/.test(id) || v>=3.8) ? 'low' : 'minimal'};
 }
+/* 3 이상은 "생각한 분량"도 maxOutputTokens 에 함께 셉니다.
+   한도를 번역 분량만큼만 주면 생각하다 한도에 닿아 번역 글자가 하나도 안 나온 채 잘리고,
+   앱은 분량을 늘려 다시 → 조각을 쪼개 다시… 를 거듭해 "기다려도 안 나오는" 것처럼 보였어요.
+   한도는 상한일 뿐 그만큼 쓰는 게 아니라서 넉넉히 줘도 손해가 없습니다 */
+function outCap(id, off, deep, maxTok){
+  const base=maxTok||16384, v=modelVer(id);
+  if(v && v<3) return base;
+  const room = off ? 8192 : deep ? 32768 : 24576;
+  return Math.min(base+room, 65536);
+}
 async function askGemini(key,model,prompt,system,maxTok,opts){
   opts=opts||{};
   let noThink = opts.noThink!=null ? !!opts.noThink : !!opts.fast;
@@ -2812,7 +2822,7 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
     const b={
       contents:[{role:'user',parts}],
       generationConfig:{
-        maxOutputTokens:maxTok||16384
+        maxOutputTokens:outCap(curModel, noThink, deep, maxTok)
       },
       safetySettings:['HARM_CATEGORY_HARASSMENT','HARM_CATEGORY_HATE_SPEECH',
         'HARM_CATEGORY_SEXUALLY_EXPLICIT','HARM_CATEGORY_DANGEROUS_CONTENT']
@@ -2943,6 +2953,14 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
       const relay=()=>ac.abort();
       if(sig) sig.addEventListener('abort', relay);
       let killed='';
+      /* 새 모델은 번역을 쓰기 전에 한참 생각하는데, 그동안은 글자가 하나도 안 와서 멈춘 것처럼 보입니다.
+         첫 글자가 올 때까지 몇 초째인지 보여 주고, 서버가 아무것도 안 보낸 채 오래 있으면 끊습니다 */
+      let gotText=false, thinkShown=false, lastByte=Date.now();
+      const IDLE_MS=150000;
+      const tick=setInterval(()=>{
+        if(!gotText && !thinkShown && opts.onThink){ thinkShown=true; opts.onThink(curModel); }
+        if(Date.now()-lastByte>IDLE_MS){ killed='idle'; ac.abort(); }
+      },5000);
       try{
         const res=await fetch(base()+':streamGenerateContent?alt=sse',
           {method:'POST',headers:headers(),body:JSON.stringify(makeBody()),signal:ac.signal});
@@ -2966,6 +2984,7 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
         while(true){
           const {value,done}=await reader.read();
           if(done) break;
+          lastByte=Date.now();
           buf+=dec.decode(value,{stream:true});
           let i;
           while((i=buf.indexOf('\n'))>=0){
@@ -2976,7 +2995,9 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
             if(!p || p==='[DONE]') continue;
             try{
               const j=JSON.parse(p);
-              const fr=j.candidates?.[0]?.finishReason;
+              let fr=j.candidates?.[0]?.finishReason;
+              /* Gemini 4 의 CONTINUATION — "한도에 닿아 이어 받아야 함". 막힘이 아니라 잘림입니다 */
+              if(fr==='CONTINUATION') fr='MAX_TOKENS';
               if(fr) fin=fr;      /* 스트리밍에서도 끝난 이유를 챙깁니다 (MAX_TOKENS 를 놓치지 않게) */
               /* ① 원문(입력)이 걸린 경우 — 이쪽이 먼저입니다 */
               if(j.promptFeedback?.blockReason){
@@ -2993,6 +3014,7 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
               const t=(j.candidates?.[0]?.content?.parts||[])
                 .filter(x=>x.text&&!x.thought).map(x=>x.text).join('');
               if(t){
+                if(!gotText){ gotText=true; if(thinkShown) opts.onThink(null); }
                 full+=t; opts.onChunk(full);
                 /* 폭주가 시작되면 끝까지 받을 이유가 없습니다 — 그만큼 사용량이 나가니까요.
                    2,000자마다 한 번씩만 봅니다 (글자마다 보면 느려집니다) */
@@ -3035,6 +3057,10 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
             if(retryLoop()) continue;
             throw loopError();
           }
+          if(killed==='idle'){                              /* 서버가 오래 아무것도 안 보냄 */
+            if(tryNextModel()){ say(`답이 없어서 ${curModel} 로 바꿔 다시 하는 중`); a--; continue; }
+            throw new Error('모델이 2분 넘게 아무 답도 보내지 않았어요.\n설정에서 다른 모델을 골라 다시 해 주세요.');
+          }
           throw e;
         }
         if(e.message==='__nostream__'){ opts=Object.assign({},opts,{onChunk:null}); continue; }
@@ -3044,6 +3070,7 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
         }
         throw e;
       }finally{
+        clearInterval(tick);
         if(sig) sig.removeEventListener('abort', relay);
       }
     }
@@ -3076,6 +3103,7 @@ async function askGemini(key,model,prompt,system,maxTok,opts){
       throw new Error('응답이 비어 있어요.');
     }
     const text=(cand.content?.parts||[]).filter(p=>p.text&&!p.thought).map(p=>p.text).join('');
+    if(cand.finishReason==='CONTINUATION') cand.finishReason='MAX_TOKENS';   /* Gemini 4 — 잘림과 같음 */
     if(cand.finishReason==='MAX_TOKENS'){
       /* 짧은 요청이 잘리면 한 번만 넉넉히 늘려 다시 — 예전엔 두 배씩 다섯 번까지, 상한도 없이 보냈어요 */
       if(opts.fast && cutTries++<1){ maxTok=Math.min((maxTok||2048)*4, 65536); noThink=true; deep=false; continue; }
@@ -4107,6 +4135,9 @@ async function translate(){
           const opt={noThink, onStatus, signal, wantFull:true, srcLen:piece.length, src:piece,
                      loopTimes:CK.loopTimes};
           if(t){ opt.temp=0.3; opt.noThink=false; opt.deep=true; }
+          /* 새 모델이 번역 전에 오래 생각할 때 — 멈춘 게 아니라는 걸 보여 줍니다 */
+          const lab=$('statusText').textContent;
+          opt.onThink=m=>{ $('statusText').textContent = m ? `${lab} · ${m} 가 생각하는 중…` : lab; };
           if(box) opt.onChunk=(full)=>{
             /* 목록 표시가 조금 달라도("고유명사>>>") 미리보기에 목록이 비치지 않게 */
             const gm=full.match(GLOSS_RE);
